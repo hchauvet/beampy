@@ -1,6 +1,6 @@
 # Beampy
 
-Beampy is a python tool to create slideshow in svg that can be display with HTML5 (fixed size without fancy stuff, just a slidshow) or PDF.
+Beampy is a python tool to create slideshow in svg that can be display with HTML5 (fixed size without fancy stuffs, just a slideshow) or PDF.
 
 ## Introduction
 
