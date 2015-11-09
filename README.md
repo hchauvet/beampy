@@ -30,6 +30,8 @@ Slide can contains:
 Svg slides are expoted in html5 with every raster elements embed in one file.
 The slides can also be exported to svg and pdf (videos and animations are not rendered in pdf/Svg)
 
+Beampy uses a simple cache system to compile slide only when it's needed!
+
 ## A quick exemple :
 
 ```python
@@ -48,6 +50,8 @@ save('./beampy_presentation.html')
 #To save in pdf just change the above command to the following
 #save('./beampy_presentation.pdf')
 ```
+
+[See the result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/simple_one.html)
 
 ## Instalation
 
