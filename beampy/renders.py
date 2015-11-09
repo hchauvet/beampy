@@ -29,9 +29,10 @@ def render_slide( slide ):
     out = pre+"""\n<svg width='%ipx' height='%ipx' style='position: absolute; top:0px; left:0px; %s' xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n"""%(document._width,document._height,slide['style'])
     animout = [] #dict to store animations
     cpt_anim = 0 #animations counter
+    element_id = 0 #counter for element
     scriptout = "" #String to store javascript output
     htmlout = "" #for html
-    
+
     #Render the content of the slide
     if slide['title'] != None:
         #Convert arguments to svg arguments
@@ -41,6 +42,27 @@ def render_slide( slide ):
         #out += "\n</svg>"
         out += "\n</g>\n"
         #out += '<g><line x1="%s" y1="%s" x2="10cm" y2="%s" style="stroke: #000000"/></g>'%(convert_unit("1cm"),convert_unit(slide['title']['args']['y']),convert_unit(slide['title']['args']['y']))
+
+    #Check if elements can be obtained from cache
+    cptcache = 0
+    for i, ct in enumerate(slide['contents']):
+
+        if document._cache != None:
+            ct['id'] = i
+            ct_cache = document._cache.is_cached('slide_%i'%slide['num'], ct)
+            if ct_cache != None:
+                slide['contents'][i] = ct_cache
+                cptcache += 1
+
+            #print ct.keys()
+
+    if cptcache > 0:
+        if cptcache == 1:
+            outstr = '[Slide %i] Get %i element from cache'%(slide['num'], cptcache)
+        else:
+            outstr = '[Slide %i] Get %i elements from cache'%(slide['num'], cptcache)
+
+        print(outstr)
 
 
     #Render the content of the slide
@@ -60,14 +82,32 @@ def render_slide( slide ):
             for i, ct in enumerate(group_contents):
 
                 if 'type' in ct and ct['render'] != None:
-                    #Check if we need to render html outside of svg
-                    if ct['type'] == 'html':
-                        tmphtml, tmpw, tmph = ct['render']( ct['content'], ct['args'] )
-                        ct['renderedgroup'] = {"group_id":group['args']['group_id'],"width":tmpw,"height":tmph}
-                        #print("Warning html type (video and bokeh) are not placed in groups")
+                    ct['id'] = i + group['content_start']
+
+                    #Check if the element is already in cache
+                    if ('renderedgroup' in ct) or ('rendered' in ct):
+                        if ct['type'] in 'html':
+                            tmph, tmpw = ct['renderedgroup']['height'], ct['renderedgroup']['width']
+                        else:
+                            tmph, tmpw = ct['rendered']['height'], ct['rendered']['width']
+
+                        #print('elem %i from cache'%i)
                     else:
-                        tmpsvg, tmpw, tmph = ct['render']( ct['content'], ct['args'] )
-                        ct['rendered'] = {"svg":tmpsvg,"width":tmpw,"height":tmph}
+                        #print('elem %i rendered'%i)
+                        #Check if we need to render html outside of svg
+                        if ct['type'] == 'html':
+                            tmphtml, tmpw, tmph = ct['render']( ct['content'], ct['args'] )
+                            ct['renderedgroup'] = {"group_id":group['args']['group_id'],"width":tmpw,"height":tmph}
+                            #print("Warning html type (video and bokeh) are not placed in groups")
+                        else:
+                            tmpsvg, tmpw, tmph = ct['render']( ct['content'], ct['args'] )
+                            ct['rendered'] = {"svg":tmpsvg,"width":tmpw,"height":tmph, "group_id":group['args']['group_id']}
+
+                    #print tmpw, tmph
+                    #Add content to the cache
+                    if document._cache != None:
+                        document._cache.add_to_cache('slide_%i'%slide['num'], ct)
+
 
                     group_height += tmph
                     tmp_width += [tmpw]
@@ -89,6 +129,7 @@ def render_slide( slide ):
 
 
             #Place elements in the groups
+            #print group['args']['height'], group['args']['width']
             place_content(group_contents, group['args']['height'], group['args']['width'],
                           xtop=0, all_height=group_contents_all_height)
             #Create the correct svg for the group and then remove content from the slide['contents']['rendered']
@@ -98,12 +139,12 @@ def render_slide( slide ):
                             'content': '',
                             'render': render_group}
 
-            groupcontent['content'] = ''
+            #groupcontent['content'] = ''
             for i, ct in enumerate(group_contents):
                 if 'rendered' in ct:
                     #Add rendered content to groupcontent
-                    groupcontent['content'], animout, htmlout = write_content(ct, groupcontent['content'], animout, htmlout)
-                    
+                    groupcontent['content'], animout, htmlout, cpt_anim = write_content(ct, groupcontent['content'], animout, htmlout, cpt_anim)
+
                     #remove the rendered part from slides content and set render to None
                     slide['contents'][group['content_start']+i]['render'] = None #not processed in the next loop
                     slide['contents'][group['content_start']+i].pop('rendered')
@@ -111,7 +152,7 @@ def render_slide( slide ):
             #Add content to group list
             group['content'] = groupcontent
             #print groupcontent
-            
+
         #Need a second loop to add groups to slide contents
         for group in groups:
             #Add groupcontent to the slide contents
@@ -122,14 +163,26 @@ def render_slide( slide ):
     for i, ct in enumerate(slide['contents']):
         #Si on trouve des texts
         if 'type' in ct and ct['render'] != None:
-            #Check if we need to render html outside of svg
-            if ct['type'] == 'html':
-                tmphtml, tmpw, tmph = ct['render']( ct['content'], ct['args'] )
-                ct['rendered'] = {"html":tmphtml,"width":tmpw,"height":tmph}
+            ct['id'] = i
+
+            #Check if the element is already in cache
+            if 'rendered' in ct:
+                tmph, tmpw = ct['rendered']['height'], ct['rendered']['width']
+                #print(ct['type'])
             else:
-                #Use the defined render function in the content dict['render']
-                tmpsvg, tmpw, tmph = ct['render']( ct['content'], ct['args'] )
-                ct['rendered'] = {"svg":tmpsvg,"width":tmpw,"height":tmph}
+
+                #Check if we need to render html outside of svg
+                if ct['type'] == 'html':
+                    tmphtml, tmpw, tmph = ct['render']( ct['content'], ct['args'] )
+                    ct['rendered'] = {"html":tmphtml,"width":tmpw,"height":tmph}
+                else:
+                    #Use the defined render function in the content dict['render']
+                    tmpsvg, tmpw, tmph = ct['render']( ct['content'], ct['args'] )
+                    ct['rendered'] = {"svg":tmpsvg,"width":tmpw,"height":tmph}
+
+            #Add content to the cache
+            if document._cache != None:
+                document._cache.add_to_cache('slide_%i'%slide['num'], ct)
 
             if ct['args']['y'] == 'auto':
                 all_height[i] = tmph
@@ -149,13 +202,13 @@ def render_slide( slide ):
     #add group to contents svg to place them
     for ct in slide['contents']:
 
-        if 'rendered' in ct:            
+        if 'rendered' in ct:
             #add the content to the output
-            out, animout, htmlout = write_content(ct, out, animout, htmlout)
+            out, animout, htmlout, cpt_anim = write_content(ct, out, animout, htmlout, cpt_anim)
             #Check if we have javascript to output
             if 'script' in ct['args']:
                 scriptout += ct['args']['script']
-                
+
     #Add grid and fancy stuff...
     if document._guide:
         available_height = document._height - xtop
@@ -173,23 +226,22 @@ def render_slide( slide ):
     if htmlout != "":
         slide['html_output'] = htmlout
         #print htmlout
-        
+
     #Add script to the end of svg_output
     if scriptout != "":
         slide['script'] = scriptout
-        
+
     return out
 
 
-def write_content(ct, svgoutputlist, animationoutputlist, htmloutputlist):
+def write_content(ct, svgoutputlist, animationoutputlist, htmloutputlist, cpt_anim):
     """
-        function to write rendered content ct in the good output list 
+        function to write rendered content ct in the good output list
         svgoutputlist -> svg
         animationoutputlist -> svganimation
         htmloutputlist -> htmlcontent
     """
-    global cpt_anim
-    
+
     if ct['type'] in ['animatesvg'] and document._output_format=='html5':
         #Pre cache raster images
         frames_svg_cleaned, all_images = pre_cache_svg_image(ct['rendered']['svg'])
@@ -208,28 +260,28 @@ def write_content(ct, svgoutputlist, animationoutputlist, htmloutputlist):
 
         #Add +1 to anim counter
         cpt_anim += 1
-        
+
     elif ct['type'] == 'html' and document._output_format=='html5':
         htmloutputlist += """<div style="position: fixed; left: %spx; top: %spx;"> %s </div>"""%(ct['args']['x'],ct['args']['y'],ct['rendered']['html'])
         htmloutputlist += "</br>"
         #print htmloutputlist
-        
+
     else:
         if ct['type'] not in ['html']:
-            svgoutputlist += '<g transform="translate(%s,%s)">'%(ct['args']['x'],ct['args']['y'])                              
+            svgoutputlist += '<g transform="translate(%s,%s)">'%(ct['args']['x'],ct['args']['y'])
             svgoutputlist += ct['rendered']['svg']
-            
+
             #add a box around groups
             if document._text_box and ct['type'] == 'group':
                 svgoutputlist +="""<rect x="0"  y="0" width="%s" height="%s" style="stroke:#009900;stroke-width: 1;stroke-dasharray: 10 5;fill: none;" />"""%(ct['args']['width'],ct['args']['height'])
-                
+
             svgoutputlist += '</g>'
 
-    return svgoutputlist, animationoutputlist, htmloutputlist
-    
+    return svgoutputlist, animationoutputlist, htmloutputlist, cpt_anim
+
 def place_content(contents, layer_height, layer_width, xtop=0, all_height = {}):
     """
-    function to place all contents correctly, do the centering and repartition 
+    function to place all contents correctly, do the centering and repartition
     on page and conpute x,y when we enter relative position
     """
 
@@ -273,16 +325,16 @@ def place_content(contents, layer_height, layer_width, xtop=0, all_height = {}):
             content = ct['rendered']
         if 'renderedgroup' in ct:
             content = ct['renderedgroup']
-            
+
         if ('rendered' in ct) or ('renderedgroup' in ct):
-            
+
             #If it's an html element an it's in a group add group_x group_y to tmpx tmpy
             if ('html' in ct['type']) and ('renderedgroup' in ct) and (ct['renderedgroup']['group_id'] == cur_group_id):
                 #print cur_group_x, cur_group_y
-                ct['args']['x'] = "%0.1f"%( float(ct['args']['x']) + float(cur_group_x)) 
-                ct['args']['y'] = "%0.1f"%( float(ct['args']['y']) + float(cur_group_y))     
-                
-                
+                ct['args']['x'] = "%0.1f"%( float(ct['args']['x']) + float(cur_group_x))
+                ct['args']['y'] = "%0.1f"%( float(ct['args']['y']) + float(cur_group_y))
+
+
             tmpx = ct['args']['x']
             tmpy = ct['args']['y']
 
@@ -302,11 +354,11 @@ def place_content(contents, layer_height, layer_width, xtop=0, all_height = {}):
             #Contert tmpx and tmpy to pixels
             tmpy = convert_unit(tmpy)
             tmpx = convert_unit(tmpx)
-                                
+
             #Store tmpx and tmpy back to the content x, y variables
             ct['args']['x'] = tmpx
             ct['args']['y'] = tmpy
-            
+
             #print tmpx, tmpy
             #Compute the next prevx and prevy
             prevx = float(tmpx) + content['width']

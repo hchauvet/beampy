@@ -15,7 +15,19 @@ import glob
 def animatesvg(files_folder, start=0, end='end', x='center',y='auto',
                width=None, height=None, fps=25, autoplay=False):
     """
-        Function to create svg animation
+        Function to create svg animation from a folder containing svg files
+
+        - files_folder: Folder containing svg like "./my_folder/"
+
+        - x['center']: x coordinate of the image
+                       'center': center image relative to document._width
+                       '+1cm": place image relative to previous element
+
+        - y['auto']: y coordinate of the image
+                     'auto': distribute all slide element on document._height
+                     'center': center image relative to document._height (ignore other slide elements)
+                     '+3cm': place image relative to previous element
+
     """
 
     if width == None:

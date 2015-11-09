@@ -10,20 +10,29 @@ from beampy import document
 from beampy.functions import gcs, convert_unit, make_global_svg_defs, latex2svg
 from bs4 import BeautifulSoup
 import re
+import time
 
 def text( textin, x='center', y='auto', width=None, color="", size="",
          align='', font="", usetex = True):
 
     """
-        Function to add a text to the current slide 
-        
+        Function to add a text to the current slide
+
         Options
         -------
-        
-        
+
+        - x['center']: x coordinate of the image
+                       'center': center image relative to document._width
+                       '+1cm": place image relative to previous element
+
+        - y['auto']: y coordinate of the image
+                     'auto': distribute all slide element on document._height
+                     'center': center image relative to document._height (ignore other slide elements)
+                     '+3cm': place image relative to previous element
+
         Exemples
         --------
-        
+
         text('this is my text', '20', '20')
     """
 
@@ -41,7 +50,7 @@ def text( textin, x='center', y='auto', width=None, color="", size="",
             args['font-size'] = int(document._theme.get('text','size'))
         if font == "":
             args['font'] = document._theme.get('text','font')
-        
+
     textout = {'type': 'text', 'content': textin, 'args': args,
                "render": render_text}
 
@@ -66,11 +75,11 @@ def title( title, usetex=True):
         args['x'] = document._theme.get('title','x')
         args['y'] = document._theme.get('title','y')
         args['reserved_y'] = document._theme.get('title','yspace')
-        
+
     titleout = {'content':title, "args":args, "render": render_text }
 
     document._contents[gcs()]['title']=titleout
-         
+
 
 def render_text( textin, args, usetex=True):
     """
@@ -111,8 +120,8 @@ def render_text( textin, args, usetex=True):
         \usepackage{varwidth}
         \usepackage{amsmath}
         \usepackage{amsfonts}
-        \usepackage{amssymb}        
-        
+        \usepackage{amssymb}
+
         \begin{document}
         \begin{varwidth}{%ipt}
         %s
@@ -134,19 +143,21 @@ def render_text( textin, args, usetex=True):
         if 'path' not in document._global_counter:
             document._global_counter['path'] = 0
 
+        #Create unique_id_ with time
+        text_id =  ("%0.2f"%time.time()).split('.')[-1]
         for path in soup.find_all('path'):
             pid = path.get('id')
-            new_pid = 'g%i'%document._global_counter['path']
+            new_pid = '%s_%i'%(text_id, document._global_counter['path'])
             testsvg = re.sub(pid,new_pid, testsvg)
             #path['id'] = new_pid //Need to change also the id ine each use elements ... replace (above) is simpler
             document._global_counter['path'] += 1
 
         #Reparse the svg
         soup = BeautifulSoup(testsvg, 'xml')
-        
+
         #Change id in svg defs to use the global id system
         soup = make_global_svg_defs(soup)
-        
+
         svgsoup = soup.find('svg')
 
         xinit, yinit, text_width, text_height = svgsoup.get('viewBox').split()
@@ -160,15 +171,15 @@ def render_text( textin, args, usetex=True):
             uses = soup.find_all('use')
         except:
             print soup
-            
+
         if len(uses) > 0:
             #TODO: need to make a more fine definition of baseline
             baseline = 0
             for use in uses:
                 if use.has_attr('y'):
-                    baseline = float(use.get('y'))        
+                    baseline = float(use.get('y'))
                     break
-            
+
             if baseline == 0:
                 print("Baseline one TeX error and is put to 0")
                 #print baseline

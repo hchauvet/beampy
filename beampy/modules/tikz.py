@@ -7,7 +7,7 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.functions import gcs, convert_unit
+from beampy.functions import gcs, convert_unit, latex2svg
 import glob
 import os
 from bs4 import BeautifulSoup
@@ -17,12 +17,12 @@ def tikz(tikscommands, x='0', y='0', tikz_header=None, tex_packages=None,
          figure_options=None):
     """
         Function to render tikz commands to svg
-        
+
         options:
         --------
-        - tikz_header: allow to add extra tikslibraries and style, everything that 
+        - tikz_header: allow to add extra tikslibraries and style, everything that
                        is included befor \begin{document}
-                     
+
                        exp:
                        tikz_header = " \usetikzlibrary{shapes.geometric}
                                      % Vector Styles
@@ -31,12 +31,12 @@ def tikz(tikscommands, x='0', y='0', tikz_header=None, tex_packages=None,
                                      \tikzstyle{dim}    = [latex-latex]
                                      \tikzstyle{axis}   = [-latex,black!55]
                                      "
-        - tex_packages: Add extra \usepackages in tex document. 
+        - tex_packages: Add extra \usepackages in tex document.
                         Need to be a list of string
-                        
+
                         expl:
                         tex_packages = ['xolors','tikz-3dplot']
-                        
+
         - figure_options: options for \begin{tikzfigure}[options]
     """
 
@@ -44,29 +44,29 @@ def tikz(tikscommands, x='0', y='0', tikz_header=None, tex_packages=None,
 
     if tikz_header:
         args['tikzheader'] = tikz_header
-        
+
     if tex_packages:
         args['tex_packages'] = tex_packages
-    
+
     if figure_options:
         args['tikzfigureoptions'] = figure_options
-        
+
     textout = {'type': 'tikz', 'content': tikscommands, 'args': args,
                "render": render_tikz}
 
     document._contents[gcs()]['contents'] += [ textout ]
-    
+
 
 def render_tikz( tikzcommands, args ):
     """
     Latex -> dvi -> svg for tikz image
     """
-    
+
     tex_pt_to_px = 96/72.27
-    
+
     #replace '\slidewidth'
     tiktikzcommands = tikzcommands.replace( r'\slidewidth','%ipt'%0.75*document._width)
-    
+
     #Include extrac packages for tex
     if 'tex_packages' in args:
         extra_tex_packages = '\n'.join(['\\usepackages{%s}'%pkg for pkg in args['tex_packages']])
@@ -76,13 +76,13 @@ def render_tikz( tikzcommands, args ):
     #Include extra tikz headers
     if 'tikzheader' in args:
         extra_tex_packages += '\n' + args['tikzheader']
-        
+
     #Tikzfigure options in []
     if 'tikzfigureoptions' in args:
         tikz_fig_opts = '['+args['tikzfigureoptions']+']'
     else:
         tikz_fig_opts = ''
-        
+
     #Render to a dvi file
     pretex = """
     \\documentclass[tikz,svgnames]{standalone}
@@ -97,25 +97,8 @@ def render_tikz( tikzcommands, args ):
     \\end{document}
     """%(extra_tex_packages,tikz_fig_opts,tikzcommands)
 
-    #Write the document to a tmp file
-    tmpnam = os.tempnam()
-
-    with open( tmpnam + '.tex', 'w' ) as f:
-        f.write( pretex )
-
-    #Run Latex
-    tex = os.popen( "cd /tmp/ && latex -interaction=nonstopmode "+tmpnam+".tex" )
-    tex_msg = tex.read()
-    tex.close()
-
-    #Transform .dvi to .svg
-    res = os.popen( 'dvisvgm -n -s -e -v0 '+tmpnam+'.dvi' )
-    svgout = res.read()
-    res.close()
-
-    #Remove temp files
-    for f in glob.glob(tmpnam+'*'):
-        os.remove(f)
+    #latex2svg
+    svgout = latex2svg(pretex)
 
     if svgout != '':
 
@@ -132,7 +115,7 @@ def render_tikz( tikzcommands, args ):
         xinit, yinit, tikz_width, tikz_height = svgsoup.get('viewBox').split()
         tikz_width = float(tikz_width)
         tikz_height = float(tikz_height)
-        
+
         newmatrix = 'scale(%0.3f) translate(%0.1f,%0.1f)'%(tex_pt_to_px, -float(xinit), -float(yinit))
         g['transform'] = newmatrix
 

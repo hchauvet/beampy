@@ -11,23 +11,25 @@ from beampy.functions import gcs, convert_unit
 import base64
 
 
-def video(videofile, width, height, x='center',y='auto',
+def video(videofile, width=None, height=None, x='center',y='auto',
           fps=25, autoplay=False):
     """
     Add video in webm format
-    
+
     width and height must be specified !
-    
+
     width = None -> document._width
     heigh = None -> document._height
     """
 
     #if no width is given get the default width
     if width == None:
+        print("Warning: no video width given!")
         width = str(document._width)
     if height == None:
+        print("Warning: no video height given!")
         height = str(document._height)
-        
+
     #check extension
     ext = None
     if '.webm' in videofile.lower():
@@ -51,7 +53,7 @@ def video(videofile, width, height, x='center',y='auto',
         #Add video to the document
         videout = {'type': 'html', 'content': datain, 'args': args,
                    "render": render_video}
-                   
+
         document._contents[gcs()]['contents'] += [ videout ]
 
 
@@ -68,7 +70,7 @@ def render_video(videob64, args):
     otherargs = ''
     width = convert_unit(args['width'])
     height = convert_unit(args['height'])
-    
+
     if args['autoplay'] == True:
         otherargs += ' autoplay'
 
