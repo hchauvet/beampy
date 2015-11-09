@@ -51,24 +51,28 @@ save('./beampy_presentation.html')
 
 ## Instalation
 
-Add *beampy* folder to your python path. You can do it at the beggining of your script using *sys* module:
+Add *beampy* folder to your python path.
+
+You can do it at the begining of your script using *sys* module:
 
 ```python
 import sys
 sys.path.append('/path/to/beampy')
 
+#Test to import beampy
+from beampy import *
 ```
 
 ### Requirements:
 Beampy includes a version of svg optimized written in python "scour"
-(https://github.com/codedread/scour)[https://github.com/codedread/scour].
+[https://github.com/codedread/scour](https://github.com/codedread/scour).
 
-Python programs
+##### Python programs
 
 - Beautiful Soup (pip install beautifulsoup4// or use conda )
 - Python Image Library (PIL) (available in linux // or in anaconda)
 
-External programs
+##### External programs
 
 - Inkscape (for pdf export and svg size estimation)
 - dvisvgm (to translate latex dvi to svg) Available in Tex Live distribution
@@ -77,6 +81,15 @@ External programs
   On debian:
   sudo apt-get install texlive-extra-utils
 
+To change path of these command in beampy:
+```python
+from beampy import *
+
+doc = document()
+
+document._external_cmd['inkscape'] = '/path/to/inkscape'
+document._external_cmd['dvisvgm'] = '/path/to/dvisvgm'
+```
 
 ##### Optionals
 
@@ -94,7 +107,6 @@ External programs
 ###Group and columns
 
 ###Placement system
-
 
 ## How to write your own modules
 

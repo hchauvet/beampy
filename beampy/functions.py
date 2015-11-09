@@ -18,7 +18,8 @@ _width = None
 _height = None
 doc = None
 
-inkscapecmd='inkscape'
+inkscapecmd = document._external_cmd['inkscape']
+dvisvgmcmd = document._external_cmd['dvisvgm']
 
 def unit_operation( value, to=0 ):
     """
@@ -237,7 +238,7 @@ def latex2svg(latexstring):
         print output
     else:
         #dvisvgm to convert dvi to svg
-        res = os.popen( 'dvisvgm -n -s -e -v0 '+tmpnam+'.dvi' )
+        res = os.popen( dvisvgmcmd+' -n -s -e -v0 '+tmpnam+'.dvi' )
         testsvg = res.read()
         res.close()
 

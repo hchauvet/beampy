@@ -9,6 +9,8 @@ from ConfigParser import SafeConfigParser
 import beampy
 bppath =  str(beampy).split('beampy')[1].split('from')[-1].strip().replace("'",'')+'beampy/'
 
+import os 
+
 class document():
     """
        Main function to define the document style etc...
@@ -25,7 +27,7 @@ class document():
     _theme = None
     _cache = None
     #Define path to external commands
-    _external_cmd = {"inksckape": "inksckape",
+    _external_cmd = {"inkscape": "inkscape",
                      "dvisvgm": "dvisvgm",
                     }
 
@@ -104,4 +106,5 @@ class document():
         self.themeparser = themeparser
         document._theme = self.themeparser
 
-        
+
+
