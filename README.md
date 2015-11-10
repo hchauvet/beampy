@@ -8,6 +8,8 @@ Beampy presentation output only one html file with every contents embedded.
 
 Beampy is in early stage development! 
 
+You can have a look to **beampy_tests.html** file in examples folder to get an idea of Beampy presentation output.
+
 ## Introduction
 
 Beampy is in between Latex beamer and html5 slide-show libraries.
@@ -109,17 +111,122 @@ document._external_cmd['pdfjoin'] = '/path/to/pdfjoin'
 - python-pygment (for code coloration command)
 - bokeh (to include bokeh interactive plot in figure command)
 
-## Exemples
+## Examples
+
+To see all these examples download the **beampy_tests.html** file in the example folder
 
 ###Figure
 
+```python
+from beampy import *
+doc = document()
+
+slide()
+title('Figure')
+figure("./svg_anims/test_0.svg", width="500")
+
+save('test.html')
+```
+
 ###Svg plot animation
 
-###Bokeh interactive plot
+```python
+from beampy import *
+doc = document()
+
+slide()
+title('Svg animation')
+animatesvg("./svg_anims/", width="500")
+
+save('test.html')
+```
+
+###Video
+
+```python
+from beampy import *
+doc = document()
+
+slide()
+title('Video')
+video("./test.webm", width="500", height="294")
+
+save('test.html')
+```
 
 ###Group and columns
 
-###Placement system
+```python
+from beampy import *
+doc = document()
+
+slide()
+title('Group and columns')
+colwidth=350
+begingroup(width=colwidth, height=doc._height-100, x="1cm", y="1.8cm", background="#000")
+text("""
+This is a test for a long text in a column style. 
+
+$$ \sum_{i=0}^{10} x_i $$ 
+""", align="center", width=colwidth-20, color="#ffffff")
+endgroup()
+
+save('test.html')
+```
+
+###Relative positioning
+
+```python
+from beampy import *
+doc = document()
+
+slide()
+title('Relative positioning')
+text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
+text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
+text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
+
+text("youpi x=+1cm, y=+0.5cm", x="+1cm", y="+0.5cm")
+text(r"youpi x=-1.5cm,\\ y=+0.5cm", x="-1.5cm", y="+0.5cm")
+text(r"youpi x=+1.5cm,\\ y=+0cm", x="+1.5cm", y="+0cm")
+
+save('test.html')
+```
+
+###Tikz
+
+
+```python
+from beampy import *
+doc = document()
+
+slide()
+title('Tikz')
+
+tikz(r"""\draw[->] (0,0) -- ++ (10,5);""", x="+3cm", y="+5px")
+
+save('test.html')
+```
+
+###Bokeh interactive plot
+
+```python
+from beampy import *
+from bokeh.plotting import figure as bokfig
+import numpy as np
+
+doc = document()
+
+slide()
+title('Bokeh plot')
+p = bokfig(height=300, width=600)
+x = np.linspace(0, 4*np.pi, 30  )
+y = np.sin(x)
+p.circle(x, y, legend="sin(x)")
+figure(p, y="+5px", x="center")
+
+save('test.html')
+```
 
 ## Change theme
 
