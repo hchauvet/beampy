@@ -65,7 +65,7 @@ You can do it at the beginning of your script using *sys* module:
 
 ```python
 import sys
-sys.path.append('/path/to/beampy')
+sys.path.append('/path/to/folder/beampy-master/')
 
 #Test to import beampy
 from beampy import *
