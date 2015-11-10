@@ -1,14 +1,14 @@
 # Beampy
 
+Beampy is in early stage development! 
+
 Beampy is a python tool to create slide-show in svg that can be displayed with HTML5
 (tested on Firefox and Chromium)
 The size of slides is fixed, like in a Latex Beamer document.
 
 Beampy presentation output only one html file with every contents embedded.
 
-Beampy is in early stage development! 
-
-[Beampy tests presentation](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html)
+[Beampy tests presentation](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html) (source is in *examples/beampy_tests_modules.py*)
 
 ## Introduction
 
@@ -246,6 +246,38 @@ save('test.html')
 
 [Result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html#8)
 
+### Code highlight
+
+[Pygments](http://pygments.org/) is used to highlight code
+
+```python
+from beampy import *
+
+
+doc = document()
+
+slide()
+title('Code')
+
+begingroup(width=700, height=155, background="#EFEFEF")
+
+code("""
+slide()
+title('Bokeh plot')
+from bokeh.plotting import figure as bokfig
+import numpy as np
+p = bokfig(height=300, width=600)
+x = np.linspace(0, 4*np.pi, 30  )
+y = np.sin(x)
+p.circle(x, y, legend="sin(x)")
+figure(p, y="+5px", x="center")
+""", langage="python", width="300", x="1cm")
+
+endgroup()
+
+save('test.html')
+```
+
 ## Change theme
 
 To change the global theme of slide copy the file 
@@ -260,4 +292,58 @@ doc.load_theme('./path/to/cool.theme')
 
 ## How to write your own modules
 
+Check files in *./beampy/modules/* folder.
 
+A module file contain to functions, one to define the command and the other to define the render (how command is transformed to svg)
+
+The base of a module file 
+
+```python 
+from beampy import document
+from beampy.functions import gcs, convert_unit
+
+#For the command function should output write dictionary to document._data list with 'type', 'content', 'args' and 'render' keys
+def my_command( data, x='center', y='auto', width=None, height=None):
+    
+    if width == None:
+        width = str(document._width)
+    if height == None:
+        height = str(document._height)
+            
+    args = {"x":str(x), "y": str(y) , "width": str(width), "height": str(height)}
+            
+    command_out = {'type': 'svg', 'content': data, 'args': args, "render": myrender_command}
+    
+    #Add command_out dictionary to the document data, gcs() function return current slide id
+    document._contents[gcs()]['contents'] += [ command_out ]
+
+#Render should output 3 variables: the svgpart (as text), the width (float), the height (float) 
+def myrender_command( datain, argsin ):
+    
+    #datain will be assigned to command_out['content'] 
+    #argsin will be assigned to command_out['args']
+    
+    #Now you have to translate datatin into svg syntax (or html, if args['type'] == 'html')
+    svgout = "<g> My svg output </g>"
+    width = my_svg_width
+    height = my_svg_height
+    
+    return svgout, float(width), float(height) 
+
+```
+
+Then you can test you module by importing your python file
+
+```python
+from beampy import * 
+
+from my_module import *
+
+doc = document()
+
+slide()
+title('My module')
+my_module("data needed by my module")
+
+save('test.html')
+```
