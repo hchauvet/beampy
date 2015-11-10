@@ -17,7 +17,7 @@ import os
 import time
 
 #Get the beampy folder
-curdir = str(beampy).split('beampy')[1].split('from')[-1].strip().replace("'",'')+'beampy/'
+curdir = os.path.dirname(__file__) + '/'
 
 #External tools cmd
 inkscapecmd = document._external_cmd['inkscape']

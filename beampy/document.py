@@ -6,10 +6,10 @@ Created on Fri May 22 18:28:59 2015
 """
 from ConfigParser import SafeConfigParser
 #Auto change path
-import beampy
-bppath =  str(beampy).split('beampy')[1].split('from')[-1].strip().replace("'",'')+'beampy/'
-
+#import beampy
+#bppath =  str(beampy).split('beampy')[1].split('from')[-1].strip().replace("'",'')+'beampy/'
 import os 
+bppath = os.path.dirname(__file__) + '/'
 
 class document():
     """
