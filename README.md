@@ -57,7 +57,7 @@ save('./beampy_presentation.html')
 
 [beampy_presentation.html](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/simple_one.html)
 
-## Instalation
+## Installation
 
 Add *beampy* folder to your python path.
 
