@@ -8,7 +8,7 @@ The size of slides is fixed, like in a Latex Beamer document.
 
 Beampy presentation output only one html file with every contents embedded.
 
-[Beampy tests presentation](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html) (source is in *examples/beampy_tests_modules.py*)
+[See a Beampy tests presentation](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html) (source is in *examples/beampy_tests_modules.py*)
 
 ## Introduction
 
@@ -290,7 +290,7 @@ doc = document()
 doc.load_theme('./path/to/cool.theme')
 ```
 
-## How to write your own modules
+## How to write your own module
 
 Check files in *./beampy/modules/* folder.
 
@@ -302,7 +302,8 @@ The base of a module file
 from beampy import document
 from beampy.functions import gcs, convert_unit
 
-#For the command function should output write dictionary to document._data list with 'type', 'content', 'args' and 'render' keys
+#For the command function should output write dictionary 
+#to document._data list with 'type', 'content', 'args' and 'render' keys
 def my_command( data, x='center', y='auto', width=None, height=None):
     
     if width == None:
@@ -317,7 +318,8 @@ def my_command( data, x='center', y='auto', width=None, height=None):
     #Add command_out dictionary to the document data, gcs() function return current slide id
     document._contents[gcs()]['contents'] += [ command_out ]
 
-#Render should output 3 variables: the svgpart (as text), the width (float), the height (float) 
+#Render should output 3 variables: 
+#the svgpart (as text), the width (float), the height (float) 
 def myrender_command( datain, argsin ):
     
     #datain will be assigned to command_out['content'] 
@@ -332,7 +334,7 @@ def myrender_command( datain, argsin ):
 
 ```
 
-Then you can test you module by importing your python file
+Then you can test your module by importing your python file
 
 ```python
 from beampy import * 
