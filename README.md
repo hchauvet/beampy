@@ -8,7 +8,7 @@ Beampy presentation output only one html file with every contents embedded.
 
 Beampy is in early stage development! 
 
-You can have a look to **beampy_tests.html** file in examples folder to get an idea of Beampy presentation output.
+[Beampy tests presentation](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html)
 
 ## Introduction
 
@@ -113,9 +113,10 @@ document._external_cmd['pdfjoin'] = '/path/to/pdfjoin'
 
 ## Examples
 
-To see all these examples download the **beampy_tests.html** file in the example folder
+To see all these examples download the output **beampy_tests.html** and source **beampy_tests_modules.py** files in the example folder
 
 ###Figure
+
 
 ```python
 from beampy import *
@@ -128,7 +129,11 @@ figure("./svg_anims/test_0.svg", width="500")
 save('test.html')
 ```
 
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html#2)
+
 ###Svg plot animation
+
+Click on figure to start the animation 
 
 ```python
 from beampy import *
@@ -140,6 +145,8 @@ animatesvg("./svg_anims/", width="500")
 
 save('test.html')
 ```
+
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html#3)
 
 ###Video
 
@@ -153,6 +160,8 @@ video("./test.webm", width="500", height="294")
 
 save('test.html')
 ```
+
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html#4)
 
 ###Group and columns
 
@@ -174,6 +183,8 @@ endgroup()
 save('test.html')
 ```
 
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html#5)
+
 ###Relative positioning
 
 ```python
@@ -193,6 +204,8 @@ text(r"youpi x=+1.5cm,\\ y=+0cm", x="+1.5cm", y="+0cm")
 save('test.html')
 ```
 
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html#6)
+
 ###Tikz
 
 
@@ -207,6 +220,9 @@ tikz(r"""\draw[->] (0,0) -- ++ (10,5);""", x="+3cm", y="+5px")
 
 save('test.html')
 ```
+
+Here is a more complex Tikz output on the result:
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html#7)
 
 ###Bokeh interactive plot
 
@@ -227,6 +243,8 @@ figure(p, y="+5px", x="center")
 
 save('test.html')
 ```
+
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html#8)
 
 ## Change theme
 
