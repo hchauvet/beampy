@@ -131,7 +131,7 @@ def render_slide( slide ):
             #Place elements in the groups
             #print group['args']['height'], group['args']['width']
             place_content(group_contents, group['args']['height'], group['args']['width'],
-                          xtop=0, all_height=group_contents_all_height)
+                          ytop=0, all_height=group_contents_all_height)
             #Create the correct svg for the group and then remove content from the slide['contents']['rendered']
 
             #Add a global content for the group
@@ -193,11 +193,11 @@ def render_slide( slide ):
 
     #Check if we have a title on slide
     if slide['title'] != None:
-        xtop = float(convert_unit(slide['title']['args']['reserved_y']))
+        ytop = float(convert_unit(slide['title']['args']['reserved_y']))
     else:
-        xtop = 0
+        ytop = 0
 
-    place_content(slide['contents'], document._height, document._width, xtop, all_height)
+    place_content(slide['contents'], document._height, document._width, ytop, all_height)
 
     #add group to contents svg to place them
     for ct in slide['contents']:
@@ -211,10 +211,10 @@ def render_slide( slide ):
 
     #Add grid and fancy stuff...
     if document._guide:
-        available_height = document._height - xtop
+        available_height = document._height - ytop
         out += '<g><line x1="400" y1="0" x2="400" y2="600" style="stroke: #777"/></g>'
-        out += '<g><line x1="0" y1="%0.1f" x2="800" y2="%0.1f" style="stroke: #777"/></g>'%(xtop + available_height/2.0, xtop + available_height/2.0)
-        out += '<g><line x1="0" y1="%0.1f" x2="800" y2="%0.1f" style="stroke: #777"/></g>'%(xtop, xtop)
+        out += '<g><line x1="0" y1="%0.1f" x2="800" y2="%0.1f" style="stroke: #777"/></g>'%(ytop + available_height/2.0, ytop + available_height/2.0)
+        out += '<g><line x1="0" y1="%0.1f" x2="800" y2="%0.1f" style="stroke: #777"/></g>'%(ytop, ytop)
     #Close the main svg
     out += "\n</svg>\n"
 
@@ -279,7 +279,7 @@ def write_content(ct, svgoutputlist, animationoutputlist, htmloutputlist, cpt_an
 
     return svgoutputlist, animationoutputlist, htmloutputlist, cpt_anim
 
-def place_content(contents, layer_height, layer_width, xtop=0, all_height = {}):
+def place_content(contents, layer_height, layer_width, ytop=0, all_height = {}):
     """
     function to place all contents correctly, do the centering and repartition
     on page and conpute x,y when we enter relative position
@@ -288,7 +288,7 @@ def place_content(contents, layer_height, layer_width, xtop=0, all_height = {}):
     #If we have content with auto y position
     #we compute y anchor of each content
     #height space left
-    available_height =  layer_height - xtop
+    available_height =  layer_height - ytop
 
     if all_height != {}:
         #height off all contents
@@ -302,7 +302,7 @@ def place_content(contents, layer_height, layer_width, xtop=0, all_height = {}):
 
         #print available_height, total_content_height, hspace
         #compute the y position for each elements
-        cpth = xtop + hspace
+        cpth = ytop + hspace
         for elem in all_height:
             contents[elem]['args']['y'] = "%0.1f"%cpth
 
@@ -315,8 +315,10 @@ def place_content(contents, layer_height, layer_width, xtop=0, all_height = {}):
             cpth += all_height[elem] + hspace
 
     #Place relative contents and center horizontally
-    prevx = xtop
-    prevy = 0
+    prevx = 0
+    prevy = ytop
+    prevwidth = 0
+    prevheight = 0
     cur_group_x = None
     cur_group_y = None
     cur_group_id = None
@@ -343,14 +345,29 @@ def place_content(contents, layer_height, layer_width, xtop=0, all_height = {}):
                 tmpx = "%0.1f"%(horizontal_centering(content['width'], 0,  layer_width))
             #same vertically
             if tmpy == 'center':
-                tmpy = "%0.1f"%(horizontal_centering(content['height'], xtop,  available_height))
+                tmpy = "%0.1f"%(horizontal_centering(content['height'], ytop,  available_height))
 
             #check if it's relative positioning of an element, if so add prevx or prevy to element x, y
+   
             if '+' in tmpx:
-                tmpx = "%0.1f"%( prevx + float(convert_unit(tmpx.replace('+',''))) )
+                dx = float(convert_unit(tmpx.replace('+','')))
+                if dx == 0:
+                    dx = -prevwidth
+                tmpx = "%0.1f"%( prevx + dx )
+                
             if '+' in tmpy:
-                tmpy = "%0.1f"%( prevy + float(convert_unit(tmpy.replace('+',''))) )
+                dy = float(convert_unit(tmpy.replace('+','')))
+                if dy == 0:
+                    dy = -prevheight
+                tmpy = "%0.1f"%( prevy + dy )
+                
+            if '-' in tmpx:
+                tmpx = "%0.1f"%( prevx - float(convert_unit(tmpx.replace('-',''))) - content['width'] - prevwidth )
+                
+            if '-' in tmpy:
+                tmpy = "%0.1f"%( prevy - float(convert_unit(tmpy.replace('-',''))) - content['height'] - prevheight )
 
+                
             #Contert tmpx and tmpy to pixels
             tmpy = convert_unit(tmpy)
             tmpx = convert_unit(tmpx)
@@ -363,8 +380,9 @@ def place_content(contents, layer_height, layer_width, xtop=0, all_height = {}):
             #Compute the next prevx and prevy
             prevx = float(tmpx) + content['width']
             prevy = float(tmpy) + content['height']
-
-
+            
+            prevwidth = content['width']
+            prevheight = content['height']
 
             #Check if a group have just been placed
             #If a group have been rendered take is x, and y to add to bokeh and html elements
@@ -377,6 +395,10 @@ def render_group(groupsvgs, args):
     """
         group render
     """
-
-    return groupsvgs, float(args['width']), float(args['height'])
+    if args["background"] != None:
+        pre_rect = '<rect width="%s" height="%s" style="fill:%s;" />'%(args['width'], args['height'], args['background'])
+    else:
+        pre_rect = ''
+        
+    return pre_rect + groupsvgs, float(args['width']), float(args['height'])
 

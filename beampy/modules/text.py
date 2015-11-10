@@ -121,7 +121,7 @@ def render_text( textin, args, usetex=True):
         \usepackage{amsmath}
         \usepackage{amsfonts}
         \usepackage{amssymb}
-
+        
         \begin{document}
         \begin{varwidth}{%ipt}
         %s

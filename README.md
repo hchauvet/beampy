@@ -1,14 +1,16 @@
 # Beampy
 
-Beampy is a python tool to create slideshow in svg that can be displayed with HTML5
+Beampy is a python tool to create slide-show in svg that can be displayed with HTML5
 (tested on Firefox and Chromium)
 The size of slides is fixed, like in a Latex Beamer document.
 
-Beampy presentation output only one html file with every contents embeded.
+Beampy presentation output only one html file with every contents embedded.
+
+Beampy is in early stage development! 
 
 ## Introduction
 
-Beampy is in between Latex beamer and html5 slideshow libraries.
+Beampy is in between Latex beamer and html5 slide-show libraries.
 It creates slides in svg format (with a bit of HTML5 for video and interactive
 things like Bokeh plots).
 
@@ -27,7 +29,7 @@ Slide can contains:
 
 - Tikz/PGF figure and graphics
 
-Svg slides are expoted in html5 with every raster elements embed in one file.
+Svg slides are exported in html5 with every raster elements embed in one file.
 The slides can also be exported to svg and pdf (videos and animations are not rendered in pdf/Svg)
 
 Beampy uses a simple cache system to compile slide only when it's needed!
@@ -51,13 +53,13 @@ save('./beampy_presentation.html')
 #save('./beampy_presentation.pdf')
 ```
 
-[See the result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/simple_one.html)
+[beampy_presentation.html](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/simple_one.html)
 
 ## Instalation
 
 Add *beampy* folder to your python path.
 
-You can do it at the begining of your script using *sys* module:
+You can do it at the beginning of your script using *sys* module:
 
 ```python
 import sys
@@ -84,8 +86,14 @@ Beampy includes a version of svg optimized written in python "scour"
 
   On debian:
   sudo apt-get install texlive-extra-utils
+  
+- pdfjoin (tool to join pdf pages) it is part of [pdfjam project](http://www2.warwick.ac.uk/fac/sci/statistics/staff/academic-research/firth/software/pdfjam/) and is also included in Tex Live distribution
+    
+   On debian:
+   sudo apt-get install texlive-extra-utils
 
-To change path of these command in beampy:
+
+To change path of these command in beampy (by defaults the command name is used):
 ```python
 from beampy import *
 
@@ -93,6 +101,7 @@ doc = document()
 
 document._external_cmd['inkscape'] = '/path/to/inkscape'
 document._external_cmd['dvisvgm'] = '/path/to/dvisvgm'
+document._external_cmd['pdfjoin'] = '/path/to/pdfjoin'
 ```
 
 ##### Optionals
@@ -111,6 +120,18 @@ document._external_cmd['dvisvgm'] = '/path/to/dvisvgm'
 ###Group and columns
 
 ###Placement system
+
+## Change theme
+
+To change the global theme of slide copy the file 
+[/beampy/statics/default.theme] where you want change it and load it with:
+
+```python
+from beampy import * 
+
+doc = document()
+doc.load_theme('./path/to/cool.theme')
+```
 
 ## How to write your own modules
 

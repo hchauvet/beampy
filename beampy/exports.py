@@ -19,6 +19,10 @@ import time
 #Get the beampy folder
 curdir = str(beampy).split('beampy')[1].split('from')[-1].strip().replace("'",'')+'beampy/'
 
+#External tools cmd
+inkscapecmd = document._external_cmd['inkscape']
+pdfjoincmd = document._external_cmd['pdfjoin']
+
 def save(output_file=None, format=None):
     """
         Function to render the document to html
@@ -80,7 +84,7 @@ def save(output_file=None, format=None):
 
 def pdf_export(name_out):
     #use inkscape to translate svg to pdf
-    svgcmd = "inkscape --without-gui  --file='%s' --export-pdf='%s'"
+    svgcmd = inkscapecmd+" --without-gui  --file='%s' --export-pdf='%s'"
     bdir = os.path.dirname(name_out)
 
     print('Render svg slides')
@@ -93,7 +97,7 @@ def pdf_export(name_out):
         res.close()
 
     #join all pdf
-    res = os.popen('pdfjoin %s -o %s'%(' '.join(['"'+bdir+'/tmp/slide_%i.pdf"'%i for i in xrange(document._global_counter['slide']+1)]), name_out))
+    res = os.popen(pdfjoincmd+' %s -o %s'%(' '.join(['"'+bdir+'/tmp/slide_%i.pdf"'%i for i in xrange(document._global_counter['slide']+1)]), name_out))
     output = res.read()
 
     res.close()
@@ -121,7 +125,7 @@ def pdf_cairo_export(name_out):
             print("export failed")
 
     #join all pdf
-    res = os.popen('pdfjoin %s*.pdf -o %s'%(bdir+'/tmp/',name_out))
+    res = os.popen(pdfjoincmd+' %s*.pdf -o %s'%(bdir+'/tmp/',name_out))
     output = res.read()
 
     res.close()

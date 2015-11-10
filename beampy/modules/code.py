@@ -20,7 +20,7 @@ try:
 except:
     is_pigment = False
     
-def code( codetext, x='center', y='auto', width=None, height=None, langage=None, size="14px"):
+def code( codetext, x='center', y='auto', width=None, height=None, langage=None, size="14px" ):
     """
         Color a given code using python pygment
         
@@ -39,7 +39,7 @@ def code( codetext, x='center', y='auto', width=None, height=None, langage=None,
     if height == None:
         height = str(document._height)
             
-    args = {"x":str(x), "y": str(y) , "width": width, "height": height,
+    args = {"x":str(x), "y": str(y) , "width": str(width), "height": str(height),
             "langage": langage, 'font-size': size }
             
     codeout = {'type': 'code', 'content': codetext, 'args': args,
@@ -90,5 +90,5 @@ def render_code( codein, args ):
     args['ext'] = 'svg'
     tmpout, tmpw, tmph = render_figure(goodsvg, args)
     #print tmpw, tmph
-    tmpout = '<g> %s </g>'%tmpout
+    tmpout = '<g> %s </g>'%(tmpout)
     return tmpout, tmpw, tmph

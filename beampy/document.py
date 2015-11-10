@@ -29,7 +29,7 @@ class document():
     #Define path to external commands
     _external_cmd = {"inkscape": "inkscape",
                      "dvisvgm": "dvisvgm",
-                    }
+                     "pdfjoin": "pdfjoin"}
 
     def __init__(self, width=800, height=600, guide = False, text_box = False, optimize=True, cache=True):
         """

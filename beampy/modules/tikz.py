@@ -122,7 +122,7 @@ def render_tikz( tikzcommands, args ):
         output = svgsoup.renderContents()
 
     else:
-        print(tex_msg)
+        #print(tex_msg)
         output = ''
         tikz_height = 0
         tikz_width = 0
