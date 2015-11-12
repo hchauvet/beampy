@@ -11,6 +11,7 @@ from beampy.functions import gcs, convert_unit, make_global_svg_defs, latex2svg
 from bs4 import BeautifulSoup
 import re
 import time
+import sys 
 
 def text( textin, x='center', y='auto', width=None, color="", size="",
          align='', font="", usetex = True):
@@ -132,9 +133,16 @@ def render_text( textin, args, usetex=True):
         """%(w*(72.27/96.),texalign,args['font-size'],(args['font-size']+args['font-size']*0.1),textin)
         #96/72.27 pt_to_px for latex
 
+        
         #latex2svg
         testsvg = latex2svg( pretex )
 
+        if testsvg == '':
+            print("Latex Compilation Error")
+            print("Beampy Input")
+            print(pretex)
+            sys.exit(0)
+            
         #Parse the ouput with beautifullsoup
         soup = BeautifulSoup(testsvg, 'xml')
         svgsoup = soup.find('svg')

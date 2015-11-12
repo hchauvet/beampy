@@ -6,6 +6,7 @@ Created on Sun Oct 25 20:33:18 2015
 """
 from beampy import document
 from beampy.functions import gcs
+from beampy.modules.title import title as bptitle
 
 def slide(title= None, doc = document, style=None):
     """
@@ -24,6 +25,11 @@ def slide(title= None, doc = document, style=None):
            'style': style}
 
     document._contents[gcs()] = out
+    
+    if title!= None:
+        bptitle( title )
+        
+    
 
 def begingroup(x='center',y='auto', width = None, height = None, background=None):
     """
