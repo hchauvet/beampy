@@ -114,7 +114,7 @@ def make_global_svg_defs(svg_soup):
     #print svgdefs
 
     #Create unique_id_ with time
-    text_id =  ("%0.2f"%time.time()).split('.')[-1]
+    text_id =  ("%0.4f"%time.time()).split('.')[-1]
     if svgdefs != None:
         for tag in svgdefs.findAll(lambda x: x!=None and x.has_attr('id')):
             oldid = tag['id']
