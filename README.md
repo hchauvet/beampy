@@ -8,7 +8,7 @@ The size of slides is fixed, like in a Latex Beamer document.
 
 Beampy presentation output only one html file with every contents embedded.
 
-[See a Beampy tests presentation](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html) (source is in *examples/beampy_tests_modules.py*)
+[See a Beampy tests presentation](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html) (source is in *examples/beampy_tests_modules.py*)
 
 ## Introduction
 
@@ -55,7 +55,7 @@ save('./beampy_presentation.html')
 #save('./beampy_presentation.pdf')
 ```
 
-[beampy_presentation.html](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/simple_one.html)
+[beampy_presentation.html](https://cdn.rawgit.com/hchauvet/beampy/master/examples/simple_one.html)
 
 ## Installation
 
@@ -129,7 +129,7 @@ figure("./svg_anims/test_0.svg", width="500")
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html#2)
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#2)
 
 ###Svg plot animation
 
@@ -146,7 +146,7 @@ animatesvg("./svg_anims/", width="500")
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html#3)
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#3)
 
 ###Video
 
@@ -161,7 +161,7 @@ video("./test.webm", width="500", height="294")
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html#4)
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#4)
 
 ###Group and columns
 
@@ -183,7 +183,7 @@ endgroup()
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html#5)
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#5)
 
 ###Relative positioning
 
@@ -204,7 +204,7 @@ text(r"youpi x=+1.5cm,\\ y=+0cm", x="+1.5cm", y="+0cm")
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html#6)
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#6)
 
 ###Tikz
 
@@ -222,7 +222,7 @@ save('test.html')
 ```
 
 Here is a more complex Tikz output on the result:
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html#7)
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#7)
 
 ###Bokeh interactive plot
 
@@ -244,7 +244,7 @@ figure(p, y="+5px", x="center")
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/exemples/beampy_tests.html#8)
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#8)
 
 ### Code highlight
 
