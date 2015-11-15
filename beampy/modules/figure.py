@@ -174,6 +174,7 @@ def render_figure( figurein, args ):
     #Bokeh images
     if args['ext'] == 'bokeh':
         figure_height = float(convert_unit(args['height']))
+        figure_width = convert_unit(args['width'])
         output = """%s"""%figurein
 
 
