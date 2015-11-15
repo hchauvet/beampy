@@ -1,28 +1,7 @@
-<!-- Default Style -->
-<style>
-  * { margin: 0; padding: 0; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
-
-  body {
-    width: 800px; height: 600px;
-    margin-left: -400px; margin-top: -300px;
-    position: absolute; top: 50%; left: 50%;
-    overflow: hidden;
-    display: none;
-    background-color: #ffffff;
-  }
-
-  section {
-    position: absolute;
-    width: 100%; height: 100%;
-  }
-
-
-  html { background-color: #000;  overflow: hidden; }
-  body.loaded { display: block; }
-
-</style>
 
 <script>
+  //Beampy script is inspired by DzSlides javascript code (https://github.com/paulrouget/dzslides)
+  
   var Beampy = {
     id_slide: -1,
     html: null,
@@ -266,7 +245,7 @@
                 }
             }
     
-      }
+      } 
 
       var video = $("video");
       if (video.length && !!+this.params.autoplay) {

@@ -27,6 +27,6 @@ def title( title, usetex=True):
         args['y'] = document._theme.get('title','y')
         args['reserved_y'] = document._theme.get('title','yspace')
         
-    titleout = {'content':title, "args":args, "render": render_text }
+    titleout = {'type': 'svg', 'content':title, "args":args, "render": render_text }
 
     document._contents[gcs()]['title']=titleout

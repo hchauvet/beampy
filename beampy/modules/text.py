@@ -39,6 +39,8 @@ def text( textin, x='center', y='auto', width=None, color="", size="",
 
     if width == None:
         width = str(document._width)
+    else:
+        width = str(width)
 
     args = {"x":str(x), "y": str(y) ,"font": font, "width": width,
             "font-size": size, "fill": color, 'align':align, 'usetex': usetex }
@@ -58,28 +60,6 @@ def text( textin, x='center', y='auto', width=None, color="", size="",
     #Add text to the document
     document._contents[gcs()]['contents'] += [ textout ]
 
-
-
-def title( title, usetex=True):
-    """
-        Add a title to a slide
-    """
-
-    args = {"x":"0.5cm" , "y": "1.2cm", "reserved_y":"1.4cm",
-    "font": "CMR", "font-size": 28, "fill": "#3333b3", 'usetex': usetex,
-    'align':'', 'ha':'left', 'va':'baseline' }
-
-    #Load theme properties
-    if document._theme != None:
-        args['fill'] = document._theme.get('title','color')
-        args['size'] = document._theme.get('title','size')
-        args['x'] = document._theme.get('title','x')
-        args['y'] = document._theme.get('title','y')
-        args['reserved_y'] = document._theme.get('title','yspace')
-
-    titleout = {'content':title, "args":args, "render": render_text }
-
-    document._contents[gcs()]['title']=titleout
 
 
 def render_text( textin, args, usetex=True):
@@ -252,7 +232,7 @@ def render_text( textin, args, usetex=True):
         args = ' '.join( [str(arg)+"='"+str(val)+"'" for arg, val in args.iteritems()] )
         output = "<text %s>%s</text>"%(args, textin.decode('utf-8'))
         #TODO: Need to fix the estimation of te width
-        print("[WARNING!!!] Width of classic svg text can't be estimated")
+        #print("[WARNING!!!] Width of classic svg text can't be estimated")
         text_width = 0
         text_height = 0
 

@@ -17,7 +17,7 @@ code(r"""
 slide()
 title("Text")
 text(r\"""Use LaTeX to render text and equation \\ $$\sqrt{10}$$\""")
-""", langage="python", width="530", x="1cm")
+""", langage="python", width=530, x="1cm")
 endgroup()
 
 slide()
@@ -28,7 +28,7 @@ code(r"""
 slide()
 title("Figure")
 figure("./svg_anims/test_0.svg", width="500")
-""", langage="python", width="350", x="1cm")
+""", langage="python", width=350, x="1cm")
 endgroup()
 
 slide()
@@ -39,7 +39,7 @@ code(r"""
 slide()
 title('Svg animation')
 animatesvg("./svg_anims/", width="500")
-""", langage="python", width="300", x="1cm")
+""", langage="python", width=300, x="1cm")
 endgroup()
 
 slide()
@@ -63,7 +63,7 @@ This is a test for a long text in a column style.
 $$ \sum_{i=0}^{10} x_i $$ 
 """, align="center", width=colwidth-20, color="#ffffff")
 endgroup()
-begingroup(width=colwidth, height=doc._height-100, x="430", y="1.8cm", background="#EFEFEF")
+begingroup(width=colwidth, height=doc._height-100, x=430, y="1.8cm", background="#EFEFEF")
 code("""
 slide()
 title('Group and columns')
@@ -96,19 +96,19 @@ text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
 text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
 
 text("youpi x=+1cm, y=+0.5cm", x="+1cm", y="+0.5cm")
-text(r"youpi x=-1.5cm,\\ y=+0.5cm", x="-1.5cm", y="+0.5cm")
-text(r"youpi x=+1.5cm,\\ y=+0cm", x="+1.5cm", y="+0cm")
+text(r"youpi x=-0, \\ y=+0.5cm", x="-0", y="+0.5cm")
+text(r"youpi x=+1.5cm,\\ y=-0", x="+1.5cm", y="-0")
 
-begingroup(width=700, height=195, background="#EFEFEF", y="+2.5cm")
-code("""
+begingroup(width=700, height=195, background="#EFEFEF", y="+2.1cm")
+code(r"""
 slide()
 title('Relative positioning')
 text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
 text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
 text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
 text("youpi x=+1cm, y=+0.5cm", x="+1cm", y="+0.5cm")
-text(r"youpi x=-1.5cm,\\ y=+0.5cm", x="-1.5cm", y="+0.5cm")
-text(r"youpi x=+1.5cm,\\ y=+0cm", x="+1.5cm", y="+0cm")
+text(r"youpi x=-0, \\ y=+0.5cm", x="-0", y="+0.5cm")
+text(r"youpi x=+1.5cm,\\ y=-0", x="+1.5cm", y="-0")
 """, langage="python", width="450", x="1cm")
 endgroup()
 

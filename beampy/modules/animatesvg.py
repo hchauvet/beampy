@@ -35,7 +35,7 @@ def animatesvg(files_folder, start=0, end='end', x='center',y='auto',
     if height == None:
         height = str(document._height)
 
-    args = {"x":str(x), "y": str(y) , "width": width, "height": height,
+    args = {"x":str(x), "y": str(y) , "width": str(width), "height": str(height),
             "fps": fps, "autoplay": autoplay}
 
     #Read all svg files

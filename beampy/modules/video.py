@@ -26,9 +26,14 @@ def video(videofile, width=None, height=None, x='center',y='auto',
     if width == None:
         print("Warning: no video width given!")
         width = str(document._width)
+    else:
+        width=str(width)
+        
     if height == None:
         print("Warning: no video height given!")
         height = str(document._height)
+    else:
+        width = str(width)
 
     #check extension
     ext = None

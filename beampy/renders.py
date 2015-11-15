@@ -35,13 +35,25 @@ def render_slide( slide ):
 
     #Render the content of the slide
     if slide['title'] != None:
+        #Check cache
+        slide['title']['id'] = 'title'
+        if document._cache != None:
+            ct_cache = document._cache.is_cached('cached_%i'%slide['num'], slide['title'])
+            if ct_cache != None:
+                slide['title'] = ct_cache
+        
+        if 'rendered' not in slide['title']:
+            tmpsvg, tmpw, tmph = slide['title']['render']( slide['title']['content'], slide['title']['args'], slide['title']['args']['usetex'] )
+            slide['title']['rendered'] = {'svg':tmpsvg, 'width':tmpw, 'height': tmph}
+            #Add to cache
+            if document._cache != None:
+                document._cache.add_to_cache('slide_%i'%slide['num'], slide['title'])
+                
         #Convert arguments to svg arguments
-        out +=  '\n<g transform="translate(%s,%s)">\n'%( convert_unit(slide['title']['args']['x']), convert_unit(slide['title']['args']['y']))
-        tmpsvg, tmpw, tmph = slide['title']['render']( slide['title']['content'], slide['title']['args'], slide['title']['args']['usetex'] )
-        out += tmpsvg
-        #out += "\n</svg>"
+        out +=  '\n<g transform="translate(%s,%s)">\n'%( convert_unit(slide['title']['args']['x']), convert_unit(slide['title']['args']['y']))            
+        out += slide['title']['rendered']['svg']
         out += "\n</g>\n"
-        #out += '<g><line x1="%s" y1="%s" x2="10cm" y2="%s" style="stroke: #000000"/></g>'%(convert_unit("1cm"),convert_unit(slide['title']['args']['y']),convert_unit(slide['title']['args']['y']))
+
 
     #Check if elements can be obtained from cache
     cptcache = 0
@@ -285,6 +297,9 @@ def place_content(contents, layer_height, layer_width, ytop=0, all_height = {}):
     on page and conpute x,y when we enter relative position
     """
 
+    layer_width = float(convert_unit(layer_width))
+    layer_height = float(convert_unit(layer_height))
+    
     #If we have content with auto y position
     #we compute y anchor of each content
     #height space left
@@ -292,7 +307,7 @@ def place_content(contents, layer_height, layer_width, ytop=0, all_height = {}):
 
     if all_height != {}:
         #height off all contents
-        total_content_height = sum([all_height[a] for a in all_height])
+        total_content_height = sum([float(all_height[a]) for a in all_height])
 
         #Compute the equal space between each elements
         if total_content_height < available_height:
@@ -351,21 +366,17 @@ def place_content(contents, layer_height, layer_width, ytop=0, all_height = {}):
    
             if '+' in tmpx:
                 dx = float(convert_unit(tmpx.replace('+','')))
-                if dx == 0:
-                    dx = -prevwidth
                 tmpx = "%0.1f"%( prevx + dx )
                 
             if '+' in tmpy:
                 dy = float(convert_unit(tmpy.replace('+','')))
-                if dy == 0:
-                    dy = -prevheight
                 tmpy = "%0.1f"%( prevy + dy )
                 
             if '-' in tmpx:
-                tmpx = "%0.1f"%( prevx - float(convert_unit(tmpx.replace('-',''))) - content['width'] - prevwidth )
+                tmpx = "%0.1f"%( prevx - float(convert_unit(tmpx.replace('-',''))) - prevwidth )
                 
             if '-' in tmpy:
-                tmpy = "%0.1f"%( prevy - float(convert_unit(tmpy.replace('-',''))) - content['height'] - prevheight )
+                tmpy = "%0.1f"%( prevy - float(convert_unit(tmpy.replace('-',''))) - prevheight )
 
                 
             #Contert tmpx and tmpy to pixels
@@ -400,5 +411,5 @@ def render_group(groupsvgs, args):
     else:
         pre_rect = ''
         
-    return pre_rect + groupsvgs, float(args['width']), float(args['height'])
+    return pre_rect + groupsvgs, float(convert_unit(args['width'])), float(convert_unit(args['height']))
 

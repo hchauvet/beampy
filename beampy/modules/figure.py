@@ -75,7 +75,7 @@ def figure(filename,x='center',y='auto', width=None, height=None, ext=None):
         #Transform figscript to givea function name load_bokehjs
         tmp = figscript.splitlines()
         goodscript = '\n'.join( ['["load_bokeh"] = function() {'] + tmp[1:-1] + ['};\n'] )
-        args = {"x":str(x), "y": str(y) , "width": width, "height": height,
+        args = {"x":str(x), "y": str(y) , "width": str(width), "height": str(height),
                 "ext": ext,  'script':goodscript}
 
         figout = {'type': 'html', 'content': figdiv, 'args': args,
@@ -89,8 +89,11 @@ def figure(filename,x='center',y='auto', width=None, height=None, ext=None):
 
         if width == None:
             width = str(document._width)
-        if height == None:
-            height = str(document._height)
+        else:
+            width = str(width)
+            
+        if height != None:
+            height = str(height)
 
         args = {"x":str(x), "y": str(y) , "width": width, "height": height,
                 "ext": ext, 'filename':filename }
@@ -141,8 +144,8 @@ def render_figure( figurein, args ):
             #print tmpw, tmph
             os.remove(tmpname+'.svg')
 
+        
         svgheight = convert_unit( tmph )
-
         svgwidth = convert_unit( tmpw )
 
         if svg_viewbox != None:
@@ -150,10 +153,9 @@ def render_figure( figurein, args ):
             svgwidth = svg_viewbox.split(' ')[2]
 
         #SCALE OK need to keep the original viewBox !!!
-        #TODO: Scale the figure to get max available space
         scale_x = float(convert_unit(args['width']))/float(svgwidth)
+        #print svgwidth, svgheight, scale_x
         #scale_y = float(convert_unit(args['height']))/float(svgheight)
-
         good_scale = scale_x
 
         #BS4 get the svg tag content without <svg> and </svg>
@@ -163,11 +165,12 @@ def render_figure( figurein, args ):
 
         #Add the correct first line and last
         #tmphead = '<g  transform="matrix(%s,0,0,%s,%s,%s)" viewBox="%s">'%(str(good_scale), str(good_scale), convert_unit(args['x']), convert_unit(args['y']), svg_viewbox))
-        tmphead = '\n<g transform="scale(%0.1f)">'%(good_scale)
+        tmphead = '\n<g transform="scale(%0.5f)">'%(good_scale)
         output = tmphead + tmpfig + '</g>\n'
 
         figure_height = float(svgheight)*good_scale
-
+        figure_width = convert_unit(args['width'])
+        
     #Bokeh images
     if args['ext'] == 'bokeh':
         figure_height = float(convert_unit(args['height']))
@@ -182,11 +185,15 @@ def render_figure( figurein, args ):
         tmp_img.close()
         scale_x = float(convert_unit(args['width']))/float(tmpwidth)
         figure_height = float(tmpheight) * scale_x
-
+        figure_width = convert_unit(args['width'])
+        
     if args['ext'] == 'png':
-        output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/png;base64, %s" />'%(convert_unit(args['width']), figure_height, figurein)
+        output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/png;base64, %s" />'%(figure_width, figure_height, figurein)
 
     if args['ext'] in ['jpg','jpeg']:
-        output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(convert_unit(args['width']), figure_height, figurein)
-
-    return output, float(convert_unit(args['width'])), figure_height
+        output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(figure_width, figure_height, figurein)
+    
+    #Save the heigt
+    args['height'] = figure_height
+    
+    return output, float(figure_width), float(figure_height)

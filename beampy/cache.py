@@ -51,8 +51,7 @@ class cache_slides():
                 self.data[slide] = {}
 
 
-            #two case commands that includes files (svg, video, etc...)
-            #and commands that include raw contents (like text, tikz, ...)
+            #commands that include raw contents (like text, tikz, ...)
             if 'rendered' in element:
                 elemid = element['id']
                 self.data[slide][elemid] = {}
@@ -61,14 +60,14 @@ class cache_slides():
                 #print(element['args'])
                 #print(element.keys())
                 #For commands that includes files, need a filename elements in args
-                if 'filename' in element['args']:
-                    self.data[slide][elemid]['file_id'] = os.path.getmtime( element['args']['filename'] )
+                #if 'filename' in element['args']:
+                #    self.data[slide][elemid]['file_id'] = os.path.getmtime( element['args']['filename'] )
 
     def is_cached(self, slide, element):
         """
             Function to check if the given element is in the cache or not
         """
-
+        
         if slide not in self.data:
             out = None
 
@@ -91,14 +90,14 @@ class cache_slides():
 
                     #Compare args
                     if not self.compare_args(element['args'], cacheelem['args']):
-                        #print("hooo")
+                        #print(element['args'], cacheelem['args'])
                         out = None
 
                     #If it's from a file check if the file as changed
-                    if 'filename' in element['args']:
-                        curtime = os.path.getmtime( element['args']['filename'] )
-                        if curtime != self.data[slide][element['id']]['file_id']:
-                            out = None
+                    #if 'filename' in element['args']:
+                    #    curtime = os.path.getmtime( element['args']['filename'] )
+                    #    if curtime != self.data[slide][element['id']]['file_id']:
+                    #        out = None
 
 
                     if out != None:
@@ -129,6 +128,10 @@ class cache_slides():
         if ('ext' not in args1c) and ('ext' in args2):
             args1c['ext'] = args2c['ext']
 
+        #If height is None remove it from comparison (None is when size is computed from scale operation, for image, or animatesvg)
+        if 'height' in args1c and args1c['height'] == None:
+            args1c['height'] = args2c['height']
+            
         return args1c == args2c
 
     def add_olddata(self,element):

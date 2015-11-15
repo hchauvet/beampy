@@ -47,6 +47,7 @@ def convert_unit( value ):
         Function to convert unit to px (default unit in svg)
     """
 
+    value = str(value)
     #Convert metric to cm
     if 'mm' in value:
         value = "%fcm"%(float(value.replace('mm',''))*10**-1)

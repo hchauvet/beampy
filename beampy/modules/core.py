@@ -42,6 +42,11 @@ def begingroup(x='center',y='auto', width = None, height = None, background=None
     else:
         document._global_counter['group'] = 0
         
+    if width != None:
+        width = str(width)
+    if height != None:
+        height = str(height)
+        
     args = {'x': str(x), 'y': str(y), 'width': width, 'height': height, 'group_id': document._global_counter['group'], "background": background}
     tmp = {'args': args, 'content_start': len(document._contents[gcs()]['contents'])}
 

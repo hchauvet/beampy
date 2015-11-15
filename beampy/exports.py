@@ -230,6 +230,34 @@ def html5_export():
             <script>%s</script>
             """%(bokcss, bokjs)
 
+    output += """
+    <!-- Default Style -->
+    <style>
+      * { margin: 0; padding: 0; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
+
+      body {
+        width: """+str(document._width)+"""px; 
+        height: """+str(document._height)+"""px;
+        margin-left: -400px; margin-top: -300px;
+        position: absolute; top: 50%; left: 50%;
+        overflow: hidden;
+        display: none;
+        background-color: #ffffff;
+      }
+
+      section {
+        position: absolute;
+        width: 100%; height: 100%;
+      }
+
+
+      html { background-color: #000;  overflow: hidden; }
+      body.loaded { display: block; }
+
+    </style>
+    
+    """
+    
     with open(curdir+'statics/footer_V2.html','r') as f:
         output += f.read()
 
