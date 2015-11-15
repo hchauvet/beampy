@@ -195,6 +195,6 @@ def render_figure( figurein, args ):
         output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(figure_width, figure_height, figurein)
     
     #Save the heigt
-    args['height'] = figure_height
+    #args['height'] = figure_height
     
     return output, float(figure_width), float(figure_height)
