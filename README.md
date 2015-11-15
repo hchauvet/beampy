@@ -198,8 +198,8 @@ text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
 text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
 
 text("youpi x=+1cm, y=+0.5cm", x="+1cm", y="+0.5cm")
-text(r"youpi x=-1.5cm,\\ y=+0.5cm", x="-1.5cm", y="+0.5cm")
-text(r"youpi x=+1.5cm,\\ y=+0cm", x="+1.5cm", y="+0cm")
+text(r"youpi x=-0, \\ y=+0.5cm", x="-0", y="+0.5cm")
+text(r"youpi x=+1.5cm,\\ y=-0", x="+1.5cm", y="-0")
 
 save('test.html')
 ```
