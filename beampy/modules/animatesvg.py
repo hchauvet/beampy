@@ -77,7 +77,14 @@ def render_animatesvg( anime, args ):
 
                 output += [tmpout]
         else:
+            #Check if pdf_animations is True 
             output, tmpw, tmph = render_figure(anime[0], args)
+            if document._pdf_animations:
+                #Convert svg to pdf if we want to use them in animategraphics in latex
+                
+                #Remove the output from the svg slide (it will be rendered later in latex)
+                output = ''
+                
 
         return output, tmpw, tmph
     else:

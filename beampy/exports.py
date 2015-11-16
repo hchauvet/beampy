@@ -46,7 +46,7 @@ def save(output_file=None, format=None):
         output = html5_export()
 
     elif output_file != None and format == "svg":
-        document.output_format = 'svg'
+        document._output_format = 'svg'
 
         #check if we use cache
         if document._cache == True:
@@ -93,6 +93,10 @@ def pdf_export(name_out):
     print('Convert svg to pdf with inkscape')
     for islide in xrange(document._global_counter['slide']+1):
         print('slide %i'%islide)
+        #check if content type need to be changed
+        check_content_type_change( document._contents["slide_%i"%islide] )
+        
+        #Use inkscape to render svg to pdf
         res = os.popen(svgcmd%(bdir+'/tmp/slide_%i.svg'%islide, bdir+'/tmp/slide_%i.pdf'%islide) )
         res.close()
 
@@ -118,6 +122,8 @@ def pdf_cairo_export(name_out):
 
     for islide in xrange(document._global_counter['slide']+1):
         print("Export slide %i"%islide)
+        #check if content type need to be changed
+        check_content_type_change( document._contents["slide_%i"%islide] )
         tmp = render_slide( document._contents["slide_%i"%islide] )
         try:
             cairosvg.svg2pdf(document._contents["slide_%i"%islide]['svg_output'], write_to = bdir+'/tmp/slide_%i.pdf'%islide)
@@ -147,9 +153,14 @@ def svg_export(dir_name):
 
     for islide in xrange(document._global_counter['slide']+1):
         print("Export slide %i"%islide)
+        
+        #check if content type need to be changed
+        check_content_type_change( document._contents["slide_%i"%islide] )
         tmp = render_slide( document._contents["slide_%i"%islide] )
+        
         with open(dir_name+'slide_%i.svg'%islide, 'w') as f:
             f.write(tmp)
+            
     return "saved to "+dir_name
 
 def html5_export():
@@ -238,7 +249,7 @@ def html5_export():
       body {
         width: """+str(document._width)+"""px; 
         height: """+str(document._height)+"""px;
-        margin-left: -400px; margin-top: -300px;
+        margin-left: -"""+str(int(document._width/2))+"""px; margin-top: -"""+str(int(document._height/2))+"""px;
         position: absolute; top: 50%; left: 50%;
         overflow: hidden;
         display: none;
@@ -263,4 +274,15 @@ def html5_export():
 
     return output
 
+
+def check_content_type_change(slide):
+    """
+        Function to change type of some slide contents (like for video html -> svg ) when render is changer from html5 to another
+    """
     
+    for ct in slide['contents']:
+        if 'type_nohtml' in ct:
+            print('done')
+            ct['type'] = ct['type_nohtml'] 
+                
+                

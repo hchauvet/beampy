@@ -96,13 +96,14 @@ def render_text( textin, args, usetex=True):
         \documentclass[crop=True]{standalone}
         \usepackage[utf8x]{inputenc}
         \usepackage{fix-cm}
+        \usepackage{hyperref}
         \usepackage[svgnames]{xcolor}
         \renewcommand{\familydefault}{\sfdefault}
         \usepackage{varwidth}
         \usepackage{amsmath}
         \usepackage{amsfonts}
         \usepackage{amssymb}
-        
+        \special{html}
         \begin{document}
         \begin{varwidth}{%ipt}
         %s

@@ -25,11 +25,14 @@ class document():
     _optimize_svg = True
     _output_format='html5'
     _theme = None
-    _cache = None
+    _cache = None 
+    _pdf_animations = False 
+    
     #Define path to external commands
     _external_cmd = {"inkscape": "inkscape",
                      "dvisvgm": "dvisvgm",
-                     "pdfjoin": "pdfjoin"}
+                     "pdfjoin": "pdfjoin",
+                     "ffmpeg": "ffmpeg"}
 
     def __init__(self, width=800, height=600, guide = False, text_box = False, optimize=True, cache=True):
         """

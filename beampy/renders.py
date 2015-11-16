@@ -192,6 +192,7 @@ def render_slide( slide ):
                     tmpsvg, tmpw, tmph = ct['render']( ct['content'], ct['args'] )
                     ct['rendered'] = {"svg":tmpsvg,"width":tmpw,"height":tmph}
 
+
             #Add content to the cache
             if document._cache != None:
                 document._cache.add_to_cache('slide_%i'%slide['num'], ct)

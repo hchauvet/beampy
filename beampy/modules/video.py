@@ -9,6 +9,9 @@ Class to manage text for beampy
 from beampy import document
 from beampy.functions import gcs, convert_unit
 import base64
+import os
+import cStringIO 
+from PIL import Image
 
 
 def video(videofile, width=None, height=None, x='center',y='auto',
@@ -24,15 +27,11 @@ def video(videofile, width=None, height=None, x='center',y='auto',
 
     #if no width is given get the default width
     if width == None:
-        print("Warning: no video width given!")
         width = str(document._width)
     else:
         width=str(width)
         
-    if height == None:
-        print("Warning: no video height given!")
-        height = str(document._height)
-    else:
+    if height != None:
         width = str(width)
 
     #check extension
@@ -48,17 +47,17 @@ def video(videofile, width=None, height=None, x='center',y='auto',
 
     if ext != None:
         args = {"x":str(x), "y": str(y) ,
-                "width": str(width), "height": str(height),
+                "width": width, "height": height,
                 "fps": fps, "autoplay": autoplay,
-                "ext": ext}
+                "ext": ext, 'filename': videofile}
 
         with open(videofile, 'rb') as fin:
             datain = base64.b64encode( fin.read() )
 
-        #Add video to the document
-        videout = {'type': 'html', 'content': datain, 'args': args,
+        #Add video to the document type_nohtml used to remplace video by svg still image when not exported to HTML5
+        videout = {'type': 'html', 'type_nohtml': 'svg', 'content': datain, 'args': args,
                    "render": render_video}
-
+            
         document._contents[gcs()]['contents'] += [ videout ]
 
 
@@ -68,17 +67,76 @@ def render_video(videob64, args):
     """
 
 
-    #TODO: Try to get the video real size to keep aspect ratio
-
-    output = """<video width="%spx" %s controls="controls" type="video/%s" src="data:video/%s;base64, %s"/>"""
-
-    otherargs = ''
+    #Get video size to get the ratio (to estimage the height)
+    vidw, vidh = get_video_size(args)
+    scale_x = float(convert_unit(args['width']))/float(vidw)
     width = convert_unit(args['width'])
-    height = convert_unit(args['height'])
+    height = vidh * scale_x 
 
-    if args['autoplay'] == True:
-        otherargs += ' autoplay'
+    if document._output_format=='html5':
+        #HTML tag for video 
+        output = """<video id='video' width="%spx" %s controls="controls" type="video/%s" src="data:video/%s;base64, %s"/>"""
 
-    output = output%(width, otherargs, args['ext'], args['ext'], videob64)
+        #Check if we need autoplay
+        otherargs = ''    
+        if args['autoplay'] == True:
+            otherargs += ' autoplay'
 
+        output = output%(width, otherargs, args['ext'], args['ext'], videob64)
+
+    else:
+        #Get video image 
+        _, imgframe = video_first_image(args)
+        imgframe = base64.b64encode( imgframe )
+        output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(str(width), str(height), imgframe)
+        
     return output, float(width), float(height)
+    
+    
+    
+def video_first_image(args):
+    """
+        Function used to get the first image of a video 
+        
+        It use FFMPEG to extract one image 
+    """
+    
+    FFMPEG_CMD = document._external_cmd['ffmpeg'] 
+    FFMPEG_CMD += ' -loglevel 8 -i %s -f image2 -vframes 1 -'%args['filename']
+    
+
+    img_out = os.popen(FFMPEG_CMD).read()
+    
+    img = cStringIO.StringIO(img_out)
+    
+    out = Image.open(img)
+    
+    
+    #Get image size
+    size = out.getbbox()
+    
+    #Save image to string
+    outimg = cStringIO.StringIO()
+    out.save(outimg, 'JPEG')
+    out.close()
+    
+    strimg = outimg.getvalue()
+    
+    outimg.close()
+    
+    #Need to close img at then end
+    img.close()
+    
+    return size, strimg
+    
+    
+def get_video_size(args):
+    """
+        Get video size by extracting width and height of first frame
+    """
+    
+    size, frame = video_first_image(args)
+    
+    _, _, width, height = size
+    
+    return width, height

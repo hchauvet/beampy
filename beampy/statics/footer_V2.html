@@ -119,7 +119,7 @@
     // If a Video is present in the previous slide, stop it.
     s = $("section[selected]");
     if (s) {
-      video = $("video");
+      video = document.getElementById('video');
       if (video) {
         if (video.ended || video.paused) {
           video.play();
