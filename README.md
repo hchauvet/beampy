@@ -32,7 +32,7 @@ Slide can contains:
 - Tikz/PGF figure and graphics
 
 Svg slides are exported in html5 with every raster elements embed in one file.
-The slides can also be exported to svg and pdf (videos and animations are not rendered in pdf/Svg)
+The slides can also be exported to svg and pdf (videos and animations are rendered as first frame image in pdf/Svg)
 
 Beampy uses a simple cache system to compile slide only when it's needed!
 
@@ -82,6 +82,7 @@ Beampy includes a version of svg optimized written in python "scour"
 
 ##### External programs
 
+- ffmpeg For video manipulations (sudo apt-get install ffmpeg (linux) // [binaries for mac](http://ffmpegmac.net/)
 - Inkscape (for pdf export and svg size estimation)
 - dvisvgm (to translate latex dvi to svg) Available in Tex Live distribution
   [http://dvisvgm.bplaced.net/](http://dvisvgm.bplaced.net/)
@@ -104,6 +105,7 @@ doc = document()
 document._external_cmd['inkscape'] = '/path/to/inkscape'
 document._external_cmd['dvisvgm'] = '/path/to/dvisvgm'
 document._external_cmd['pdfjoin'] = '/path/to/pdfjoin'
+document._external_cmd['ffmpeg'] = '/path/to/ffmpeg'
 ```
 
 ##### Optionals

@@ -45,6 +45,10 @@ def render_slide( slide ):
         if 'rendered' not in slide['title']:
             tmpsvg, tmpw, tmph = slide['title']['render']( slide['title']['content'], slide['title']['args'], slide['title']['args']['usetex'] )
             slide['title']['rendered'] = {'svg':tmpsvg, 'width':tmpw, 'height': tmph}
+            
+            #place the title
+            place_content([slide['title']],document._height, document._width) 
+            
             #Add to cache
             if document._cache != None:
                 document._cache.add_to_cache('slide_%i'%slide['num'], slide['title'])
