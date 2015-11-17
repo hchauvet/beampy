@@ -7,6 +7,7 @@ Class to manage item lists for beampy
 
 from beampy import document
 from beampy.modules.text import text
+from beampy.modules.code import begingroup, endgroup
 
 def color_text( textin, color ):
 	
