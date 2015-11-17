@@ -6,7 +6,7 @@ Created on Sun Oct 25 19:05:18 2015
 """
 
 from beampy import document
-from beampy.functions import gcs, convert_unit, optimize_svg, make_global_svg_defs, getsvgwidth, getsvgheight
+from beampy.functions import gcs, convert_unit, optimize_svg, make_global_svg_defs, getsvgwidth, getsvgheight, convert_pdf_to_svg
 from bs4 import BeautifulSoup
 from PIL import Image
 import base64
@@ -51,6 +51,10 @@ def figure(filename,x='center',y='auto', width=None, height=None, ext=None):
 
             if ( '.jpeg' in filename.lower() ) or ( '.jpg' in filename.lower() ):
                 ext = 'jpeg'
+            
+            if '.pdf' in filename.lower():
+                ext = 'pdf'
+            
     else:
         if "bokeh" in str(type(filename)):
             ext = 'bokeh'
@@ -97,14 +101,17 @@ def figure(filename,x='center',y='auto', width=None, height=None, ext=None):
 
         args = {"x":str(x), "y": str(y) , "width": width, "height": height,
                 "ext": ext, 'filename':filename }
+        if ext == 'pdf' :
+            figdata = convert_pdf_to_svg( filename )
 
-        with open(filename,"r") as f:
-            figdata = f.read()
-
-        #If it's png/jpeg figure we need to encode them to base64
-        if ext != 'svg':
-            figdata = base64.encodestring(figdata)
-
+        else :
+            with open(filename,"r") as f:
+                figdata = f.read()
+			#If it's png/jpeg figure we need to encode them to base64
+     
+            if ext in ( 'png', 'jpeg' ):
+                figdata = base64.encodestring(figdata)
+			
         figout = {'type': 'figure', 'content': figdata, 'args': args,
                   "render": render_figure}
 
@@ -112,14 +119,17 @@ def figure(filename,x='center',y='auto', width=None, height=None, ext=None):
 
 
 def render_figure( figurein, args ):
+    
     """
         function to render figures
     """
 
     #For svg figure
-    if args['ext'] == 'svg':
+    
+    if args['ext'] in ('svg', 'pdf') :
 
         #test if we need to optimise the svg
+        
         if document._optimize_svg:
             figurein = optimize_svg(figurein)
 
@@ -179,7 +189,7 @@ def render_figure( figurein, args ):
 
 
     #For the other format
-    if args['ext'] not in ['svg','bokeh']:
+    if args['ext'] in ['png', 'jpeg']:
         #Open image with PIL to compute size
         tmp_img = Image.open(args['filename'])
         _,_,tmpwidth,tmpheight = tmp_img.getbbox()
@@ -191,7 +201,7 @@ def render_figure( figurein, args ):
     if args['ext'] == 'png':
         output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/png;base64, %s" />'%(figure_width, figure_height, figurein)
 
-    if args['ext'] in ['jpg','jpeg']:
+    if args['ext'] == 'jpeg':
         output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(figure_width, figure_height, figurein)
     
     #Save the heigt
