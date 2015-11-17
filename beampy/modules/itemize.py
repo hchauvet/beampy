@@ -8,6 +8,7 @@ Class to manage item lists for beampy
 from beampy import document
 from beampy.modules.text import text
 from beampy.modules.core import begingroup, endgroup
+from beampy.functions import convert_unit
 
 def color_text( textin, color ):
 	
@@ -40,7 +41,7 @@ def itemize( items_list, x='center', y='auto', item_style = 'bullet', item_spaci
 	if text_color == 'default' :
 		text_color = document._theme['text']['color']
 	
-	begingroup(x=x, y=y)
+	begingroup(width=width, x=x, y=y)
 	
 	for i, the_item in enumerate(items_list) :
 		
@@ -59,9 +60,10 @@ def itemize( items_list, x='center', y='auto', item_style = 'bullet', item_spaci
 		item_char = color_text( item_char, item_color )
 		the_item = color_text( the_item, text_color )
 		
+		in_width = float(convert_unit(width)) - float(convert_unit(item_indent))
 		if i == 0 :
-			text( item_char + r' ' + the_item, x = item_indent,  y = 0, width=width )
+			text( item_char + r' ' + the_item, x = item_indent,  y = 0, width=in_width )
 		else:
-			text( item_char + r' ' + the_item, x = item_indent,  y = item_spacing, width=width )
+			text( item_char + r' ' + the_item, x = item_indent,  y = item_spacing, width=in_width )
 		
 	endgroup()
