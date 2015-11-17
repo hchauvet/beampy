@@ -12,6 +12,7 @@ import re
 from beampy.scour import scour
 import glob
 import os
+from subprocess import check_call
 import tempfile
 import time
 _width = None
@@ -282,4 +283,48 @@ def gcs(doc=document):
 
     return "slide_%i"%(doc._global_counter['slide'])
 
+def pdf2svg( pdf_input_file, svg_output_file  ) :
+	
+	'''
+	
+		Runs pdf2svg in shell:
+		pdf2svg pdf_input_file svg_output_file
+	
+	'''
+	
+	return check_call( [ 'pdf2svg', pdf_input_file, svg_output_file  ] )
 
+
+def convert_pdf_to_svg( pdf_input_file, temp_directory = 'local' ):
+	
+	'''
+	
+		Open pdf_input_file, convert to svg using pdf2svg.
+	
+	'''
+	
+	local_directory, filename_pdf = os.path.split( pdf_input_file )
+	filename = os.path.splitext( filename_pdf)[0]
+	
+	if temp_directory == 'local' :
+		temp_directory = local_directory
+	
+	if len(temp_directory) > 0 :
+		svg_output_file = temp_directory + '/' + filename + '.svg'
+	else :
+		svg_output_file = filename + '.svg'
+	
+	try :
+		
+		pdf2svg( pdf_input_file, svg_output_file )
+		
+		with open( svg_output_file, 'r' ) as f:
+			svg_figure = f.read()
+		
+		check_call( [ 'rm', svg_output_file ] )
+		
+		return svg_figure
+	
+	except ValueError :
+		
+		return None
