@@ -19,4 +19,4 @@ from beampy.modules.tikz import *
 from beampy.modules.maketitle import *
 from beampy.modules.code import *
 from beampy.modules.biblio import cite
-from beampy.modules.itemize import *
+from beampy.modules.itemize import itemize
