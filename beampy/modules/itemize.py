@@ -40,8 +40,9 @@ def itemize( items_list, x='center', y='auto', item_style = 'bullet', item_spaci
 	if text_color == 'default' :
 		text_color = document._theme['text']['color']
 	
-	begingroup(width=width, x=x, y=y)
-	for the_item in items_list :
+	begingroup(x=x, y=y)
+	
+	for i, the_item in enumerate(items_list) :
 		
 		if item_style == 'bullet' :
 			item_char = r'$\bullet$'
@@ -58,7 +59,9 @@ def itemize( items_list, x='center', y='auto', item_style = 'bullet', item_spaci
 		item_char = color_text( item_char, item_color )
 		the_item = color_text( the_item, text_color )
 		
-		
-		text( item_char + r' ' + the_item, x = item_indent,  y = item_spacing, width=width )
+		if i == 0 :
+			text( item_char + r' ' + the_item, x = item_indent,  y = 0, width=width )
+		else:
+			text( item_char + r' ' + the_item, x = item_indent,  y = item_spacing, width=width )
 		
 	endgroup()
