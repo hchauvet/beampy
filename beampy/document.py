@@ -96,7 +96,7 @@ class document():
         document._guide = False
         document._text_box = False
         document._theme = None
-        document._cache = True
+        document._cache = None
 
 
 
