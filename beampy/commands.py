@@ -18,3 +18,4 @@ from beampy.modules.video import *
 from beampy.modules.tikz import *
 from beampy.modules.maketitle import *
 from beampy.modules.code import *
+from beampy.modules.biblio import cite
