@@ -14,7 +14,7 @@ def color_text( textin, color ):
 		Adds Latex color to a string.
 	'''
 	
-	if "#" in color:
+	if "#" in    color:
 		textin = r'{\color[HTML]{%s} %s }'%( color.replace('#','').upper(), textin)
 	
 	else:
@@ -23,7 +23,7 @@ def color_text( textin, color ):
 	return textin
 
 
-def itemize( items_list, item_style = 'bullet', item_spacing = '+1cm' , item_indent = '2cm', item_color = 'default', text_color = 'default' ):
+def itemize( items_list, item_style = 'bullet', item_spacing = '+1cm' , item_indent = '2cm', item_color = 'default', text_color = 'default', width=None ):
 	
 	'''
 	
@@ -56,4 +56,4 @@ def itemize( items_list, item_style = 'bullet', item_spacing = '+1cm' , item_ind
 		item_char = color_text( item_char, item_color )
 		the_item = color_text( the_item, text_color )
 		
-		text( item_char + r' ' + the_item, x = item_indent,  y = item_spacing )
+		text( item_char + r' ' + the_item, x = item_indent,  y = item_spacing, width=width )
