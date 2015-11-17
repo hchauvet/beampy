@@ -95,8 +95,8 @@ class document():
         document._height = 0
         document._guide = False
         document._text_box = False
-        document.theme = None
-
+        document._theme = None
+        document._cache = True
 
 
 
