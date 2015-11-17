@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 
 
 def tikz(tikscommands, x='0', y='0', tikz_header=None, tex_packages=None,
-         figure_options=None):
+         figure_options=None, figure_anchor='top_left'):
     """
         Function to render tikz commands to svg
 
@@ -38,9 +38,11 @@ def tikz(tikscommands, x='0', y='0', tikz_header=None, tex_packages=None,
                         tex_packages = ['xolors','tikz-3dplot']
 
         - figure_options: options for \begin{tikzfigure}[options]
+        
+        - figure_anchor ['top_left']: set the anchor of tikz output svg 'top_left', 'bottom_left', 'top_right', bottom_right'
     """
 
-    args = {"x":str(x), "y": str(y) }
+    args = {"x":str(x), "y": str(y), 'figure_anchor': figure_anchor }
 
     if tikz_header:
         args['tikzheader'] = tikz_header
@@ -116,7 +118,17 @@ def render_tikz( tikzcommands, args ):
         tikz_width = float(tikz_width)
         tikz_height = float(tikz_height)
 
-        newmatrix = 'scale(%0.3f) translate(%0.1f,%0.1f)'%(tex_pt_to_px, -float(xinit), -float(yinit))
+        #Default is args['figure_anchor'] == top_left
+        dx = -float(xinit)
+        dy = -float(yinit)
+            
+        if 'bottom' in args['figure_anchor']:
+            dy = -float(yinit) - tikz_height
+            
+        if 'right' in args['figure_anchor']:
+            dx = -float(xinit)-tikz_width 
+            
+        newmatrix = 'scale(%0.3f) translate(%0.1f,%0.1f)'%(tex_pt_to_px, dx, dy)
         g['transform'] = newmatrix
 
         output = svgsoup.renderContents()

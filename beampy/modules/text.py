@@ -7,7 +7,7 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.functions import gcs, convert_unit, make_global_svg_defs, latex2svg
+from beampy.functions import gcs, convert_unit, make_global_svg_defs, latex2svg, load_args_from_theme
 from bs4 import BeautifulSoup
 import re
 import time
@@ -43,16 +43,10 @@ def text( textin, x='center', y='auto', width=None, color="", size="",
         width = str(width)
 
     args = {"x":str(x), "y": str(y) ,"font": font, "width": width,
-            "font-size": size, "fill": color, 'align':align, 'usetex': usetex }
+            "font-size": size, "color": color, 'align':align, 'usetex': usetex }
 
     #Load theme properties
-    if document._theme != None:
-        if color == "":
-            args['fill'] = document._theme.get('text','color')
-        if size == "":
-            args['font-size'] = int(document._theme.get('text','size'))
-        if font == "":
-            args['font'] = document._theme.get('text','font')
+    load_args_from_theme('text', args)
 
     textout = {'type': 'text', 'content': textin, 'args': args,
                "render": render_text}
@@ -80,11 +74,11 @@ def render_text( textin, args, usetex=True):
     if usetex:
 
         #Check if a color is defined in args
-        if 'fill' in args:
-            if "#" in args['fill']:
-                textin = r'{\color[HTML]{%s} %s }'%(args['fill'].replace('#','').upper(), textin)
+        if 'color' in args:
+            if "#" in args['color']:
+                textin = r'{\color[HTML]{%s} %s }'%(args['color'].replace('#','').upper(), textin)
             else:
-                textin =r'{\color{%s} %s }'%(args['fill'], textin)
+                textin =r'{\color{%s} %s }'%(args['color'], textin)
 
         if 'center' in args['align']:
             texalign = r'\centering'

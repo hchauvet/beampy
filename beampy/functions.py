@@ -276,12 +276,14 @@ def getsvgheight( svgfile ):
 
     return res
 
+
 def gcs(doc=document):
     """
         Fonction get current slide of the doc
     """
 
     return "slide_%i"%(doc._global_counter['slide'])
+
 
 def pdf2svg( pdf_input_file, svg_output_file  ) :
 	
@@ -292,7 +294,7 @@ def pdf2svg( pdf_input_file, svg_output_file  ) :
 	
 	'''
 	
-	return check_call( [ 'pdf2svg', pdf_input_file, svg_output_file  ] )
+	return check_call( [ document._external_cmd['pdf2svg'], pdf_input_file, svg_output_file  ] )
 
 
 def convert_pdf_to_svg( pdf_input_file, temp_directory = 'local' ):
@@ -328,3 +330,18 @@ def convert_pdf_to_svg( pdf_input_file, temp_directory = 'local' ):
 	except ValueError :
 		
 		return None
+		
+		
+		
+def load_args_from_theme(element_id, args):
+    """
+        Function to set args of a given element 
+    """
+    
+    for key in args:
+        if args[key] == "" or args[key] == None:
+            try:
+                args[key] = document._theme[element_id][key]
+            except:
+                print("[Beampy] No theme propertie for %s in %s"%(key,element_id))
+                

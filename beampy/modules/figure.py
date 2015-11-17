@@ -101,6 +101,7 @@ def figure(filename,x='center',y='auto', width=None, height=None, ext=None):
 
         args = {"x":str(x), "y": str(y) , "width": width, "height": height,
                 "ext": ext, 'filename':filename }
+                
         if ext == 'pdf' :
             figdata = convert_pdf_to_svg( filename )
 
@@ -203,8 +204,5 @@ def render_figure( figurein, args ):
 
     if args['ext'] == 'jpeg':
         output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(figure_width, figure_height, figurein)
-    
-    #Save the heigt
-    #args['height'] = figure_height
     
     return output, float(figure_width), float(figure_height)

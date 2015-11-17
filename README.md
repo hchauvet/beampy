@@ -17,7 +17,7 @@ It creates slides in svg format (with a bit of HTML5 for video and interactive
 things like Bokeh plots).
 
 Slide can contains:
-- Vector graphics (svg)
+- Vector graphics (svg, pdf)
 
 - Raster images (png, jpeg)
 
@@ -96,6 +96,9 @@ Beampy includes a version of svg optimized written in python "scour"
    sudo apt-get install texlive-extra-utils
 
 
+- pdf2svg To translate pdf2svg [github](https://github.com/db9052/pdf2svg) (sudo apt-get install pdf2svg // For os X available on MacPort)
+
+
 To change path of these command in beampy (by defaults the command name is used):
 ```python
 from beampy import *
@@ -106,6 +109,8 @@ document._external_cmd['inkscape'] = '/path/to/inkscape'
 document._external_cmd['dvisvgm'] = '/path/to/dvisvgm'
 document._external_cmd['pdfjoin'] = '/path/to/pdfjoin'
 document._external_cmd['ffmpeg'] = '/path/to/ffmpeg'
+document._external_cmd['pdf2svg'] = '/path/to/pdf2svg'
+
 ```
 
 ##### Optionals
@@ -280,16 +285,41 @@ endgroup()
 save('test.html')
 ```
 
+### Arrow 
+
+To create arrow (using tikz commands behind)
+
+```python
+
+from beampy import *
+
+doc = document()
+
+slide('Test arrow')
+
+#An arrow starting at 400px, 400px, and of size 40 in x and 40 in y.
+arrow(400, 400, 40, 40, bend='left')
+
+save('test.html')
+```
+
 ## Change theme
 
-To change the global theme of slide copy the file 
-[/beampy/statics/default.theme] where you want change it and load it with:
+Basic theme features are store in a dictionary *document._theme*. You can check 
+the default features in [/beampy/statics/default_theme.py]. You can adapt this dictionary 
+to fit your needs:
 
 ```python
 from beampy import * 
 
 doc = document()
-doc.load_theme('./path/to/cool.theme')
+#sow keys of the theme dictionary
+print doc._theme
+
+#Change some keys
+doc._theme['title']['color'] = '#000000'
+doc._theme['title']['align'] = 'center'
+
 ```
 
 ## How to write your own module

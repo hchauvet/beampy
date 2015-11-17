@@ -5,6 +5,7 @@ Created on Fri May 22 18:28:59 2015
 @author: hugo
 """
 from ConfigParser import SafeConfigParser
+from beampy.statics.default_theme import THEME
 #Auto change path
 #import beampy
 #bppath =  str(beampy).split('beampy')[1].split('from')[-1].strip().replace("'",'')+'beampy/'
@@ -24,7 +25,7 @@ class document():
     _text_box = False
     _optimize_svg = True
     _output_format='html5'
-    _theme = None
+    _theme = THEME
     _cache = None 
     _pdf_animations = False 
     
@@ -32,7 +33,8 @@ class document():
     _external_cmd = {"inkscape": "inkscape",
                      "dvisvgm": "dvisvgm",
                      "pdfjoin": "pdfjoin",
-                     "ffmpeg": "ffmpeg"}
+                     "ffmpeg": "ffmpeg",
+                     "pdf2svg": "pdf2svg"}
 
     def __init__(self, width=800, height=600, guide = False, text_box = False, optimize=True, cache=True):
         """
@@ -74,7 +76,7 @@ class document():
         document._text_box = text_box
 
         #Load the default theme
-        self.load_theme(bppath+'/statics/default.theme')
+        #self.load_theme(bppath+'/statics/default.theme')
 
         if optimize == False:
             document._optimize_svg = False
@@ -93,21 +95,8 @@ class document():
         document._height = 0
         document._guide = False
         document._text_box = False
-        document._theme = None
+        document.theme = None
 
-    def load_theme(self, pathtotheme):
-        """
-            Load a theme define in a config file conform to standard
-            python ConfigParser module see default.theme for exemple
-        """
-
-        #Load a theme
-        themeparser = SafeConfigParser()
-        themeparser.read(pathtotheme)
-
-        #Add the theme parser to the document class
-        self.themeparser = themeparser
-        document._theme = self.themeparser
 
 
 
