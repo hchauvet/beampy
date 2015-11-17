@@ -34,10 +34,10 @@ def itemize( items_list, item_style = 'bullet', item_spacing = '+1cm' , item_ind
 	number = 1
 	
 	if item_color == 'default' :
-		item_color = document._theme.get( 'title', 'color' )
+		item_color = document._theme['title']['color']
 	
 	if text_color == 'default' :
-		text_color = document._theme.get( 'text', 'color' )
+		text_color = document._theme['text']['color']
 	
 	for the_item in items_list :
 		
