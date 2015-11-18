@@ -25,7 +25,7 @@ def color_text( textin, color ):
 	return textin
 
 
-def itemize( items_list, x='center', y='auto', item_style = 'bullet', item_spacing = '+1cm' , item_indent = '2cm', item_color = 'default', text_color = 'default', width=None ):
+def itemize( items_list, x='center', y='auto', item_style = 'bullet', item_spacing = '+1cm' , item_indent = '0cm', item_color = 'default', text_color = 'default', width=None ):
 	
 	'''
 	
