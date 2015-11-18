@@ -6,6 +6,7 @@ Here we define commands used to create elements in beampy
 
 """
 import glob
+import os
 bppath = os.path.dirname(__file__) + '/'
 
 #Core commands (slides, begingroup etc..)
