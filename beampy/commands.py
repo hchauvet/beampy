@@ -20,7 +20,7 @@ from beampy.modules.maketitle import *
 from beampy.modules.code import *
 
 #Small functions 
-from beampy.modules.biblio import cite
+#from beampy.modules.biblio import cite
 from beampy.modules.arrow import arrow
 from beampy.modules.itemize import itemize
 
