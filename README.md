@@ -318,7 +318,7 @@ print doc._theme
 
 #Change some keys
 doc._theme['title']['color'] = '#000000'
-doc._theme['title']['align'] = 'center'
+doc._theme['title']['x'] = 'center'
 
 ```
 
