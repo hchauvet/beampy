@@ -7,7 +7,7 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.functions import gcs, convert_unit, make_global_svg_defs, latex2svg, load_args_from_theme
+from beampy.functions import gcs, convert_unit, make_global_svg_defs, latex2svg, load_args_from_theme, color_text
 from bs4 import BeautifulSoup
 import re
 import time
@@ -75,10 +75,7 @@ def render_text( textin, args, usetex=True):
 
         #Check if a color is defined in args
         if 'color' in args:
-            if "#" in args['color']:
-                textin = r'{\color[HTML]{%s} %s }'%(args['color'].replace('#','').upper(), textin)
-            else:
-                textin =r'{\color{%s} %s }'%(args['color'], textin)
+            textin = color_text( textin, args['color'] )
 
         if 'center' in args['align']:
             texalign = r'\centering'
