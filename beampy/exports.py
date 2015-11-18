@@ -110,36 +110,6 @@ def pdf_export(name_out):
 
     return msg
 
-def pdf_cairo_export(name_out):
-    #Cairo bug very often to translate svg to pdf....
-    import cairosvg
-    bdir = os.path.dirname(name_out)
-
-    try:
-        os.mkdir(bdir+'/tmp')
-    except:
-        pass
-
-    for islide in xrange(document._global_counter['slide']+1):
-        print("Export slide %i"%islide)
-        #check if content type need to be changed
-        check_content_type_change( document._contents["slide_%i"%islide] )
-        tmp = render_slide( document._contents["slide_%i"%islide] )
-        try:
-            cairosvg.svg2pdf(document._contents["slide_%i"%islide]['svg_output'], write_to = bdir+'/tmp/slide_%i.pdf'%islide)
-        except:
-            print("export failed")
-
-    #join all pdf
-    res = os.popen(pdfjoincmd+' %s*.pdf -o %s'%(bdir+'/tmp/',name_out))
-    output = res.read()
-
-    res.close()
-    msg = "Saved to %s"%name_out
-    os.system('rm -rf %s'%(bdir+'/tmp'))
-
-    return msg
-
 def svg_export(dir_name):
     #Export evry slides in svg inside a given folder
 
@@ -199,20 +169,7 @@ def html5_export():
     jsonfile = stringio.StringIO()
     json.dump(tmpout,jsonfile, indent=None)
 
-    jsonfile.seek(0) #Go to the biginig of the file
-#Test gzip: Not efficient
-#    if document._gzip:
-#        #Do we need to compress slides with gzip
-#        gziped =  base64.b64encode(zlib.compress(urllib.quote(jsonfile.read()), 9))
-#        #Load jsmincompressor.js from statics
-#        with open(curdir + 'statics/jsxcompressor.min.js', 'r') as fs:
-#            output += '<script type="text/javascript">%s</script>\n'%fs.read()
-#
-#        output += """<script>
-#        var slides = eval( "(" + JXG.decompress( "%s" ) + ")" );
-#        </script>"""%gziped
-
-
+    jsonfile.seek(0) 
 
     output += '<script> var slides = eval( ( %s ) );</script>'%jsonfile.read()
 
@@ -245,7 +202,6 @@ def html5_export():
     <!-- Default Style -->
     <style>
       * { margin: 0; padding: 0; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
-
       body {
         width: """+str(document._width)+"""px; 
         height: """+str(document._height)+"""px;
@@ -254,6 +210,7 @@ def html5_export():
         overflow: hidden;
         display: none;
         background-color: #ffffff;
+
       }
 
       section {
@@ -262,8 +219,9 @@ def html5_export():
       }
 
 
-      html { background-color: #000;  overflow: hidden; }
-      body.loaded { display: block; }
+      html { background-color: #000; height: 100%; width: 100%;}
+             
+      body.loaded { display: block;}
 
     </style>
     

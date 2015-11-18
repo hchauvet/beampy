@@ -17,6 +17,7 @@
     this.onhashchange();
     this.setupTouchEvents();
     this.onresize();
+    this.initmouse();
   }
 
   Beampy.setup = function() {
@@ -67,6 +68,28 @@
     }
   }
 
+  /* Mouse scroll event */
+  Beampy.onmousewheel = function(event) {
+  
+    //Test if their is a bokeh figure to prevent conflict
+    var bokeh = $('.plotdiv');
+    if (bokeh.length == 0) {
+        event.preventDefault();
+        //console.log(event);
+        //Compute +1 for up and -1 for down
+        var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
+        
+        if (delta == -1){
+            this.forward();
+        }
+        
+        if (delta == 1){
+            this.back();
+        } 
+        
+        return false;
+     }
+  }
   /* Touch Events */
 
   Beampy.setupTouchEvents = function() {
@@ -128,13 +151,6 @@
         }
       }
     }
-    
-    //Pour les animations svg
-    anim_svg = $("g#svganimate");
-    if (anim_svg) {
-       //Si on a une anim on la lance ou on la stop quand on change la slide
-       console.log('Il y a un svganimate ici!');
-    }
   }
 
  Beampy.animatesvg = function(anim_number, fps){
@@ -146,7 +162,7 @@
     
     var i = 0;
     var display_frames = function(){
-        console.log(i)
+        //console.log(i)
         maingroup.innerHTML = frames['frame_'+i] ;
         i++;
         
@@ -276,18 +292,46 @@
 
   Beampy.goFullscreen = function() {
     var html = document.documentElement,
-        requestFullscreen = html.requestFullscreen || html.requestFullScreen || html.mozRequestFullScreen || html.webkitRequestFullScreen;
+   requestFullscreen = html.requestFullscreen || html.requestFullScreen || html.mozRequestFullScreen || html.webkitRequestFullScreen;
     if (requestFullscreen) {
       requestFullscreen.apply(html);
     }
   }
   
+  //Function to hide the mouse when it is idle taken from https://gist.github.com/josephwegner/1228975
+  Beampy.initmouse = function() {  
+        var idleMouseTimer;
+        var forceMouseHide = false;
 
+        $("html").css('cursor', 'none');
+
+        $("html").mousemove(function(ev) {
+            if(!forceMouseHide) {
+                $("html").css('cursor', '');
+
+                clearTimeout(idleMouseTimer);
+
+                idleMouseTimer = setTimeout(function() {
+                    $("html").css('cursor', 'none');
+
+                    forceMouseHide = true;
+                    setTimeout(function() {
+                        forceMouseHide = false;
+                        }, 200);
+                    }, 500);
+            }
+        }); 
+    }
+  
   function init() {
     Beampy.init();
     window.onkeydown = Beampy.onkeydown.bind(Beampy);
     window.onresize = Beampy.onresize.bind(Beampy);
     window.onhashchange = Beampy.onhashchange.bind(Beampy);
+    //For chrome, safari, ie, opera
+    window.onmousewheel = Beampy.onmousewheel.bind(Beampy);
+    //For firefox
+    window.addEventListener("DOMMouseScroll", Beampy.onmousewheel.bind(Beampy), false);
   }
 
   window.onload = init;
