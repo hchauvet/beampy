@@ -80,9 +80,9 @@ class document():
         if theme != 'default':
             
             try :
-                user_theme = __import__( theme.split('.')[0] ).THEME
-                self.theme = user_theme
-                document._theme = user_theme
+                new_theme = self.dict_deep_update( document._theme, __import__( theme.split('.')[0] ).THEME )
+                self.theme =  new_theme
+                document._theme = new_theme
             
             except ImportError:
 				print("No slide theme '" + theme + "', returning to default theme.")
@@ -101,3 +101,18 @@ class document():
         document._text_box = False
         document._theme = THEME
         document._cache = None
+
+    def dict_deep_update( self, original, update ):
+    
+        """
+        Recursively update a dict.
+        Subdict's won't be overwritten but also updated.
+        from http://stackoverflow.com/questions/38987/how-can-i-merge-two-python-dictionaries-in-a-single-expression/44512#44512
+        """
+        
+        for key, value in original.iteritems(): 
+            if not key in update:
+                update[key] = value
+            elif isinstance(value, dict):
+                self.dict_deep_update( value, update[key] ) 
+        return update
