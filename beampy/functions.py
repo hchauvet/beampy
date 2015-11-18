@@ -345,3 +345,17 @@ def load_args_from_theme(element_id, args):
             except:
                 print("[Beampy] No theme propertie for %s in %s"%(key,element_id))
                 
+
+def color_text( textin, color ):
+	
+	'''
+		Adds Latex color to a string.
+	'''
+	
+	if "#" in    color:
+		textin = r'{\color[HTML]{%s} %s }'%( color.replace('#','').upper(), textin)
+	
+	else:
+		textin =r'{\color{%s} %s }'%( color, textin)
+
+	return textin
