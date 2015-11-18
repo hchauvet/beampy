@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri May 22 18:28:59 2015
-
 @author: hugo
 """
 from ConfigParser import SafeConfigParser
@@ -24,7 +23,7 @@ class document():
     _guide = False
     _text_box = False
     _optimize_svg = True
-    _output_format='html5'
+    _output_format = 'html5'
     _theme = THEME
     _cache = None 
     _pdf_animations = False 
@@ -36,27 +35,21 @@ class document():
                      "ffmpeg": "ffmpeg",
                      "pdf2svg": "pdf2svg"}
 
-    def __init__(self, width=800, height=600, guide = False, text_box = False, optimize=True, cache=True):
+    def __init__(self, theme = 'default', width = 800, height = 600, guide = False, text_box = False, optimize=True, cache=True):
+        
         """
             Create document to store slides
-
             options
             -------
-
             - width[800]: with of slides
-
             - height[600]: height of slides
-
             - guide[False]: Draw guide lines on slides to test alignements
-
             - text_box[False]: Draw box on slide elements to test width and height detection of elements (usefull to debug placement)
-
             - optimize[True]: Optimize svg using scour python script. This reduce the size but increase compilation time
-
             - cache[True]: Use cache system to not compile slides each times if nothing changed!
         """
-
-        #reset if their is old variables
+        
+		#reset if their is old variables
         self.reset()
         #A document is a dictionnary that contains all the slides
         self.data = self._contents
@@ -74,7 +67,7 @@ class document():
 
         self.text_box = text_box
         document._text_box = text_box
-
+        
         #Load the default theme
         #self.load_theme(bppath+'/statics/default.theme')
 
@@ -83,6 +76,17 @@ class document():
 
         if cache:
             document._cache = cache
+        
+        if theme != 'default':
+            
+            try :
+                user_theme = __import__( theme.split('.')[0] ).THEME
+                self.theme = user_theme
+                document._theme = user_theme
+            
+            except ImportError:
+				print("No slide theme '" + theme + "', returning to default theme.")
+				
 
     def set_size(self):
         document._width = self.width
@@ -97,6 +101,3 @@ class document():
         document._text_box = False
         document._theme = THEME
         document._cache = None
-
-
-
