@@ -201,7 +201,8 @@ def html5_export():
     output += """
     <!-- Default Style -->
     <style>
-      * { margin: 0; padding: 0; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
+      * { margin: 0; padding: 0; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; outline: none; border: none;} 
+      
       body {
         width: """+str(document._width)+"""px; 
         height: """+str(document._height)+"""px;
@@ -222,7 +223,7 @@ def html5_export():
       html { background-color: #000; height: 100%; width: 100%;}
              
       body.loaded { display: block;}
-
+      
     </style>
     
     """

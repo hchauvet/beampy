@@ -264,7 +264,8 @@
       } 
 
       var video = $("video");
-      if (video.length && !!+this.params.autoplay) {
+      //old stange !!+before this.params.autoplay
+      if (video.length && this.params.autoplay) {
         video.play();
       }
     

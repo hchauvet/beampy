@@ -15,14 +15,23 @@ from PIL import Image
 
 
 def video(videofile, width=None, height=None, x='center',y='auto',
-          fps=25, autoplay=False):
+          autoplay=False, control=True):
     """
-    Add video in webm format
+    Add video in webm/ogg/mp4 format
 
-    width and height must be specified !
-
+    arguments
+    ---------
+    
     width = None -> document._width
     heigh = None -> document._height
+    
+    x ['center']: x position
+    y ['auto']: y position
+    
+    autoplay [False]: To launch video when slide appears
+    
+    control [True]: Display video control bar
+    
     """
 
     #if no width is given get the default width
@@ -48,7 +57,7 @@ def video(videofile, width=None, height=None, x='center',y='auto',
     if ext != None:
         args = {"x":str(x), "y": str(y) ,
                 "width": width, "height": height,
-                "fps": fps, "autoplay": autoplay,
+                "autoplay": autoplay, "control": control,
                 "ext": ext, 'filename': videofile}
 
         with open(videofile, 'rb') as fin:
@@ -75,13 +84,19 @@ def render_video(videob64, args):
 
     if document._output_format=='html5':
         #HTML tag for video 
-        output = """<video id='video' width="%spx" %s controls="controls" type="video/%s" src="data:video/%s;base64, %s"/>"""
+        output = """<video id='video' width="%spx" %s type="video/%s" src="data:video/%s;base64, %s"/>"""
 
         #Check if we need autoplay
         otherargs = ''    
         if args['autoplay'] == True:
             otherargs += ' autoplay'
 
+        if args['control'] == True:
+            otherargs += ' controls="controls"'
+        else:
+            #Add click event to run video 
+            otherargs += ' onclick="this.paused?this.play():this.pause();"'
+            
         output = output%(width, otherargs, args['ext'], args['ext'], videob64)
 
     else:
