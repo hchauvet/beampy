@@ -106,7 +106,7 @@ def pdf_export(name_out):
 
     res.close()
     msg = "Saved to %s"%name_out
-    os.system('rm -rf %s'%(bdir+'/tmp'))
+    os.system('rm -rf %s'%(bdir+'/tmp/slide_*'))
 
     return msg
 

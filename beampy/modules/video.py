@@ -15,7 +15,7 @@ from PIL import Image
 
 
 def video(videofile, width=None, height=None, x='center',y='auto',
-          autoplay=False, control=True):
+          autoplay=False, control=True, still_image_time=0.0):
     """
     Add video in webm/ogg/mp4 format
 
@@ -32,6 +32,7 @@ def video(videofile, width=None, height=None, x='center',y='auto',
     
     control [True]: Display video control bar
     
+    still_image_time [0]: extract the still image for pdf export at the given still_image_time in second
     """
 
     #if no width is given get the default width
@@ -58,7 +59,8 @@ def video(videofile, width=None, height=None, x='center',y='auto',
         args = {"x":str(x), "y": str(y) ,
                 "width": width, "height": height,
                 "autoplay": autoplay, "control": control,
-                "ext": ext, 'filename': videofile}
+                "ext": ext, 'filename': videofile,
+                "still_time":still_image_time}
 
         with open(videofile, 'rb') as fin:
             datain = base64.b64encode( fin.read() )
@@ -101,7 +103,7 @@ def render_video(videob64, args):
 
     else:
         #Get video image 
-        _, imgframe = video_first_image(args)
+        _, imgframe = video_image(args)
         imgframe = base64.b64encode( imgframe )
         output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(str(width), str(height), imgframe)
         
@@ -109,7 +111,7 @@ def render_video(videob64, args):
     
     
     
-def video_first_image(args):
+def video_image(args):
     """
         Function used to get the first image of a video 
         
@@ -117,7 +119,7 @@ def video_first_image(args):
     """
     
     FFMPEG_CMD = document._external_cmd['ffmpeg'] 
-    FFMPEG_CMD += ' -loglevel 8 -i %s -f image2 -vframes 1 -'%args['filename']
+    FFMPEG_CMD += ' -loglevel 8 -i %s -f image2 -ss %0.3f -vframes 1 -'%(args['filename'], args['still_time'])
     
 
     img_out = os.popen(FFMPEG_CMD).read()
@@ -150,7 +152,7 @@ def get_video_size(args):
         Get video size by extracting width and height of first frame
     """
     
-    size, frame = video_first_image(args)
+    size, frame = video_image(args)
     
     _, _, width, height = size
     

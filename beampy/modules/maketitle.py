@@ -33,5 +33,5 @@ def maketitle(titlein, author, subtitle=None, date=None):
     if subtitle != None:
         text(subtitle, width="750", y="+1cm", color=args['subtitle_color'], size=args['subtitle_size'])
     
-    text(date, width="750", y="+0.1cm", color=args['date_color'], size=args['date_size'])
+    text(date, width="750", y="+20", color=args['date_color'], size=args['date_size'])
     endgroup()

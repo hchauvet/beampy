@@ -62,6 +62,8 @@ class cache_slides():
                 #For commands that includes files, need a filename elements in args
                 if 'filename' in element['args']:
                     self.data[slide][elemid]['file_id'] = os.path.getmtime( element['args']['filename'] )
+                    
+
 
     def is_cached(self, slide, element):
         """
@@ -106,7 +108,7 @@ class cache_slides():
                         out['args']['y'] = out['args']['old_y']
                         out['render'] = out['old_render']
                         #print out.keys()
-
+                        
                 else:
                     out = None
 

@@ -26,7 +26,16 @@ def render_slide( slide ):
     if slide['style'] == None:
         slide['style'] = ''
 
-    out = pre+"""\n<svg width='%ipx' height='%ipx' style='position: absolute; top:0px; left:0px; %s' xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n"""%(document._width,document._height,slide['style'])
+    out = pre+"""\n<svg width='%ipx' height='%ipx' style='%s' 
+    xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny" 
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:cc="http://creativecommons.org/ns#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    >"""%(document._width,document._height,slide['style'])
+    
+    #old style 'position: absolute; top:0px; left:0px;' but seems unused and cause inkscape complains when export to pdf
+    
     animout = [] #dict to store animations
     cpt_anim = 0 #animations counter
     element_id = 0 #counter for element
@@ -59,7 +68,7 @@ def render_slide( slide ):
         out += "\n</g>\n"
 
 
-    #Check if elements can be obtained from cache
+    #Check if elements can be obtained from cache or render the element
     cptcache = 0
     for i, ct in enumerate(slide['contents']):
 
@@ -69,7 +78,10 @@ def render_slide( slide ):
             if ct_cache != None:
                 slide['contents'][i] = ct_cache
                 cptcache += 1
-
+            else:
+                #print("element %i not cached"%i)
+                pass
+                
             #print ct.keys()
 
     if cptcache > 0:
@@ -99,7 +111,8 @@ def render_slide( slide ):
 
                 if 'type' in ct and ct['render'] != None:
                     ct['id'] = i + group['content_start']
-
+                    #ct['id'] = i
+                    
                     #Check if the element is already in cache
                     if ('renderedgroup' in ct) or ('rendered' in ct):
                         if ct['type'] in 'html':
@@ -109,7 +122,7 @@ def render_slide( slide ):
 
                         #print('elem %i from cache'%i)
                     else:
-                        #print('elem %i rendered'%i)
+                        print('elem %i rendered type %s in group loop'%(i,ct['type']))
                         #Check if we need to render html outside of svg
                         if ct['type'] == 'html':
                             tmphtml, tmpw, tmph = ct['render']( ct['content'], ct['args'] )
@@ -186,7 +199,7 @@ def render_slide( slide ):
                 tmph, tmpw = ct['rendered']['height'], ct['rendered']['width']
                 #print(ct['type'])
             else:
-
+                #print('elem %i rendered type %s'%(i,ct['type']))
                 #Check if we need to render html outside of svg
                 if ct['type'] == 'html':
                     tmphtml, tmpw, tmph = ct['render']( ct['content'], ct['args'] )
