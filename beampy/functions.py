@@ -7,7 +7,6 @@ Created on Fri May 15 16:45:51 2015
 
 from beampy.document import document
 from bs4 import BeautifulSoup
-#import datetime
 import re
 from beampy.scour import scour
 import glob
@@ -78,7 +77,6 @@ def convert_unit( value ):
 def pre_cache_svg_image( svg_frames ):
     """
         Function to extract raster image from svg to define them only once on the slide
-
     """
 
     all_images = []
@@ -359,3 +357,20 @@ def color_text( textin, color ):
 		textin =r'{\color{%s} %s }'%( color, textin)
 
 	return textin
+	
+	
+def dict_deep_update( self, original, update ):
+
+    """
+    Recursively update a dict.
+    Subdict's won't be overwritten but also updated.
+    from http://stackoverflow.com/questions/38987/how-can-i-merge-two-python-dictionaries-in-a-single-expression/44512#44512
+    """
+    
+    for key, value in original.iteritems(): 
+        if not key in update:
+            update[key] = value
+        elif isinstance(value, dict):
+            self.dict_deep_update( value, update[key] ) 
+    return update
+    

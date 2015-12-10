@@ -292,7 +292,7 @@ def write_content(ct, svgoutputlist, animationoutputlist, htmloutputlist, cpt_an
         cpt_anim += 1
 
     elif ct['type'] == 'html' and document._output_format=='html5':
-        htmloutputlist += """<div style="position: fixed; left: %spx; top: %spx;"> %s </div>"""%(ct['args']['x'],ct['args']['y'],ct['rendered']['html'])
+        htmloutputlist += """<div style="position: absolute; left: %spx; top: %spx;"> %s </div>"""%(ct['args']['x'],ct['args']['y'],ct['rendered']['html'])
         htmloutputlist += "</br>"
         #print htmloutputlist
 
