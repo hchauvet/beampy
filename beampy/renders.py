@@ -7,81 +7,100 @@ Created on Fri May 15 16:27:48 2015
 
 from beampy.document import document
 from beampy.functions import *
-#import os
-#import glob
-#from bs4 import BeautifulSoup
-#import re
-#from PIL import Image
+import time
 
 def render_slide( slide ):
     """
-        Function to render a slide to an 800x600 svg figure
+        Function to render a slide to an svg figure
     """
 
     pre = """<?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
     """
-
+    print( '-'*10 + 'slide_%i'%slide['num'] + '-'*10 )
     if slide['style'] == None:
         slide['style'] = ''
 
-    out = pre+"""\n<svg width='%ipx' height='%ipx' style='%s' 
-    xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny" 
+    out = pre+"""\n<svg width='%ipx' height='%ipx' style='%s'
+    xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny"
     xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns:dc="http://purl.org/dc/elements/1.1/"
     xmlns:cc="http://creativecommons.org/ns#"
     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
     >"""%(document._width,document._height,slide['style'])
-    
+
     #old style 'position: absolute; top:0px; left:0px;' but seems unused and cause inkscape complains when export to pdf
-    
+
     animout = [] #dict to store animations
     cpt_anim = 0 #animations counter
     element_id = 0 #counter for element
     scriptout = "" #String to store javascript output
     htmlout = "" #for html
+    ytop = 0 #Offset of the title
 
     #Render the content of the slide
     if slide['title'] != None:
         #Check cache
-        slide['title']['id'] = 'title'
+        #slide['title']['positionner'].id = 'title'
         if document._cache != None:
-            ct_cache = document._cache.is_cached('cached_%i'%slide['num'], slide['title'])
+            ct_cache = document._cache.is_cached('slide_%i'%slide['num'], slide['title'])
             if ct_cache != None:
-                slide['title'] = ct_cache
-        
-        if 'rendered' not in slide['title']:
-            tmpsvg, tmpw, tmph = slide['title']['render']( slide['title']['content'], slide['title']['args'], slide['title']['args']['usetex'] )
-            slide['title']['rendered'] = {'svg':tmpsvg, 'width':tmpw, 'height': tmph}
-            
-            #place the title
-            place_content([slide['title']],document._height, document._width) 
-            
-            #Add to cache
-            if document._cache != None:
+                tmpc = ct_cache
+                slide['title']['rendered'] =  tmpc['rendered']
+                slide['title']['positionner'].update_size( tmpc['width'], tmpc['height'] )
+                print('render title from cache')
+            else:
+                print('render title')
+                tmpsvg = slide['title']['render']( slide['title'] )
+                slide['title']['rendered'] = tmpsvg
                 document._cache.add_to_cache('slide_%i'%slide['num'], slide['title'])
-                
+
+        else:
+            print('render title')
+            #tmpsvg, tmpw, tmph = slide['title']['render']( slide['title']['content'], slide['title']['args'], slide['title']['args']['usetex'] )
+            tmpsvg, _, _ = slide['title']['render']( slide['title'] )
+            slide['title']['rendered'] = tmpsvg
+
+        #place the title
+        slide['title']['positionner'].place( (document._width, document._height) )
+
         #Convert arguments to svg arguments
-        out +=  '\n<g transform="translate(%s,%s)">\n'%( convert_unit(slide['title']['args']['x']), convert_unit(slide['title']['args']['y']))            
-        out += slide['title']['rendered']['svg']
+        #out +=  '\n<g transform="translate(%s,%s)">\n'%( convert_unit(slide['title']['args']['x']), convert_unit(slide['title']['args']['y']))
+        out +=  '\n<g transform="translate(%s,%s)">\n'%( slide['title']['positionner'].x['final'], slide['title']['positionner'].y['final'] )
+        out += slide['title']['rendered']
         out += "\n</g>\n"
 
+        #Check if we have a title on slide
+        ytop = float(convert_unit(slide['title']['args']['reserved_y']))
 
     #Check if elements can be obtained from cache or render the element
     cptcache = 0
+    t = time.time()
     for i, ct in enumerate(slide['contents']):
-
         if document._cache != None:
-            ct['id'] = i
             ct_cache = document._cache.is_cached('slide_%i'%slide['num'], ct)
             if ct_cache != None:
-                slide['contents'][i] = ct_cache
+                tmpc = ct_cache
+                ct['rendered'] = tmpc['rendered']
+                ct['positionner'].update_size( tmpc['width'], tmpc['height'] )
                 cptcache += 1
+                #print ct.keys()
             else:
-                #print("element %i not cached"%i)
-                pass
-                
+                print("element %i not cached"%ct['positionner'].id)
+                tmpsvg = ct['render']( ct )
+                ct['rendered'] = tmpsvg
+                document._cache.add_to_cache('slide_%i'%slide['num'], ct )
+
+        else:
+            tmpsvg = ct['render']( ct )
+            ct['rendered'] = tmpsvg
+
+        #print ct.keys()
+
+    print('Rendering elements in %f sec'%(time.time()-t))
+
+
             #print ct.keys()
 
     if cptcache > 0:
@@ -93,6 +112,7 @@ def render_slide( slide ):
         print(outstr)
 
 
+    t = time.time()
     #Render the content of the slide
     #In two steps:
     #   1 -> transform to svg and get width and height of each element
@@ -104,73 +124,44 @@ def render_slide( slide ):
     if len(groups)>0:
         for group in groups:
             group_contents = slide['contents'][group['content_start']:group['content_stop']]
-            group_contents_all_height = {}
-            group_height = 0
-            tmp_width = []
+
+            #If the group width and height are not defined
+            #set group width and height to the sum of elements width and height
+            if group['positionner'].width == None:
+                group['positionner'].width = max( [ct['positionner'].width for ct in group_contents] )
+
+            if group['positionner'].height == None:
+                group['positionner'].height = sum( [ct['positionner'].height+ct['positionner'].y['shift'] for ct in group_contents] )
+
             for i, ct in enumerate(group_contents):
+                if ct['positionner'].y['align'] == 'auto':
+                    all_height[i] = ct['positionner'].height
+                else:
+                    ct['positionner'].place( (group['positionner'].width, group['positionner'].height) )
 
-                if 'type' in ct and ct['render'] != None:
-                    ct['id'] = i + group['content_start']
-                    #ct['id'] = i
-                    
-                    #Check if the element is already in cache
-                    if ('renderedgroup' in ct) or ('rendered' in ct):
-                        if ct['type'] in 'html':
-                            tmph, tmpw = ct['renderedgroup']['height'], ct['renderedgroup']['width']
-                        else:
-                            tmph, tmpw = ct['rendered']['height'], ct['rendered']['width']
-
-                        #print('elem %i from cache'%i)
-                    else:
-                        print('elem %i rendered type %s in group loop'%(i,ct['type']))
-                        #Check if we need to render html outside of svg
-                        if ct['type'] == 'html':
-                            tmphtml, tmpw, tmph = ct['render']( ct['content'], ct['args'] )
-                            ct['renderedgroup'] = {"group_id":group['args']['group_id'],"width":tmpw,"height":tmph}
-                            #print("Warning html type (video and bokeh) are not placed in groups")
-                        else:
-                            tmpsvg, tmpw, tmph = ct['render']( ct['content'], ct['args'] )
-                            ct['rendered'] = {"svg":tmpsvg,"width":tmpw,"height":tmph, "group_id":group['args']['group_id']}
-
-                    #print tmpw, tmph
-                    #Add content to the cache
-                    if document._cache != None:
-                        document._cache.add_to_cache('slide_%i'%slide['num'], ct)
+                #Check if we have javascript to output
+                if 'script' in ct['args']:
+                    scriptout += ct['args']['script']
 
 
-                    group_height += tmph
-                    tmp_width += [tmpw]
-                    #Test if we have a relative offset of the
-                    if i != 0:
-                        if '+' in ct['args']['y'][0]:
-                            group_height += float(convert_unit(ct['args']['y'][1:]))
+            #Manage autoplacement
+            if all_height != {}:
+                auto_place_elements(all_height, (group['positionner'].width, group['positionner'].height),
+                                    'y', group_contents, ytop=0)
+                all_height = {} #reset all_height dict
 
-                        if '+' in ct['args']['x'][0]:
-                            tmp_width[-1] += float(convert_unit(ct['args']['x'][1:]))
-
-                    if ct['args']['y'] == 'auto':
-                        group_contents_all_height[i] = tmph
-
-            if group['args']['width'] == None:
-                group['args']['width'] = max(tmp_width)
-            if group['args']['height']  == None:
-                group['args']['height'] = group_height
-
-
-            #Place elements in the groups
-            #print group['args']['height'], group['args']['width']
-            place_content(group_contents, group['args']['height'], group['args']['width'],
-                          ytop=0, all_height=group_contents_all_height)
+            #Update group size to fit the min max of all elements
+            #set_group_size(group, slide)
             #Create the correct svg for the group and then remove content from the slide['contents']['rendered']
-
             #Add a global content for the group
             groupcontent = {'type': 'group', 'args': group['args'],
                             'content': '',
+                            'positionner': group['positionner'],
                             'render': render_group}
 
             #groupcontent['content'] = ''
             for i, ct in enumerate(group_contents):
-                if 'rendered' in ct:
+                if 'rendered' in ct and ct['type'] not in ['html']:
                     #Add rendered content to groupcontent
                     groupcontent['content'], animout, htmlout, cpt_anim = write_content(ct, groupcontent['content'], animout, htmlout, cpt_anim)
 
@@ -182,56 +173,51 @@ def render_slide( slide ):
             group['content'] = groupcontent
             #print groupcontent
 
-        #Need a second loop to add groups to slide contents
-        for group in groups:
-            #Add groupcontent to the slide contents
-            slide['contents'].insert(group['content_start'], group['content'])
+    #Reloop over group to add them to slide contents
+    for group in groups:
+        #Add groupcontent to the slide contents
+        slide['contents'].insert(group['content_start'], group['content'])
 
 
     #Render contents and place groups
+    htmlingroup = []
     for i, ct in enumerate(slide['contents']):
         #Si on trouve des texts
         if 'type' in ct and ct['render'] != None:
-            ct['id'] = i
+            #Check if it's a group
+            if ct['type'] == 'group':
+                #render the group
+                tmpsvg, _, _ = ct['render']( ct )
+                ct['rendered'] = tmpsvg
 
-            #Check if the element is already in cache
-            if 'rendered' in ct:
-                tmph, tmpw = ct['rendered']['height'], ct['rendered']['width']
-                #print(ct['type'])
+            #get htmlcontents position
+            if ct['type'] == 'html' and 'group_id' in ct:
+                htmlingroup += [i]
             else:
-                #print('elem %i rendered type %s'%(i,ct['type']))
-                #Check if we need to render html outside of svg
-                if ct['type'] == 'html':
-                    tmphtml, tmpw, tmph = ct['render']( ct['content'], ct['args'] )
-                    ct['rendered'] = {"html":tmphtml,"width":tmpw,"height":tmph}
+                #Check if it's an auto placement or we can place the element
+                if ct['positionner'].y['align'] == 'auto':
+                    all_height[i] = ct['positionner'].height
                 else:
-                    #Use the defined render function in the content dict['render']
-                    tmpsvg, tmpw, tmph = ct['render']( ct['content'], ct['args'] )
-                    ct['rendered'] = {"svg":tmpsvg,"width":tmpw,"height":tmph}
-
-
-            #Add content to the cache
-            if document._cache != None:
-                document._cache.add_to_cache('slide_%i'%slide['num'], ct)
-
-            if ct['args']['y'] == 'auto':
-                all_height[i] = tmph
+                    ct['positionner'].place( (document._width, document._height), ytop=ytop )
 
 
 
-    #Place elements on page
+    #Manage auto placement
+    if all_height != {}:
+        auto_place_elements(all_height, (document._width, document._height),
+                            'y', slide['contents'], ytop)
 
-    #Check if we have a title on slide
-    if slide['title'] != None:
-        ytop = float(convert_unit(slide['title']['args']['reserved_y']))
-    else:
-        ytop = 0
+    #Extra operations for html contents
+    if htmlingroup != []:
 
-    place_content(slide['contents'], document._height, document._width, ytop, all_height)
+        for i in htmlingroup:
+            ct = slide['contents'][i]
+            #add off set to the html div position
+            ct['positionner'].x['final'] += groups[ct['group_id']-1]['positionner'].x['final']
+            ct['positionner'].y['final'] += groups[ct['group_id']-1]['positionner'].y['final']
 
-    #add group to contents svg to place them
+    #Write rendered content
     for ct in slide['contents']:
-
         if 'rendered' in ct:
             #add the content to the output
             out, animout, htmlout, cpt_anim = write_content(ct, out, animout, htmlout, cpt_anim)
@@ -245,6 +231,7 @@ def render_slide( slide ):
         out += '<g><line x1="400" y1="0" x2="400" y2="600" style="stroke: #777"/></g>'
         out += '<g><line x1="0" y1="%0.1f" x2="800" y2="%0.1f" style="stroke: #777"/></g>'%(ytop + available_height/2.0, ytop + available_height/2.0)
         out += '<g><line x1="0" y1="%0.1f" x2="800" y2="%0.1f" style="stroke: #777"/></g>'%(ytop, ytop)
+
     #Close the main svg
     out += "\n</svg>\n"
 
@@ -261,8 +248,47 @@ def render_slide( slide ):
     if scriptout != "":
         slide['script'] = scriptout
 
+    print('Placing elements in %f'%(time.time()-t))
+
     return out
 
+
+def compute_equal_space(available_size, all_elements_size, offset=0):
+    """
+        Function to return an equal space between elements
+    """
+
+    available_size -= offset
+    total_content_size = sum([float(all_elements_size[a]) for a in all_elements_size])
+
+    dspace = (available_size - total_content_size)/float( len(all_elements_size) + 1 )
+
+    return dspace
+
+def auto_place_elements(all_size, container_size, axis, contents, ytop):
+    """
+        container_size = (document._width, document._height)
+    """
+    if axis == 'x':
+        max_size = container_size[0]
+    if axis == 'y':
+        max_size = container_size[1]
+
+    ds = compute_equal_space(max_size, all_size, ytop)
+    cpts = ds + ytop
+    for elem in all_size:
+        if axis == 'y':
+            contents[elem]['positionner'].y['shift'] = cpts
+            contents[elem]['positionner'].y['align'] = 'top'
+            contents[elem]['positionner'].y['unit'] = 'px'
+
+        if axis == 'x':
+            contents[elem]['positionner'].x['shift'] = cpts
+            contents[elem]['positionner'].x['align'] = 'left'
+            contents[elem]['positionner'].x['unit'] = 'px'
+
+        contents[elem]['positionner'].place( container_size, ytop=ytop )
+        cpts += ds + all_size[elem]
 
 def write_content(ct, svgoutputlist, animationoutputlist, htmloutputlist, cpt_anim):
     """
@@ -274,7 +300,7 @@ def write_content(ct, svgoutputlist, animationoutputlist, htmloutputlist, cpt_an
 
     if ct['type'] in ['animatesvg'] and document._output_format=='html5':
         #Pre cache raster images
-        frames_svg_cleaned, all_images = pre_cache_svg_image(ct['rendered']['svg'])
+        frames_svg_cleaned, all_images = pre_cache_svg_image(ct['rendered'])
         #Add an animation to animout dict
         animationoutputlist += [{}]
         animationoutputlist[cpt_anim]['header'] = "%s"%(''.join(all_images))
@@ -282,7 +308,7 @@ def write_content(ct, svgoutputlist, animationoutputlist, htmloutputlist, cpt_an
         #animout['header'] += '<g id="maingroup" transform="translate(%s,%s)">'%(tmpx,tmpy)
 
         svgoutputlist += "<defs id='pre_loaded_images_%i'></defs>"%(cpt_anim)
-        svgoutputlist += '<g id="svganimate_%i" transform="translate(%s,%s)" onclick="Beampy.animatesvg(%i,%i);"> </g>'%(cpt_anim, ct['args']['x'],ct['args']['y'], cpt_anim, ct['args']['fps'])
+        svgoutputlist += '<g id="svganimate_%i" transform="translate(%s,%s)" onclick="Beampy.animatesvg(%i,%i);"> </g>'%(cpt_anim, ct['positionner'].x['final'],ct['positionner'].y['final'], cpt_anim, ct['args']['fps'])
 
         animationoutputlist[cpt_anim]['frames'] = {}
         for i in xrange(len(frames_svg_cleaned)):
@@ -292,142 +318,50 @@ def write_content(ct, svgoutputlist, animationoutputlist, htmloutputlist, cpt_an
         cpt_anim += 1
 
     elif ct['type'] == 'html' and document._output_format=='html5':
-        htmloutputlist += """<div style="position: absolute; left: %spx; top: %spx;"> %s </div>"""%(ct['args']['x'],ct['args']['y'],ct['rendered']['html'])
+        htmloutputlist += """<div style="position: absolute; left: %spx; top: %spx;"> %s </div>"""%(ct['positionner'].x['final'], ct['positionner'].y['final'], ct['rendered'])
         htmloutputlist += "</br>"
         #print htmloutputlist
 
     else:
         if ct['type'] not in ['html']:
-            svgoutputlist += '<g transform="translate(%s,%s)">'%(ct['args']['x'],ct['args']['y'])
-            svgoutputlist += ct['rendered']['svg']
+            svgoutputlist += '<g transform="translate(%s,%s)">'%(ct['positionner'].x['final'], ct['positionner'].y['final'])
+            svgoutputlist += ct['rendered']
 
             #add a box around groups
             if document._text_box and ct['type'] == 'group':
-                svgoutputlist +="""<rect x="0"  y="0" width="%s" height="%s" style="stroke:#009900;stroke-width: 1;stroke-dasharray: 10 5;fill: none;" />"""%(ct['args']['width'],ct['args']['height'])
+                svgoutputlist +="""<rect x="0"  y="0" width="%s" height="%s" style="stroke:#009900;stroke-width: 1;stroke-dasharray: 10 5;fill: none;" />"""%(ct['positionner'].width, ct['positionner'].height)
 
             svgoutputlist += '</g>'
 
     return svgoutputlist, animationoutputlist, htmloutputlist, cpt_anim
 
-def place_content(contents, layer_height, layer_width, ytop=0, all_height = {}):
-    """
-    function to place all contents correctly, do the centering and repartition
-    on page and conpute x,y when we enter relative position
-    """
-
-    layer_width = float(convert_unit(layer_width))
-    layer_height = float(convert_unit(layer_height))
-    
-    #If we have content with auto y position
-    #we compute y anchor of each content
-    #height space left
-    available_height =  layer_height - ytop
-
-    if all_height != {}:
-        #height off all contents
-        total_content_height = sum([float(all_height[a]) for a in all_height])
-
-        #Compute the equal space between each elements
-        if total_content_height < available_height:
-            hspace = (available_height - total_content_height)/float( len(all_height) + 1 )
-        else:
-            hspace = 0
-
-        #print available_height, total_content_height, hspace
-        #compute the y position for each elements
-        cpth = ytop + hspace
-        for elem in all_height:
-            contents[elem]['args']['y'] = "%0.1f"%cpth
-
-            #Print message if overflow
-            if cpth >= document._height:
-                print("[WARNING] element overflow in height in slide")
-                print(cpth, hspace, all_height)
-
-            #Add the element height and hspace to the counter
-            cpth += all_height[elem] + hspace
-
-    #Place relative contents and center horizontally
-    prevx = 0
-    prevy = ytop
-    prevwidth = 0
-    prevheight = 0
-    cur_group_x = None
-    cur_group_y = None
-    cur_group_id = None
-    for ct in contents:
-        if 'rendered' in ct:
-            content = ct['rendered']
-        if 'renderedgroup' in ct:
-            content = ct['renderedgroup']
-
-        if ('rendered' in ct) or ('renderedgroup' in ct):
-
-            #If it's an html element an it's in a group add group_x group_y to tmpx tmpy
-            if ('html' in ct['type']) and ('renderedgroup' in ct) and (ct['renderedgroup']['group_id'] == cur_group_id):
-                #print cur_group_x, cur_group_y
-                ct['args']['x'] = "%0.1f"%( float(ct['args']['x']) + float(cur_group_x))
-                ct['args']['y'] = "%0.1f"%( float(ct['args']['y']) + float(cur_group_y))
-
-
-            tmpx = ct['args']['x']
-            tmpy = ct['args']['y']
-
-            #Check if we need to center horizontaly the content
-            if tmpx == 'center':
-                tmpx = "%0.1f"%(horizontal_centering(content['width'], 0,  layer_width))
-            #same vertically
-            if tmpy == 'center':
-                tmpy = "%0.1f"%(horizontal_centering(content['height'], ytop,  available_height))
-
-            #check if it's relative positioning of an element, if so add prevx or prevy to element x, y
-   
-            if '+' in tmpx:
-                dx = float(convert_unit(tmpx.replace('+','')))
-                tmpx = "%0.1f"%( prevx + dx )
-                
-            if '+' in tmpy:
-                dy = float(convert_unit(tmpy.replace('+','')))
-                tmpy = "%0.1f"%( prevy + dy )
-                
-            if '-' in tmpx:
-                tmpx = "%0.1f"%( prevx - float(convert_unit(tmpx.replace('-',''))) - prevwidth )
-                
-            if '-' in tmpy:
-                tmpy = "%0.1f"%( prevy - float(convert_unit(tmpy.replace('-',''))) - prevheight )
-
-                
-            #Contert tmpx and tmpy to pixels
-            tmpy = convert_unit(tmpy)
-            tmpx = convert_unit(tmpx)
-
-            #Store tmpx and tmpy back to the content x, y variables
-            ct['args']['x'] = tmpx
-            ct['args']['y'] = tmpy
-
-            #print tmpx, tmpy
-            #Compute the next prevx and prevy
-            prevx = float(tmpx) + content['width']
-            prevy = float(tmpy) + content['height']
-            
-            prevwidth = content['width']
-            prevheight = content['height']
-
-            #Check if a group have just been placed
-            #If a group have been rendered take is x, and y to add to bokeh and html elements
-            if 'group' in ct['type']:
-                cur_group_x = ct['args']['x']
-                cur_group_y = ct['args']['y']
-                cur_group_id = ct['args']['group_id']
-
-def render_group(groupsvgs, args):
+def render_group( ct ):
     """
         group render
     """
-    if args["background"] != None:
-        pre_rect = '<rect width="%s" height="%s" style="fill:%s;" />'%(args['width'], args['height'], args['background'])
+
+    if ct['args']["background"] != None:
+        pre_rect = '<rect width="%s" height="%s" style="fill:%s;" />'%(ct['positionner'].width, ct['positionner'].height, ct['args']['background'])
     else:
         pre_rect = ''
-        
-    return pre_rect + groupsvgs, float(convert_unit(args['width'])), float(convert_unit(args['height']))
 
+    return pre_rect + ct['content'], ct['positionner'].width, ct['positionner'].height
+
+def set_group_size(group, slide):
+    group_contents = slide['contents'][group['content_start']:group['content_stop']]
+
+    xgroup = [ ct['positionner'].x['final'] for ct in group_contents ]
+    ygroup = [ ct['positionner'].y['final'] for ct in group_contents ]
+
+    xmin = min( xgroup )
+    xmax = max( [ ct['positionner'].x['final']+ct['positionner'].width for ct in group_contents ] )
+    ymin = min( ygroup )
+    ymax = max( ygroup )
+    ymax += group_contents[ygroup.index(ymax)]['positionner'].height
+
+    #print xmax, xmin, ymax, ymin
+    width = xmax - xmin
+    height = ymax - ymin
+
+    #update group size
+    group['positionner'].update_size( width, height )

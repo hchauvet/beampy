@@ -9,6 +9,7 @@ Class to manage text for beampy
 from beampy import document
 from beampy.functions import gcs, load_args_from_theme
 from beampy.modules.text import render_text
+from beampy.geometry import positionner
 
 def title( title, usetex=True):
     """
@@ -21,7 +22,12 @@ def title( title, usetex=True):
 
     #Load theme properties
     load_args_from_theme('title', args)
-        
-    titleout = {'type': 'svg', 'content':title, "args":args, "render": render_text }
 
+    titleout = {'type': 'svg',
+                "positionner": positionner( args['x'].copy(), args['y'].copy(), width=None, height=None),
+                'content':title,
+                "args":args,
+                "render": render_text }
+
+    titleout['positionner'].id = 'title'
     document._contents[gcs()]['title']=titleout

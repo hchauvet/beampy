@@ -3,21 +3,21 @@
 # Default theme of Beampy
 THEME = {
 
-'text':{ 
+'text':{
     'font-size':20,
     'font':'CMR',
     'color':'#000000',
     'align':''},
-    
+
 'title':{
     'font-size': 28,
     'color': 'ForestGreen',
-    'x': '0.5cm',
-    'y': '1.2cm',
+    'x': {'shift':0.5, 'unit':'cm'},
+    'y': {'shift':1.2, 'unit':'cm'},
     'reserved_y': '1.5cm',
     'align': '',
     'font': 'CMR'},
-    
+
 'titleslide':{
     'title_size':30,
     'title_color':'ForestGreen',

@@ -8,13 +8,14 @@ from beampy.statics.default_theme import THEME
 #Auto change path
 #import beampy
 #bppath =  str(beampy).split('beampy')[1].split('from')[-1].strip().replace("'",'')+'beampy/'
-import os 
+import os
 bppath = os.path.dirname(__file__) + '/'
 
 class document():
     """
        Main function to define the document style etc...
     """
+    __version__ = 0.1
     #Global variables to sotre data
     _contents = {}
     _global_counter = {}
@@ -25,9 +26,9 @@ class document():
     _optimize_svg = True
     _output_format = 'html5'
     _theme = THEME
-    _cache = None 
-    _pdf_animations = False 
-    
+    _cache = None
+    _pdf_animations = False
+
     #Define path to external commands
     _external_cmd = {"inkscape": "inkscape",
                      "dvisvgm": "dvisvgm",
@@ -36,7 +37,7 @@ class document():
                      "pdf2svg": "pdf2svg"}
 
     def __init__(self, theme = 'default', width = 800, height = 600, guide = False, text_box = False, optimize=True, cache=True):
-        
+
         """
             Create document to store slides
             options
@@ -48,7 +49,7 @@ class document():
             - optimize[True]: Optimize svg using scour python script. This reduce the size but increase compilation time
             - cache[True]: Use cache system to not compile slides each times if nothing changed!
         """
-        
+
 		#reset if their is old variables
         self.reset()
         #A document is a dictionnary that contains all the slides
@@ -67,7 +68,7 @@ class document():
 
         self.text_box = text_box
         document._text_box = text_box
-        
+
         #Load the default theme
         #self.load_theme(bppath+'/statics/default.theme')
 
@@ -76,17 +77,17 @@ class document():
 
         if cache:
             document._cache = cache
-        
+
         if theme != 'default':
-            
+
             try :
                 new_theme = self.dict_deep_update( document._theme, __import__( theme.split('.')[0] ).THEME )
                 self.theme =  new_theme
                 document._theme = new_theme
-            
+
             except ImportError:
 				print("No slide theme '" + theme + "', returning to default theme.")
-				
+
 
     def set_size(self):
         document._width = self.width
@@ -103,16 +104,16 @@ class document():
         document._cache = None
 
     def dict_deep_update( self, original, update ):
-    
+
         """
         Recursively update a dict.
         Subdict's won't be overwritten but also updated.
         from http://stackoverflow.com/questions/38987/how-can-i-merge-two-python-dictionaries-in-a-single-expression/44512#44512
         """
-        
-        for key, value in original.iteritems(): 
+
+        for key, value in original.iteritems():
             if not key in update:
                 update[key] = value
             elif isinstance(value, dict):
-                self.dict_deep_update( value, update[key] ) 
+                self.dict_deep_update( value, update[key] )
         return update

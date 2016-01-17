@@ -3,10 +3,10 @@
 
 from beampy import *
 
-doc = document()
+doc = document(cache=True)
 
 slide()
-maketitle('Beampy a tool to make simple presentation','Hugo Chauvet')
+maketitle('Beampy a tool to make  simple presentation','Hugo Chauvet')
 
 slide()
 title("Text")
@@ -22,7 +22,7 @@ endgroup()
 
 slide()
 title('Figure')
-figure("./svg_anims/test_0.svg", width="500")
+figure("./svg_anims/test_0.svg", width=500)
 begingroup(width=700, height=95, background="#EFEFEF")
 code(r"""
 slide()
@@ -56,29 +56,30 @@ endgroup()
 slide()
 title('Group and columns')
 colwidth=350
-begingroup(width=colwidth, height=doc._height-100, x="1cm", y="1.8cm", background="#000")
+g1 = begingroup(width=colwidth, height=doc._height-100, x="1cm", y="1.8cm", background="#000")
 text("""
-This is a test for a long text in a column style. 
+This is a test for a long text in a column style.
 
-$$ \sum_{i=0}^{10} x_i $$ 
+$$ \sum_{i=0}^{10} x_i $$
 """, align="center", width=colwidth-20, color="#ffffff")
 endgroup()
-begingroup(width=colwidth, height=doc._height-100, x=430, y="1.8cm", background="#EFEFEF")
+
+begingroup(width=colwidth, height=doc._height-100, x=g1.right+0.01, y=g1.top+0, background="#EFEFEF")
 code("""
 slide()
 title('Group and columns')
 colwidth=350
 
-begingroup(width=colwidth, 
-        height=doc._height-100, 
-        x="1cm", 
+begingroup(width=colwidth,
+        height=doc._height-100,
+        x="1cm",
         y="1.8cm",
         background="#000")
-        
-text(\"""This is a test for
- a long text in a column style. 
 
-$$ \sum_{i=0}^{10} x_i $$ 
+text(\"""This is a test for
+ a long text in a column style.
+
+$$ \sum_{i=0}^{10} x_i $$
 \""", align="center",
 width=colwidth-20,
 color="#ffffff")
@@ -91,7 +92,7 @@ endgroup()
 
 slide()
 title('Relative positioning')
-text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
+text("youpi x=1cm, y=0.1", x="1cm", y=0.1)
 text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
 text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
 
@@ -103,7 +104,7 @@ begingroup(width=700, height=195, background="#EFEFEF", y="+2.1cm")
 code(r"""
 slide()
 title('Relative positioning')
-text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
+text("youpi x=1cm, y=0.1", x="1cm", y=0.1)
 text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
 text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
 text("youpi x=+1cm, y=+0.5cm", x="+1cm", y="+0.5cm")
@@ -112,10 +113,28 @@ text(r"youpi x=+1.5cm,\\ y=-0", x="+1.5cm", y="-0")
 """, langage="python", width="450", x="1cm")
 endgroup()
 
+slide("Using element's anchors")
+e0 = text('central element [e0]', y=0.2)
+e1 = text('left of e0', y=e0.top+0, x=e0.left-{'shift': 0.1, 'align':'right'})
+e2 = text('right of e0', y=e0.top+0, x=e0.right+0.1)
+e4 = text('anchors available: top, bottom, center, right, left',
+          y=e0.bottom+'1cm', x=e0.center+{'shift':0, 'align':'middle'})
+
+begingroup(y=e4.bottom+0.15, width=700, height=150, background="#EFEFEF")
+code(r"""
+e0 = text('central element [e0]', y=0.2)
+e1 = text('left of e0', y=e0.top+0,
+         x=e0.left-{'shift': 0.1, 'align':'right'})
+e2 = text('right of e0', y=e0.top+0, x=e0.right+0.1)
+e4 = text('anchors available: top, bottom, center, right, left',
+          y=e0.bottom+'1cm', x=e0.center+{'shift':0, 'align':'middle'})
+""", langage="python", width=450, x=0.05)
+endgroup()
+
 slide()
 title('Tikz')
 
-tikz(r"""
+p = tikz(r"""
  % Local definitions
   \def\costhirty{0.8660256}
 
@@ -188,11 +207,12 @@ tikz(r"""
           \alpha}}{\color{coscolor}\cos \alpha} = 1/\sqrt 3.
       \]%
     };
-""", figure_options="scale=3,cap=round", x="+3cm", y="+5px")
-text(r"""
+""", figure_options="scale=3,cap=round", x="+3cm", y=0.1)
+t = text(r"""
 \textit{http://www.texample.net/tikz/examples/tutorial/}
-""", x="center", y="+3cm")
-begingroup(width=700, height=90, background="#EFEFEF", y="+20px")
+""", x="center", y=p.bottom+0.1)
+
+begingroup(width=700, height=90, background="#EFEFEF", y=t.bottom+0.02)
 code(r"""
 slide()
 title('Tikz')
@@ -209,7 +229,7 @@ p = bokfig(height=300, width=600)
 x = np.linspace(0, 4*np.pi, 30  )
 y = np.sin(x)
 p.circle(x, y, legend="sin(x)")
-figure(p, y="+5px", x="center")
+figure(p, y=0.1, x="center")
 
 begingroup(width=700, height=155, background="#EFEFEF", y="11cm")
 code("""

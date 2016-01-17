@@ -7,7 +7,8 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.functions import gcs, convert_unit, latex2svg
+from beampy.functions import gcs, convert_unit, latex2svg, add_to_slide
+from beampy.geometry import positionner
 import glob
 import os
 from bs4 import BeautifulSoup
@@ -38,11 +39,11 @@ def tikz(tikscommands, x='0', y='0', tikz_header=None, tex_packages=None,
                         tex_packages = ['xolors','tikz-3dplot']
 
         - figure_options: options for \begin{tikzfigure}[options]
-        
+
         - figure_anchor ['top_left']: set the anchor of tikz output svg 'top_left', 'bottom_left', 'top_right', bottom_right'
     """
 
-    args = {"x":str(x), "y": str(y), 'figure_anchor': figure_anchor }
+    args = {'figure_anchor': figure_anchor }
 
     if tikz_header:
         args['tikzheader'] = tikz_header
@@ -53,16 +54,21 @@ def tikz(tikscommands, x='0', y='0', tikz_header=None, tex_packages=None,
     if figure_options:
         args['tikzfigureoptions'] = figure_options
 
-    textout = {'type': 'tikz', 'content': tikscommands, 'args': args,
+    textout = {'type': 'tikz', 'content': tikscommands,
+               'args': args,
+               'positionner': positionner(x, y, None, None),
                "render": render_tikz}
 
-    document._contents[gcs()]['contents'] += [ textout ]
 
+    return add_to_slide( textout )
 
-def render_tikz( tikzcommands, args ):
+def render_tikz( ct ):
     """
     Latex -> dvi -> svg for tikz image
     """
+
+    tikzcommands = ct['content']
+    args = ct['args']
 
     tex_pt_to_px = 96/72.27
 
@@ -121,13 +127,13 @@ def render_tikz( tikzcommands, args ):
         #Default is args['figure_anchor'] == top_left
         dx = -float(xinit)
         dy = -float(yinit)
-            
+
         if 'bottom' in args['figure_anchor']:
             dy = -float(yinit) - tikz_height
-            
+
         if 'right' in args['figure_anchor']:
-            dx = -float(xinit)-tikz_width 
-            
+            dx = -float(xinit)-tikz_width
+
         newmatrix = 'scale(%0.3f) translate(%0.1f,%0.1f)'%(tex_pt_to_px, dx, dy)
         g['transform'] = newmatrix
 
@@ -139,4 +145,5 @@ def render_tikz( tikzcommands, args ):
         tikz_height = 0
         tikz_width = 0
 
-    return output, tikz_width, tikz_height
+    ct['positionner'].update_size(tikz_width, tikz_height)
+    return output

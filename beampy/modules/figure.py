@@ -6,7 +6,10 @@ Created on Sun Oct 25 19:05:18 2015
 """
 
 from beampy import document
-from beampy.functions import gcs, convert_unit, optimize_svg, make_global_svg_defs, getsvgwidth, getsvgheight, convert_pdf_to_svg
+from beampy.functions import (gcs, convert_unit, optimize_svg,
+ make_global_svg_defs, getsvgwidth, getsvgheight, convert_pdf_to_svg,
+ add_to_slide)
+from beampy.geometry import positionner
 from bs4 import BeautifulSoup
 from PIL import Image
 import base64
@@ -31,9 +34,7 @@ def figure(filename,x='center',y='auto', width=None, height=None, ext=None):
                      'auto': distribute all slide element on document._height
                      'center': center image relative to document._height (ignore other slide elements)
                      '+3cm': place image relative to previous element
-
-        - width[None]: Image width, if None: width = document._width
-
+https://duckduckgo.com/?q=feder+inra&t=ffab
         - height[None]: Image heigt
 
         - ext[None]: Image format, if None, format is guessed from filename.
@@ -51,10 +52,10 @@ def figure(filename,x='center',y='auto', width=None, height=None, ext=None):
 
             if ( '.jpeg' in filename.lower() ) or ( '.jpg' in filename.lower() ):
                 ext = 'jpeg'
-            
+
             if '.pdf' in filename.lower():
                 ext = 'pdf'
-            
+
     else:
         if "bokeh" in str(type(filename)):
             ext = 'bokeh'
@@ -79,29 +80,30 @@ def figure(filename,x='center',y='auto', width=None, height=None, ext=None):
         #Transform figscript to givea function name load_bokehjs
         tmp = figscript.splitlines()
         goodscript = '\n'.join( ['["load_bokeh"] = function() {'] + tmp[1:-1] + ['};\n'] )
-        args = {"x":str(x), "y": str(y) , "width": str(width), "height": str(height),
-                "ext": ext,  'script':goodscript}
+        args = {"ext": ext,  'script':goodscript}
 
-        figout = {'type': 'html', 'content': figdiv, 'args': args,
+        figout = {'type': 'html',
+                  'content': figdiv,
+                  'positionner': positionner(x, y, width, height),
+                  'args': args,
                   'render': render_figure}
 
-        document._contents[gcs()]['contents'] += [ figout ]
+        return add_to_slide( figout )
 
 
     #Other filetype images
     else:
 
         if width == None:
-            width = str(document._width)
+            width = document._width
         else:
-            width = str(width)
-            
-        if height != None:
-            height = str(height)
+            width = width
 
-        args = {"x":str(x), "y": str(y) , "width": width, "height": height,
-                "ext": ext, 'filename':filename }
-                
+        if height != None:
+            height = height
+
+        args = {"ext": ext, 'filename':filename }
+
         if ext == 'pdf' :
             figdata = convert_pdf_to_svg( filename )
 
@@ -109,28 +111,31 @@ def figure(filename,x='center',y='auto', width=None, height=None, ext=None):
             with open(filename,"r") as f:
                 figdata = f.read()
 			#If it's png/jpeg figure we need to encode them to base64
-     
+
             if ext in ( 'png', 'jpeg' ):
                 figdata = base64.encodestring(figdata)
-			
+
         figout = {'type': 'figure', 'content': figdata, 'args': args,
-                  "render": render_figure}
+                  "render": render_figure,
+                  'positionner': positionner(x, y, width, height)}
 
-        document._contents[gcs()]['contents'] += [ figout ]
+        return add_to_slide( figout )
 
 
-def render_figure( figurein, args ):
-    
+def render_figure( ct ):
+
     """
         function to render figures
     """
 
     #For svg figure
-    
+    figurein = ct['content']
+    args = ct['args']
+
     if args['ext'] in ('svg', 'pdf') :
 
         #test if we need to optimise the svg
-        
+
         if document._optimize_svg:
             figurein = optimize_svg(figurein)
 
@@ -155,7 +160,7 @@ def render_figure( figurein, args ):
             #print tmpw, tmph
             os.remove(tmpname+'.svg')
 
-        
+
         svgheight = convert_unit( tmph )
         svgwidth = convert_unit( tmpw )
 
@@ -164,7 +169,7 @@ def render_figure( figurein, args ):
             svgwidth = svg_viewbox.split(' ')[2]
 
         #SCALE OK need to keep the original viewBox !!!
-        scale_x = float(convert_unit(args['width']))/float(svgwidth)
+        scale_x = ct['positionner'].width/float(svgwidth)
         #print svgwidth, svgheight, scale_x
         #scale_y = float(convert_unit(args['height']))/float(svgheight)
         good_scale = scale_x
@@ -180,12 +185,12 @@ def render_figure( figurein, args ):
         output = tmphead + tmpfig + '</g>\n'
 
         figure_height = float(svgheight)*good_scale
-        figure_width = convert_unit(args['width'])
-        
+        figure_width = ct['positionner'].width
+
     #Bokeh images
     if args['ext'] == 'bokeh':
-        figure_height = float(convert_unit(args['height']))
-        figure_width = convert_unit(args['width'])
+        figure_height = ct['positionner'].height
+        figure_width =  ct['positionner'].width
         output = """%s"""%figurein
 
 
@@ -195,14 +200,16 @@ def render_figure( figurein, args ):
         tmp_img = Image.open(args['filename'])
         _,_,tmpwidth,tmpheight = tmp_img.getbbox()
         tmp_img.close()
-        scale_x = float(convert_unit(args['width']))/float(tmpwidth)
+        scale_x = ct['positionner'].width/float(tmpwidth)
         figure_height = float(tmpheight) * scale_x
-        figure_width = convert_unit(args['width'])
-        
+        figure_width = ct['positionner'].width
+
     if args['ext'] == 'png':
         output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/png;base64, %s" />'%(figure_width, figure_height, figurein)
 
     if args['ext'] == 'jpeg':
         output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(figure_width, figure_height, figurein)
-    
-    return output, float(figure_width), float(figure_height)
+
+    ct['positionner'].update_size(figure_width, figure_height)
+
+    return output

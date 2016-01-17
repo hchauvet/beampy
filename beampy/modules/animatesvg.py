@@ -7,8 +7,9 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.functions import gcs
+from beampy.functions import gcs, add_to_slide
 from beampy.modules.figure import render_figure
+from beampy.geometry import positionner
 import re
 import glob
 
@@ -35,8 +36,7 @@ def animatesvg(files_folder, start=0, end='end', x='center',y='auto',
     if height == None:
         height = str(document._height)
 
-    args = {"x":str(x), "y": str(y) , "width": str(width), "height": str(height),
-            "fps": fps, "autoplay": autoplay}
+    args = {"fps": fps, "autoplay": autoplay}
 
     #Read all svg files
     svg_files = glob.glob(files_folder+'*.svg')
@@ -56,12 +56,15 @@ def animatesvg(files_folder, start=0, end='end', x='center',y='auto',
             svgcontent += [f.read()]
 
     animout = {'type': 'animatesvg', 'content': svgcontent, 'args': args,
-               "render": render_animatesvg}
+               "render": render_animatesvg, 'positionner': positionner(x, y, width, height)}
 
-    document._contents[gcs()]['contents'] += [ animout ]
+    return add_to_slide( animout )
 
 
-def render_animatesvg( anime, args ):
+def render_animatesvg( ct ):
+
+    anime = ct['content']
+    args = ct['args']
 
     #Render each figure in a group
     args['ext'] = 'svg'
@@ -71,23 +74,24 @@ def render_animatesvg( anime, args ):
         #Test if output format support video
         if document._output_format=='html5':
             for iframe, svg in enumerate(anime):
-                tmpout, tmpw, tmph = render_figure(svg, args)
+                tmpout = render_figure( {'content':svg, 'args':args,
+                                                'positionner':ct['positionner']} )
                 #parse the svg
                 tmpout = '<g id="frame_%i">'%iframe + tmpout + '</g>'
 
                 output += [tmpout]
         else:
-            #Check if pdf_animations is True 
-            output, tmpw, tmph = render_figure(anime[0], args)
+            #Check if pdf_animations is True
+            output = render_figure({'content':anime[0], 'args':args,
+                                               'positionner':ct['positionner']})
             if document._pdf_animations:
                 #Convert svg to pdf if we want to use them in animategraphics in latex
-                
+
                 #Remove the output from the svg slide (it will be rendered later in latex)
                 output = ''
-                
 
-        return output, tmpw, tmph
+
+        return output
+
     else:
         print('nothing found')
-
-        

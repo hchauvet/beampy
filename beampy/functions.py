@@ -283,94 +283,112 @@ def gcs(doc=document):
     return "slide_%i"%(doc._global_counter['slide'])
 
 
+def gce(doc=document):
+    """
+        Function to get the current element number
+    """
+
+    return doc._global_counter['element']
+
 def pdf2svg( pdf_input_file, svg_output_file  ) :
-	
+
 	'''
-	
+
 		Runs pdf2svg in shell:
 		pdf2svg pdf_input_file svg_output_file
-	
+
 	'''
-	
+
 	return check_call( [ document._external_cmd['pdf2svg'], pdf_input_file, svg_output_file  ] )
 
 
 def convert_pdf_to_svg( pdf_input_file, temp_directory = 'local' ):
-	
+
 	'''
-	
+
 		Open pdf_input_file, convert to svg using pdf2svg.
-	
+
 	'''
-	
+
 	local_directory, filename_pdf = os.path.split( pdf_input_file )
 	filename = os.path.splitext( filename_pdf)[0]
-	
+
 	if temp_directory == 'local' :
 		temp_directory = local_directory
-	
+
 	if len(temp_directory) > 0 :
 		svg_output_file = temp_directory + '/' + filename + '.svg'
 	else :
 		svg_output_file = filename + '.svg'
-	
+
 	try :
-		
+
 		pdf2svg( pdf_input_file, svg_output_file )
-		
+
 		with open( svg_output_file, 'r' ) as f:
 			svg_figure = f.read()
-		
+
 		check_call( [ 'rm', svg_output_file ] )
-		
+
 		return svg_figure
-	
+
 	except ValueError :
-		
+
 		return None
-		
-		
-		
+
+
+
 def load_args_from_theme(element_id, args):
     """
-        Function to set args of a given element 
+        Function to set args of a given element
     """
-    
+
     for key in args:
         if args[key] == "" or args[key] == None:
             try:
                 args[key] = document._theme[element_id][key]
             except:
                 print("[Beampy] No theme propertie for %s in %s"%(key,element_id))
-                
+
 
 def color_text( textin, color ):
-	
+
 	'''
 		Adds Latex color to a string.
 	'''
-	
+
 	if "#" in    color:
 		textin = r'{\color[HTML]{%s} %s }'%( color.replace('#','').upper(), textin)
-	
+
 	else:
 		textin =r'{\color{%s} %s }'%( color, textin)
 
 	return textin
-	
-	
-def dict_deep_update( self, original, update ):
+
+
+def dict_deep_update( original, update ):
 
     """
     Recursively update a dict.
     Subdict's won't be overwritten but also updated.
     from http://stackoverflow.com/questions/38987/how-can-i-merge-two-python-dictionaries-in-a-single-expression/44512#44512
     """
-    
-    for key, value in original.iteritems(): 
+
+    for key, value in original.iteritems():
         if not key in update:
             update[key] = value
         elif isinstance(value, dict):
-            self.dict_deep_update( value, update[key] ) 
+            dict_deep_update( value, update[key] )
+
     return update
+
+def add_to_slide( content ):
+    """
+        Function to add a given content to the current slide
+    """
+
+    document._contents[gcs()]['contents'] += [ content ]
+    document._global_counter['element'] += 1
     
+    #return the positionner for relative placement
+    return content['positionner']

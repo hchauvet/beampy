@@ -7,11 +7,13 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.functions import gcs, convert_unit, make_global_svg_defs, latex2svg, load_args_from_theme, color_text
+from beampy.functions import (gcs, convert_unit, make_global_svg_defs,
+    latex2svg, load_args_from_theme, color_text, add_to_slide)
+from beampy.geometry import positionner
 from bs4 import BeautifulSoup
 import re
 import time
-import sys 
+import sys
 
 def text( textin, x='center', y='auto', width=None, color="", size="",
          align='', font="", usetex = True):
@@ -38,25 +40,29 @@ def text( textin, x='center', y='auto', width=None, color="", size="",
     """
 
     if width == None:
-        width = str(document._width)
+        width = document._width
     else:
-        width = str(width)
+        width = width
 
     args = {"x":str(x), "y": str(y) ,"font": font, "width": width,
             "font-size": size, "color": color, 'align':align, 'usetex': usetex }
-
+    #args = {"font": font,
+    #    "font-size": size, "color": color, 'align':align, 'usetex': usetex }
     #Load theme properties
     load_args_from_theme('text', args)
 
-    textout = {'type': 'text', 'content': textin, 'args': args,
+    textout = {'type': 'text',
+               "positionner": positionner( x, y, width, height=None),
+               'content': textin,
+               'args': args,
                "render": render_text}
 
     #Add text to the document
-    document._contents[gcs()]['contents'] += [ textout ]
+    return add_to_slide( textout )
 
 
 
-def render_text( textin, args, usetex=True):
+def render_text( ct, usetex=True):
     """
         Function to render the text using latex
 
@@ -65,9 +71,12 @@ def render_text( textin, args, usetex=True):
         Use the svg output for the text in the frame
     """
 
+    args = ct['args']
+    textin = ct['content']
+
     #Check if their is width in args or if we need to use the default width
     if "width" in args:
-        w = float(convert_unit(str(args['width'])))
+        w = float(ct['positionner'].width)
     else:
         w = float(document._width)
 
@@ -102,10 +111,10 @@ def render_text( textin, args, usetex=True):
 
         \end{varwidth}
         \end{document}
-        """%(w*(72.27/96.),texalign,args['font-size'],(args['font-size']+args['font-size']*0.1),textin)
+        """%(w*(72.27/96.),texalign, args['font-size'],(args['font-size']+args['font-size']*0.1),textin)
         #96/72.27 pt_to_px for latex
 
-        
+
         #latex2svg
         testsvg = latex2svg( pretex )
 
@@ -114,7 +123,7 @@ def render_text( textin, args, usetex=True):
             print("Beampy Input")
             print(pretex)
             sys.exit(0)
-            
+
         #Parse the ouput with beautifullsoup
         soup = BeautifulSoup(testsvg, 'xml')
         svgsoup = soup.find('svg')
@@ -219,13 +228,17 @@ def render_text( textin, args, usetex=True):
         #print output
     else:
         #Render as svg text
-        args['x'] = convert_unit(args['x'])
-        args['y'] = convert_unit(args['y'])
-        args = ' '.join( [str(arg)+"='"+str(val)+"'" for arg, val in args.iteritems()] )
-        output = "<text %s>%s</text>"%(args, textin.decode('utf-8'))
+        #args['x'] = convert_unit(args['x'])
+        #args['y'] = convert_unit(args['y'])
+        #args = ' '.join( [str(arg)+"='"+str(val)+"'" for arg, val in args.iteritems()] )
+        print('[WARNING !!!]: Classic text not yet implemented')
+        output = "<text>%s</text>"%(textin.decode('utf-8'))
         #TODO: Need to fix the estimation of te width
         #print("[WARNING!!!] Width of classic svg text can't be estimated")
         text_width = 0
         text_height = 0
 
-    return output, text_width, text_height
+    #Update positionner with the correct width and height of the final svg
+    ct['positionner'].update_size(text_width, text_height)
+
+    return output
