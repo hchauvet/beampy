@@ -96,14 +96,13 @@ def render_text( ct, usetex=True):
         \documentclass[crop=True]{standalone}
         \usepackage[utf8x]{inputenc}
         \usepackage{fix-cm}
-        \usepackage{hyperref}
+        \usepackage[hypertex]{hyperref}
         \usepackage[svgnames]{xcolor}
         \renewcommand{\familydefault}{\sfdefault}
         \usepackage{varwidth}
         \usepackage{amsmath}
         \usepackage{amsfonts}
         \usepackage{amssymb}
-        \special{html}
         \begin{document}
         \begin{varwidth}{%ipt}
         %s
@@ -153,7 +152,11 @@ def render_text( ct, usetex=True):
         text_width = float(text_width)
         text_height = float(text_height)
 
-
+        #Find all links to apply the style defined in theme['link']
+        links = soup.find_all('a')
+        style = ' '.join(['%s:%s;'%(str(key), str(value)) for key, value in document._theme['link'].items()])
+        for link in links:
+            link['style'] = style
 
         #Use the first <use> in svg to get the y of the first letter
         try:

@@ -26,6 +26,9 @@ THEME = {
     'date_size':15,
     'date_color':'#888888',
     'subtitle_color':'#888888',
-    'subtitle_size':20}
+    'subtitle_size':20},
+
+'link':{
+    'fill':'ForestGreen'}
 
 }

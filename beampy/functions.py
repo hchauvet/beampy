@@ -237,8 +237,8 @@ def latex2svg(latexstring):
     if 'error' in output:
         print output
     else:
-        #dvisvgm to convert dvi to svg
-        res = os.popen( dvisvgmcmd+' -n -s -e -v0 '+tmpnam+'.dvi' )
+        #dvisvgm to convert dvi to svg [old -e option not compatible with linkmark]
+        res = os.popen( dvisvgmcmd+' -n -s --linkmark=none -v0 '+tmpnam+'.dvi' )
         testsvg = res.read()
         res.close()
 
@@ -389,6 +389,6 @@ def add_to_slide( content ):
 
     document._contents[gcs()]['contents'] += [ content ]
     document._global_counter['element'] += 1
-    
+
     #return the positionner for relative placement
     return content['positionner']

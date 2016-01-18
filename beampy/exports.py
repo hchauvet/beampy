@@ -224,7 +224,6 @@ def html5_export():
       html { background-color: #000; height: 100%; width: 100%;}
 
       body.loaded { display: block;}
-
     </style>
 
     """
