@@ -1,6 +1,6 @@
 # Beampy
 
-Beampy is in early stage development! 
+Beampy is in early stage development!
 
 Beampy is a python tool to create slide-show in svg that can be displayed with HTML5
 (tested on Firefox and Chromium)
@@ -36,7 +36,7 @@ The slides can also be exported to svg and pdf (videos and animations are render
 
 Beampy uses a simple cache system to compile slide only when it's needed!
 
-## A quick exemple :
+## A quick example :
 
 ```python
 from beampy import *
@@ -89,9 +89,9 @@ Beampy includes a version of svg optimized written in python "scour"
 
   On debian:
   sudo apt-get install texlive-extra-utils
-  
+
 - pdfjoin (tool to join pdf pages) it is part of [pdfjam project](http://www2.warwick.ac.uk/fac/sci/statistics/staff/academic-research/firth/software/pdfjam/) and is also included in Tex Live distribution
-    
+
    On debian:
    sudo apt-get install texlive-extra-utils
 
@@ -116,7 +116,7 @@ document._external_cmd['pdf2svg'] = '/path/to/pdf2svg'
 ##### Optionals
 
 - python-pygment (for code coloration command)
-- bokeh (to include bokeh interactive plot in figure command)
+- bokeh (>= 0.11) (to include bokeh interactive plot in figure command)
 
 ## Examples
 
@@ -140,7 +140,7 @@ save('test.html')
 
 ###Svg plot animation
 
-Click on figure to start the animation 
+Click on figure to start the animation
 
 ```python
 from beampy import *
@@ -181,9 +181,9 @@ title('Group and columns')
 colwidth=350
 begingroup(width=colwidth, height=doc._height-100, x="1cm", y="1.8cm", background="#000")
 text("""
-This is a test for a long text in a column style. 
+This is a test for a long text in a column style.
 
-$$ \sum_{i=0}^{10} x_i $$ 
+$$ \sum_{i=0}^{10} x_i $$
 """, align="center", width=colwidth-20, color="#ffffff")
 endgroup()
 
@@ -229,7 +229,7 @@ save('test.html')
 ```
 
 Here is a more complex Tikz output on the result:
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#7)
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#8)
 
 ###Bokeh interactive plot
 
@@ -251,7 +251,7 @@ figure(p, y="+5px", x="center")
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#8)
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#9)
 
 ### Code highlight
 
@@ -285,7 +285,7 @@ endgroup()
 save('test.html')
 ```
 
-### Arrow 
+### Arrow
 
 To create arrow (using tikz commands behind)
 
@@ -305,12 +305,12 @@ save('test.html')
 
 ## Change theme
 
-Basic theme features are store in a dictionary *document._theme*. You can check 
-the default features in [/beampy/statics/default_theme.py]. You can adapt this dictionary 
+Basic theme features are store in a dictionary *document._theme*. You can check
+the default features in [/beampy/statics/default_theme.py]. You can adapt this dictionary
 to fit your needs:
 
 ```python
-from beampy import * 
+from beampy import *
 
 doc = document()
 #sow keys of the theme dictionary
@@ -326,50 +326,50 @@ doc._theme['title']['x'] = 'center'
 
 Check files in *./beampy/modules/* folder.
 
-A module file contain to functions, one to define the command and the other to define the render (how command is transformed to svg)
+A module file contain to functions, one to define the command and the other to define the render (how command is transformed to svg (or html)
 
-The base of a module file 
+The base of a module file
 
-```python 
+```python
 from beampy import document
-from beampy.functions import gcs, convert_unit
+from beampy.functions import add_to_slide
+from beampy.geometry import positionner
 
-#For the command function should output write dictionary 
+#For the command function should output write dictionary
 #to document._data list with 'type', 'content', 'args' and 'render' keys
 def my_command( data, x='center', y='auto', width=None, height=None):
-    
-    if width == None:
-        width = str(document._width)
-    if height == None:
-        height = str(document._height)
-            
-    args = {"x":str(x), "y": str(y) , "width": str(width), "height": str(height)}
-            
-    command_out = {'type': 'svg', 'content': data, 'args': args, "render": myrender_command}
-    
-    #Add command_out dictionary to the document data, gcs() function return current slide id
-    document._contents[gcs()]['contents'] += [ command_out ]
 
-#Render should output 3 variables: 
-#the svgpart (as text), the width (float), the height (float) 
-def myrender_command( datain, argsin ):
-    
-    #datain will be assigned to command_out['content'] 
-    #argsin will be assigned to command_out['args']
-    
+    args = {"some_args_used_in_renders": ""
+
+    command_out = {'type': 'svg', 'content': data,
+                    'args': args, "render": myrender_command,
+                    'positionner': positionner(x, y, width, height)}
+
+    #Add command_out dictionary to the document data and return the positionner
+    return add_to_slide( command_out )
+
+#Render should output 1 variables:
+#the svgpart (as text)
+def myrender_command( content ):
+
+    #content will get the command_out dictionnary
+
     #Now you have to translate datatin into svg syntax (or html, if args['type'] == 'html')
-    svgout = "<g> My svg output </g>"
+    svgout = "<g> My svg output %s </g>"%content['content']
     width = my_svg_width
     height = my_svg_height
-    
-    return svgout, float(width), float(height) 
+
+    #You need to update the size of your element in order to place it correctly
+    content['positionner'].update_size( width=width, height=height )
+
+    return svgout
 
 ```
 
 Then you can test your module by importing your python file
 
 ```python
-from beampy import * 
+from beampy import *
 
 from my_module import *
 
@@ -377,7 +377,7 @@ doc = document()
 
 slide()
 title('My module')
-my_module("data needed by my module")
+my_command("data needed by my module")
 
 save('test.html')
 ```
