@@ -59,7 +59,7 @@ def render_slide( slide ):
         else:
             print('render title')
             #tmpsvg, tmpw, tmph = slide['title']['render']( slide['title']['content'], slide['title']['args'], slide['title']['args']['usetex'] )
-            tmpsvg, _, _ = slide['title']['render']( slide['title'] )
+            tmpsvg = slide['title']['render']( slide['title'] )
             slide['title']['rendered'] = tmpsvg
 
         #place the title

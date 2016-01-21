@@ -7,25 +7,28 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.functions import gcs, load_args_from_theme
+from beampy.functions import (gcs, load_args_from_theme, check_function_args,
+    inherit_function_args)
 from beampy.modules.text import render_text
 from beampy.geometry import positionner
 
-def title( title, usetex=True):
+def title( title_text , **kwargs):
     """
         Add a title to a slide
     """
 
-    args = {"x":"" , "y": "", "reserved_y":"",
-    "font": "", "font-size": None, "color": "", 'usetex': usetex,
-    'align':'', 'va':'baseline' }
+    #Check function arguments from THEME
+    args = check_function_args(title, kwargs)
+    #Add text arguments because we use the text render
+    args = inherit_function_args('text', args)
 
-    #Load theme properties
-    load_args_from_theme('title', args)
-
+    if args['width'] == None:
+        args['width'] = document._width
+    
     titleout = {'type': 'svg',
-                "positionner": positionner( args['x'].copy(), args['y'].copy(), width=None, height=None),
-                'content':title,
+                "positionner": positionner( args['x'], args['y'],
+                                            width=args['width'], height=None),
+                'content':title_text,
                 "args":args,
                 "render": render_text }
 

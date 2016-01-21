@@ -209,14 +209,17 @@ p = tikz(r"""
     };
 """, figure_options="scale=3,cap=round", x="+3cm", y=0.1)
 t = text(r"""
-\textit{http://www.texample.net/tikz/examples/tutorial/}
-""", x="center", y=p.bottom+0.1)
+\href{http://www.texample.net/tikz/examples/tutorial/}{ http://www.texample.net/tikz/examples/tutorial/}
+""", x="center", y=p.bottom+0.11)
 
 begingroup(width=700, height=90, background="#EFEFEF", y=t.bottom+0.02)
 code(r"""
 slide()
 title('Tikz')
-tikz(r\""" ....[TIKZ LINES].... \""")
+p = tikz(r\""" ....[TIKZ LINES].... \""")
+t = text(r"\href{http://www.texample.net/tikz/examples/tutorial/}
+{http://www.texample.net/tikz/examples/tutorial/}",
+x="center", y=p.bottom+0.11)
 """, langage="python", width="300", x="1cm")
 endgroup()
 

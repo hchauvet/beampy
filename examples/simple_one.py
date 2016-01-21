@@ -3,7 +3,7 @@
 
 from beampy import *
 
-doc = document(cache=True)
+doc = document(cache=False)
 
 slide()
 maketitle('Beampy a tool to make simple presentation','Hugo Chauvet')

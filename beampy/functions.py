@@ -11,15 +11,10 @@ import re
 from beampy.scour import scour
 import glob
 import os
+import sys
 from subprocess import check_call
 import tempfile
 import time
-_width = None
-_height = None
-doc = None
-
-inkscapecmd = document._external_cmd['inkscape']
-dvisvgmcmd = document._external_cmd['dvisvgm']
 
 def unit_operation( value, to=0 ):
     """
@@ -206,6 +201,8 @@ def latex2svg(latexstring):
         Command to render latex -> dvi -> svg
     """
 
+    dvisvgmcmd = document._external_cmd['dvisvgm']
+    
     #Write the document to a tmp file
     tmpfile, tmpnam = tempfile.mkstemp(prefix='beampytmp')
     #print tmpnam
@@ -255,6 +252,8 @@ def getsvgwidth( svgfile ):
         get svgfile width using inkscape
     """
 
+    inkscapecmd = document._external_cmd['inkscape']
+
     cmd = inkscapecmd + ' -z -W %s'%svgfile
     req = os.popen(cmd)
     res = req.read()
@@ -266,6 +265,8 @@ def getsvgheight( svgfile ):
     """
         get svgfile height using inkscape
     """
+
+    inkscapecmd = document._external_cmd['inkscape']
 
     cmd = inkscapecmd + ' -z -H %s'%svgfile
     req = os.popen(cmd)
@@ -338,7 +339,7 @@ def convert_pdf_to_svg( pdf_input_file, temp_directory = 'local' ):
 
 
 
-def load_args_from_theme(element_id, args):
+def load_args_from_theme(function_name, args):
     """
         Function to set args of a given element
     """
@@ -346,10 +347,51 @@ def load_args_from_theme(element_id, args):
     for key in args:
         if args[key] == "" or args[key] == None:
             try:
-                args[key] = document._theme[element_id][key]
+                args[key] = document._theme[function_name][key]
             except:
                 print("[Beampy] No theme propertie for %s in %s"%(key,element_id))
 
+def check_function_args(function, arg_values_dict):
+    """
+        Function to check input function args.
+
+        Functions args are defined in the default_theme.py
+        or if a theme is added the new value is taken rather than the default one
+    """
+
+    function_name = function.__name__
+    default_dict = document._theme[function_name]
+    outdict = {}
+    for key, value in arg_values_dict.items():
+        #Check if this arguments exist for this function
+        if key in default_dict:
+            outdict[key] = value
+        else:
+            print("Error the key %s is not defined for %s module"%(key, function_name))
+            print_function_args(function_name)
+            sys.exit(1)
+
+    #Check if their is ommited arguments that need to be loaded by default
+    for key, value in default_dict.items():
+        if key not in outdict:
+            outdict[key] = value
+
+    return outdict
+
+def print_function_args(function_name):
+    #Pretty print of function arguments with default values
+    print("Allowed arguments for %s"%(function_name))
+    for key, value in document._theme[function_name].items():
+        print("%s: [%s] %s"%(key, str(value), type(value)))
+
+def inherit_function_args(function_name, args_dict):
+    #Allow to add args defined for an other function to the args_dict
+
+    for key, value in document._theme[function_name].items():
+        if key not in args_dict:
+            args_dict[key] = value
+
+    return args_dict
 
 def color_text( textin, color ):
 

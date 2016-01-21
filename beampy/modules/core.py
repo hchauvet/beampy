@@ -58,7 +58,7 @@ def begingroup(x='center', y='auto', width = None, height = None, background=Non
 
     tmp = {'args': args, 'id': args['group_id'],
            'content_start': len(document._contents[gcs()]['contents']),
-           'positionner': positionner(x, y, width, height)}
+           'positionner': positionner(x=x, y=y, width=width, height=height)}
 
     document._contents[gcs()]['groups'] += [ tmp ]
 

@@ -122,7 +122,7 @@ def video_image(args):
         It use FFMPEG to extract one image
     """
 
-    FFMPEG_CMD = document._external_cmd['ffmpeg']
+    FFMPEG_CMD = document._external_cmd['video_encoder']
     FFMPEG_CMD += ' -loglevel 8 -i %s -f image2 -ss %0.3f -vframes 1 -'%(args['filename'], args['still_time'])
 
 

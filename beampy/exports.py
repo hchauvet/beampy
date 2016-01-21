@@ -19,10 +19,6 @@ import time
 #Get the beampy folder
 curdir = os.path.dirname(__file__) + '/'
 
-#External tools cmd
-inkscapecmd = document._external_cmd['inkscape']
-pdfjoincmd = document._external_cmd['pdfjoin']
-
 def save(output_file=None, format=None):
     """
         Function to render the document to html
@@ -83,6 +79,11 @@ def save(output_file=None, format=None):
     print("[Beampy] Done in %0.3f seconds"%(time.time()-texp))
 
 def pdf_export(name_out):
+
+    #External tools cmd
+    inkscapecmd = document._external_cmd['inkscape']
+    pdfjoincmd = document._external_cmd['pdfjoin']
+    
     #use inkscape to translate svg to pdf
     svgcmd = inkscapecmd+" --without-gui  --file='%s' --export-pdf='%s'"
     bdir = os.path.dirname(name_out)

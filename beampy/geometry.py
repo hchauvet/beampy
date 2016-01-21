@@ -7,6 +7,7 @@ Placement class for relative placement of elements in slides
 from beampy.functions import dict_deep_update, gcs, convert_unit
 from beampy.document import document
 import operator
+import sys
 
 DEFAULT_X = {'align': 'left', 'reference': 'slide', 'shift': 0, 'unit': 'width'}
 DEFAULT_Y = {'align': 'top', 'reference': 'slide', 'shift': 0, 'unit': 'width'}
@@ -40,10 +41,18 @@ class positionner():
         #Create and id (positition in the dict of this element)
         self.id = document._global_counter['element']
 
+
         self.x = x
         self.y = y
         self.width = width
         self.height = height
+
+
+        #Make copy if x and y are dict input
+        if type(self.x) == type(dict()):
+            self.x = self.x.copy()
+        if type(self.y) == type(dict()):
+            self.y = self.y.copy()
 
         #Need to convert x, y to a standart dict
         self.convert_position()

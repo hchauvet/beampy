@@ -8,15 +8,15 @@ Class to manage text for beampy
 """
 from beampy import document
 from beampy.functions import (gcs, convert_unit, make_global_svg_defs,
-    latex2svg, load_args_from_theme, color_text, add_to_slide)
+    latex2svg, load_args_from_theme, color_text, add_to_slide,
+    check_function_args)
 from beampy.geometry import positionner
 from bs4 import BeautifulSoup
 import re
 import time
 import sys
 
-def text( textin, x='center', y='auto', width=None, color="", size="",
-         align='', font="", usetex = True):
+def text( textin, **kwargs):
 
     """
         Function to add a text to the current slide
@@ -39,20 +39,16 @@ def text( textin, x='center', y='auto', width=None, color="", size="",
         text('this is my text', '20', '20')
     """
 
-    if width == None:
-        width = document._width
-    else:
-        width = width
+    args = check_function_args(text, kwargs)
 
-    args = {"x":str(x), "y": str(y) ,"font": font, "width": width,
-            "font-size": size, "color": color, 'align':align, 'usetex': usetex }
-    #args = {"font": font,
-    #    "font-size": size, "color": color, 'align':align, 'usetex': usetex }
-    #Load theme properties
-    load_args_from_theme('text', args)
+    #Check width
+    if args['width'] == None:
+        args['width'] = document._width
+
 
     textout = {'type': 'text',
-               "positionner": positionner( x, y, width, height=None),
+               "positionner": positionner( x=args['x'], y=args['y'],
+                                           width=args['width'], height=None ),
                'content': textin,
                'args': args,
                "render": render_text}
@@ -110,7 +106,7 @@ def render_text( ct, usetex=True):
 
         \end{varwidth}
         \end{document}
-        """%(w*(72.27/96.),texalign, args['font-size'],(args['font-size']+args['font-size']*0.1),textin)
+        """%(w*(72.27/96.),texalign, args['size'],(args['size']+args['size']*0.1),textin)
         #96/72.27 pt_to_px for latex
 
 

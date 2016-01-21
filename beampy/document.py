@@ -5,9 +5,9 @@ Created on Fri May 22 18:28:59 2015
 """
 from ConfigParser import SafeConfigParser
 from beampy.statics.default_theme import THEME
+import sys
+from distutils.spawn import find_executable
 #Auto change path
-#import beampy
-#bppath =  str(beampy).split('beampy')[1].split('from')[-1].strip().replace("'",'')+'beampy/'
 import os
 bppath = os.path.dirname(__file__) + '/'
 
@@ -29,18 +29,14 @@ class document():
     _cache = None
     _pdf_animations = False
 
-    #Define path to external commands
-    _external_cmd = {"inkscape": "inkscape",
-                     "dvisvgm": "dvisvgm",
-                     "pdfjoin": "pdfjoin",
-                     "ffmpeg": "ffmpeg",
-                     "pdf2svg": "pdf2svg"}
+    #Define path to external commands (see default THEME file)
+    _external_cmd = {}
 
-    def __init__(self, theme = 'default', width = 800, height = 600, guide = False, text_box = False, optimize=True, cache=True):
+    def __init__(self, **kwargs):
 
         """
             Create document to store slides
-            options
+            options (see THEME)
             -------
             - width[800]: with of slides
             - height[600]: height of slides
@@ -48,6 +44,8 @@ class document():
             - text_box[False]: Draw box on slide elements to test width and height detection of elements (usefull to debug placement)
             - optimize[True]: Optimize svg using scour python script. This reduce the size but increase compilation time
             - cache[True]: Use cache system to not compile slides each times if nothing changed!
+
+            - theme: Define the path to your personal THEME dictionnary
         """
 
 		#reset if their is old variables
@@ -57,29 +55,9 @@ class document():
         #To store different counters
         self.global_counter = self._global_counter
 
-        #Width and height of the document
-        self.width = width
-        self.height = height
-        self.set_size()
-
-        #To add guide on each slides
-        self.guide = guide
-        document._guide = guide
-
-        self.text_box = text_box
-        document._text_box = text_box
-
-        #Load the default theme
-        #self.load_theme(bppath+'/statics/default.theme')
-
-        if optimize == False:
-            document._optimize_svg = False
-
-        if cache:
-            document._cache = cache
-
-        if theme != 'default':
-
+        #Check if we want to load a new theme
+        if 'theme' in kwargs:
+            theme = kwargs['theme']
             try :
                 new_theme = self.dict_deep_update( document._theme, __import__( theme.split('.')[0] ).THEME )
                 self.theme =  new_theme
@@ -89,9 +67,43 @@ class document():
 				print("No slide theme '" + theme + "', returning to default theme.")
 
 
-    def set_size(self):
-        document._width = self.width
-        document._height = self.height
+        #Load document options from THEME
+        self.set_options(kwargs)
+
+        #Load external tools
+        self.link_external_programs()
+
+    def set_options(self, input_dict):
+        #Get document option from THEME
+        default_options = self._theme['document']
+
+        good_values = {}
+        for key, value in input_dict.items():
+            if key in default_options:
+                good_values[key] = value
+            else:
+                print('%s is not a valid argument for document'%key)
+                print('valid arguments')
+                print(default_options)
+                sys.exit(1)
+
+        #Update default if not in input
+        for key, value in default_options.items():
+            if key not in good_values:
+                good_values[key] = value
+
+        #Set size etc...
+        document._width = good_values['width']
+        document._height = good_values['height']
+        document._guide = good_values['guide']
+        document._text_box = good_values['text_box']
+        document._cache = good_values['cache']
+        document._optimize_svg = good_values['optimize']
+
+        if document._cache == False:
+            document._cache = None
+
+        self.options = good_values
 
     def reset(self):
         document._contents = {}
@@ -102,6 +114,7 @@ class document():
         document._text_box = False
         document._theme = THEME
         document._cache = None
+        document._external_cmd = {}
 
     def dict_deep_update( self, original, update ):
 
@@ -117,3 +130,43 @@ class document():
             elif isinstance(value, dict):
                 self.dict_deep_update( value, update[key] )
         return update
+
+    def link_external_programs(self):
+        #Function to link [if THEME['document']['external'] = 'auto'
+        #and check external if programs exist
+
+        #Loop over options
+        missing = False
+        for progname, cmd in self.options['external_app'].items():
+            if cmd == 'auto':
+
+                #Special case of video_encoder (ffmpeg or avconv)
+                if progname == 'video_encoder':
+                    find_ffmpeg = find_executable('ffmpeg')
+                    find_avconv = find_executable('avconv')
+                    if find_ffmpeg != None:
+                        document._external_cmd[progname] = find_ffmpeg
+                    elif find_avconv != None:
+                        document._external_cmd[progname] = find_avconv
+                    else:
+                        missing = True
+                else:
+                    find_app = find_executable( progname )
+                    if find_app != None:
+                        document._external_cmd[progname] = find_app
+                    else:
+                        missing = True
+
+            else:
+                document._external_cmd[progname] = cmd
+
+            if missing:
+                if progname == 'video':
+                    name = 'ffmpeg or avconv'
+                else:
+                    name = progname
+
+                print('Missing external tool: %s, please install it before running Beampy'%name)
+                sys.exit(1)
+
+        print document._external_cmd

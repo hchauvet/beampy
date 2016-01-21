@@ -98,19 +98,32 @@ Beampy includes a version of svg optimized written in python "scour"
 
 - pdf2svg To translate pdf2svg [github](https://github.com/db9052/pdf2svg) (sudo apt-get install pdf2svg // For os X available on MacPort)
 
+The executable of these external programs is set-up automatically. If this fail, you can set manually the path to the executable of the external program.
+For that, you have create a new theme file **my_theme.py** containing:
 
-To change path of these command in beampy (by defaults the command name is used):
+```python
+
+#To let Bempy search automatically for a program replace
+#the path by "auto" (check the default_theme.py file)
+
+THEME = {
+
+'document':{
+    'external_app': {"inkscape": "/path/to/inkscape",
+        "dvisvgm": "/path/to/dvisvgm",
+        "pdfjoin": "/path/to/pdfjoin",
+        "video_encoder": '/path/to/ffmpeg [or avconv]',
+        "pdf2svg": "/path/to/pdf2svg"}
+    }
+}
+```
+
+Then when you create your beampy document, load your theme, this will set the new paths for external programs.
+
 ```python
 from beampy import *
 
-doc = document()
-
-document._external_cmd['inkscape'] = '/path/to/inkscape'
-document._external_cmd['dvisvgm'] = '/path/to/dvisvgm'
-document._external_cmd['pdfjoin'] = '/path/to/pdfjoin'
-document._external_cmd['ffmpeg'] = '/path/to/ffmpeg'
-document._external_cmd['pdf2svg'] = '/path/to/pdf2svg'
-
+doc = document(theme='/path/to/my_theme.py')
 ```
 
 ##### Optionals
@@ -331,7 +344,6 @@ A module file contain to functions, one to define the command and the other to d
 The base of a module file
 
 ```python
-from beampy import document
 from beampy.functions import add_to_slide
 from beampy.geometry import positionner
 
@@ -339,7 +351,7 @@ from beampy.geometry import positionner
 #to document._data list with 'type', 'content', 'args' and 'render' keys
 def my_command( data, x='center', y='auto', width=None, height=None):
 
-    args = {"some_args_used_in_renders": ""
+    args = {"some_args_used_in_renders": "auto_conf"}
 
     command_out = {'type': 'svg', 'content': data,
                     'args': args, "render": myrender_command,

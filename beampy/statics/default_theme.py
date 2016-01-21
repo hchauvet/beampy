@@ -1,22 +1,48 @@
 # -*- coding: utf-8 -*-
 
 # Default theme of Beampy
+# Main keys of the dict should be the name of the beampy modules or class
+# Each modules default options need to be defined here!
+
 THEME = {
 
+'document':{
+    'width': 800,
+    'height': 600,
+    'optimize': True,
+    'cache': True,
+    'guide': False,
+    'text_box': False,
+    'html': {
+        'background_color': 'black'
+        },
+
+    'external_app': {"inkscape": "auto",
+        "dvisvgm": "auto",
+        "pdfjoin": "auto",
+        "video_encoder": 'auto',
+        "pdf2svg": "auto"} },
+
 'text':{
-    'font-size':20,
+    'size':20,
     'font':'CMR',
     'color':'#000000',
-    'align':''},
+    'align':'',
+    'x':'center',
+    'y':'auto',
+    'width':None,
+    'usetex':True,
+    'va': ''},
 
 'title':{
-    'font-size': 28,
+    'size': 28,
+    'font': 'CMR',
     'color': 'ForestGreen',
     'x': {'shift':0.5, 'unit':'cm'},
     'y': {'shift':1.2, 'unit':'cm'},
     'reserved_y': '1.5cm',
     'align': '',
-    'font': 'CMR'},
+    'va': 'baseline'},
 
 'titleslide':{
     'title_size':30,
