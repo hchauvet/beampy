@@ -7,15 +7,15 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.functions import gcs, convert_unit, latex2svg, add_to_slide
+from beampy.functions import (gcs, convert_unit, latex2svg, add_to_slide,
+                             check_function_args)
 from beampy.geometry import positionner
 import glob
 import os
 from bs4 import BeautifulSoup
 
 
-def tikz(tikscommands, x='0', y='0', tikz_header=None, tex_packages=None,
-         figure_options=None, figure_anchor='top_left'):
+def tikz(tikscommands, **kwargs):
     """
         Function to render tikz commands to svg
 
@@ -43,20 +43,11 @@ def tikz(tikscommands, x='0', y='0', tikz_header=None, tex_packages=None,
         - figure_anchor ['top_left']: set the anchor of tikz output svg 'top_left', 'bottom_left', 'top_right', bottom_right'
     """
 
-    args = {'figure_anchor': figure_anchor }
-
-    if tikz_header:
-        args['tikzheader'] = tikz_header
-
-    if tex_packages:
-        args['tex_packages'] = tex_packages
-
-    if figure_options:
-        args['tikzfigureoptions'] = figure_options
+    args = check_function_args(tikz, kwargs)
 
     textout = {'type': 'tikz', 'content': tikscommands,
                'args': args,
-               'positionner': positionner(x, y, None, None),
+               'positionner': positionner(args['x'], args['y'], None, None),
                "render": render_tikz}
 
 
@@ -76,18 +67,18 @@ def render_tikz( ct ):
     tiktikzcommands = tikzcommands.replace( r'\slidewidth','%ipt'%0.75*document._width)
 
     #Include extrac packages for tex
-    if 'tex_packages' in args:
+    if args['tex_packages']:
         extra_tex_packages = '\n'.join(['\\usepackages{%s}'%pkg for pkg in args['tex_packages']])
     else:
         extra_tex_packages = ''
 
     #Include extra tikz headers
-    if 'tikzheader' in args:
-        extra_tex_packages += '\n' + args['tikzheader']
+    if args['tikz_header']:
+        extra_tex_packages += '\n' + args['tikz_header']
 
     #Tikzfigure options in []
-    if 'tikzfigureoptions' in args:
-        tikz_fig_opts = '['+args['tikzfigureoptions']+']'
+    if args['figure_options']:
+        tikz_fig_opts = '['+args['figure_options']+']'
     else:
         tikz_fig_opts = ''
 

@@ -7,14 +7,13 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.functions import gcs, add_to_slide
+from beampy.functions import gcs, add_to_slide, check_function_args
 from beampy.modules.figure import render_figure
 from beampy.geometry import positionner
 import re
 import glob
 
-def animatesvg(files_folder, start=0, end='end', x='center',y='auto',
-               width=None, height=None, fps=25, autoplay=False):
+def animatesvg(files_folder, **kwargs):
     """
         Function to create svg animation from a folder containing svg files
 
@@ -29,14 +28,19 @@ def animatesvg(files_folder, start=0, end='end', x='center',y='auto',
                      'center': center image relative to document._height (ignore other slide elements)
                      '+3cm': place image relative to previous element
 
+        - start[0]: svg image number to start the sequence
+        - end['end']: svg image number to stop the sequence
+        - width[None]: Width of the figure (None = slide width)
+        - fps[25]: animation framerate
+        - autoplay[False]: autoplay animation when slide is displayed
+
     """
 
-    if width == None:
-        width = str(document._width)
-    if height == None:
-        height = str(document._height)
+    #Check input args for this module
+    args = check_function_args(animatesvg, kwargs)
 
-    args = {"fps": fps, "autoplay": autoplay}
+    if args['width'] == None:
+        args['width'] = str(document._width)
 
     #Read all svg files
     svg_files = glob.glob(files_folder+'*.svg')
@@ -45,10 +49,10 @@ def animatesvg(files_folder, start=0, end='end', x='center',y='auto',
     svg_files = sorted(svg_files, key=lambda x: int(''.join(re.findall(r'\d+', x))))
 
     #check how many images we wants
-    if end == 'end':
-        end = len(svg_files)
+    if args['end'] == 'end':
+        args['end'] = len(svg_files)
 
-    svg_files = svg_files[start:end]
+    svg_files = svg_files[args['start']:args['end']]
 
     svgcontent = []
     for svgf in svg_files:
@@ -56,7 +60,8 @@ def animatesvg(files_folder, start=0, end='end', x='center',y='auto',
             svgcontent += [f.read()]
 
     animout = {'type': 'animatesvg', 'content': svgcontent, 'args': args,
-               "render": render_animatesvg, 'positionner': positionner(x, y, width, height)}
+               "render": render_animatesvg,
+               'positionner': positionner(args['x'], args['y'], args['width'], None)}
 
     return add_to_slide( animout )
 

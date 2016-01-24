@@ -6,7 +6,7 @@ from beampy import *
 doc = document(cache=True)
 
 slide()
-maketitle('Beampy a tool to make  simple presentation','Hugo Chauvet')
+maketitle('Beampy a tool to make simple presentation','Hugo Chauvet')
 
 slide()
 title("Text")

@@ -8,52 +8,51 @@ Class to manage item lists for beampy
 from beampy import document
 from beampy.modules.text import text
 from beampy.modules.core import begingroup, endgroup
-from beampy.functions import convert_unit, color_text
+from beampy.functions import convert_unit, color_text, check_function_args
 
-def itemize( items_list, x='center', y='auto', item_style = 'bullet', item_spacing = '+1cm' , item_indent = '0cm', item_color = 'default', text_color = 'default', width=None ):
-	
+def itemize( items_list, **kwargs):
+
 	'''
-	
+
 	Generates a list or an enumeration.
-	
+
+	See THEME['itemize'] for option
+
+	TODO: ADD doc for function arguments
 	'''
-	
+
+	args = check_function_args(itemize, kwargs)
 	number = 1
-	
-	if item_color == 'default' :
-		item_color = document._theme['title']['color']
-	
-	if text_color == 'default' :
-		text_color = document._theme['text']['color']
-	
-	
-	if width!=None:
-		in_width = float(convert_unit(width)) - float(convert_unit(item_indent))
+
+	if args['width']!=None:
+		in_width = float(convert_unit(args['width'])) - float(convert_unit(args['item_indent']))
 	else:
-		in_width = float(document._width) - float(convert_unit(item_indent))
-    	    
-	begingroup(width=width, x=x, y=y)
-	
+		in_width = float(document._width) - float(convert_unit(args['item_indent']))
+
+	begingroup(width=args['width'], x=args['x'], y=args['y'])
+
 	for i, the_item in enumerate(items_list) :
-		
-		if item_style == 'bullet' :
+
+		if args['item_style'] == 'bullet' :
 			item_char = r'$\bullet$'
-		
-		elif item_style == 'number' :
+
+		elif args['item_style'] == 'number' :
 			item_char = str(number) + r'.'
 			number += 1
-		
+
 		else :
 			item_char = item_style
-		
+
 		# Add color
-		
-		item_char = color_text( item_char, item_color )
-		the_item = color_text( the_item, text_color )
-    	    
+
+		item_char = color_text( item_char, args['item_color'] )
+		the_item = color_text( the_item, args['text_color'] )
+
 		if i == 0 :
-			text( item_char + r' ' + the_item, x = item_indent,  y = 0, width=in_width )
+			text( item_char + r' ' + the_item, x = args['item_indent'],
+			y = 0, width=in_width )
 		else:
-			text( item_char + r' ' + the_item, x = item_indent,  y = item_spacing, width=in_width )
-		
+			text( item_char + r' ' + the_item, x = args['item_indent'],
+			y = args['item_spacing'], width=in_width )
+
 	endgroup()

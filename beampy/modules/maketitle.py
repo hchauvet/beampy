@@ -16,12 +16,8 @@ def maketitle(titlein, author=None, subtitle=None, date=None):
         Function to create the presentation title slide
     """
 
-    args = {"title_size": "", "title_color": "", "author_color": "",
-            "date_color": "", "author_size": "", "date_size": "",
-            "subtitle_color": "", "subtitle_size": ""}
-
-    #Load theme properties
-    load_args_from_theme('titleslide', args)
+    #Check function arguments from THEME
+    args = check_function_args(maketitle, {})
 
     if date in ('Today', 'today', 'now'):
         date = datetime.datetime.now().strftime("%d/%m/%Y")

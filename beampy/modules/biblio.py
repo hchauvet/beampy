@@ -1,8 +1,8 @@
 #-*- coding:utf-8 -*-
 from beampy import document
 from beampy.modules.text import text
-
-def cite( list_authors, x='center', y=580, color="default", size=10):
+from beampy.functions import check_function_args
+def cite( list_authors, **kwargs):
     """
     function to write citation on slide
 
@@ -14,7 +14,7 @@ def cite( list_authors, x='center', y=580, color="default", size=10):
 
     citestr = '[' + ', '.join(list_authors) + ']'
 
-    if color == 'default':
-        color = document._theme['title']['color']
+    #Check arguments
+    args = check_function_args(cite, kwargs)
 
-    text( citestr, x=x, y=y, color=color, size=size)
+    text( citestr, args)

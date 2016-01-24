@@ -8,20 +8,21 @@ Created on Sun Oct 25 19:05:18 2015
 from beampy import document
 from beampy.functions import (gcs, convert_unit, optimize_svg,
  make_global_svg_defs, getsvgwidth, getsvgheight, convert_pdf_to_svg,
- add_to_slide)
+ add_to_slide, check_function_args)
 from beampy.geometry import positionner
 from bs4 import BeautifulSoup
 from PIL import Image
 import base64
 import tempfile
 import os
+import sys
 #Try to import bokeh
 try:
     from bokeh.embed import components
 except:
     pass
 
-def figure(filename,x='center',y='auto', width=None, height=None, ext=None):
+def figure(filename, ext=None, **kwargs):
     """
         Add figure to current slide
         Accepted format: [svg, png, jpeg, bokeh figure]
@@ -40,6 +41,9 @@ https://duckduckgo.com/?q=feder+inra&t=ffab
         - ext[None]: Image format, if None, format is guessed from filename.
 
     """
+
+    args = check_function_args(figure, kwargs)
+
     #Check if the given filename is a string
     if type(filename) == type(''):
         #Check extension
@@ -65,6 +69,7 @@ https://duckduckgo.com/?q=feder+inra&t=ffab
 
     if ext == None:
         print("figure format can't be guessed from file name")
+        sys.exit(1)
 
     #Bokeh image
     elif ext == 'bokeh':
@@ -72,19 +77,20 @@ https://duckduckgo.com/?q=feder+inra&t=ffab
         figscript, figdiv = components(filename, wrap_script=False)
 
         #Todo get width and height from a bokeh figure
-        if width == None:
-            width = '%ipx'%filename.plot_width
-        if height == None:
-            height = '%ipx'%filename.plot_height
+        if args['width'] == None:
+            args['width'] = '%ipx'%filename.plot_width
+        if args['height'] == None:
+            args['height'] = '%ipx'%filename.plot_height
 
         #Transform figscript to givea function name load_bokehjs
         tmp = figscript.splitlines()
         goodscript = '\n'.join( ['["load_bokeh"] = function() {'] + tmp[1:-1] + ['};\n'] )
-        args = {"ext": ext,  'script':goodscript}
+        args['ext'] = ext
+        args['script']=goodscript
 
         figout = {'type': 'html',
                   'content': figdiv,
-                  'positionner': positionner(x, y, width, height),
+                  'positionner': positionner(args['x'], args['y'], args['width'], args['height']),
                   'args': args,
                   'render': render_figure}
 
@@ -94,30 +100,15 @@ https://duckduckgo.com/?q=feder+inra&t=ffab
     #Other filetype images
     else:
 
-        if width == None:
-            width = document._width
-        else:
-            width = width
+        if args['width'] == None:
+            args['width'] = document._width
 
-        if height != None:
-            height = height
+        args['ext']=ext
+        args['filename']=filename
 
-        args = {"ext": ext, 'filename':filename }
-
-        if ext == 'pdf' :
-            figdata = convert_pdf_to_svg( filename )
-
-        else :
-            with open(filename,"r") as f:
-                figdata = f.read()
-			#If it's png/jpeg figure we need to encode them to base64
-
-            if ext in ( 'png', 'jpeg' ):
-                figdata = base64.encodestring(figdata)
-
-        figout = {'type': 'figure', 'content': figdata, 'args': args,
+        figout = {'type': 'figure', 'content': filename, 'args': args,
                   "render": render_figure,
-                  'positionner': positionner(x, y, width, height)}
+                  'positionner': positionner(args['x'], args['y'], args['width'], args['height'])}
 
         return add_to_slide( figout )
 
@@ -128,11 +119,30 @@ def render_figure( ct ):
         function to render figures
     """
 
-    #For svg figure
-    figurein = ct['content']
+    #read args in the dict
     args = ct['args']
 
+    #Read the image
+    #Convert image to svg if it's a pdf
+    if 'filename' in args:
+        if args['ext'] == 'pdf' :
+            figurein = convert_pdf_to_svg( args['filename'] )
+
+        #Or read the content for other formats
+        else:
+            with open( args['filename'], "r") as f:
+                figurein = f.read()
+
+            #If it's png/jpeg figure we need to encode them to base64
+            if args['ext'] in ( 'png', 'jpeg' ):
+                figurein = base64.encodestring(figurein)
+    else:
+        #special case of bokehfigure
+        figurein = ct['content']
+
+    #Svg // pdf render
     if args['ext'] in ('svg', 'pdf') :
+
 
         #test if we need to optimise the svg
 

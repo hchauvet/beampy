@@ -7,7 +7,7 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.functions import gcs, convert_unit, add_to_slide
+from beampy.functions import gcs, convert_unit, add_to_slide, check_function_args
 from beampy.geometry import positionner
 import base64
 import os
@@ -15,8 +15,7 @@ import cStringIO
 from PIL import Image
 
 
-def video(videofile, width=None, height=None, x='center',y='auto',
-          autoplay=False, control=True, still_image_time=0.0):
+def video(videofile, **kwargs):
     """
     Add video in webm/ogg/mp4 format
 
@@ -36,14 +35,12 @@ def video(videofile, width=None, height=None, x='center',y='auto',
     still_image_time [0]: extract the still image for pdf export at the given still_image_time in second
     """
 
-    #if no width is given get the default width
-    if width == None:
-        width = str(document._width)
-    else:
-        width=str(width)
+    #Check function args
+    args = check_function_args(video, kwargs)
 
-    if height != None:
-        width = str(width)
+    #if no width is given get the default width
+    if args['width'] == None:
+        args['width'] = str(document._width)
 
     #check extension
     ext = None
@@ -57,13 +54,13 @@ def video(videofile, width=None, height=None, x='center',y='auto',
         print('Video need to be in webm/ogg/mp4(h.264) format!')
 
     if ext != None:
-        args = {"autoplay": autoplay, "control": control,
-                "ext": ext, 'filename': videofile,
-                "still_time":still_image_time}
+        args['ext'] = ext
+        args['filename'] = videofile
 
         #Add video to the document type_nohtml used to remplace video by svg still image when not exported to HTML5
         videout = {'type': 'html', 'type_nohtml': 'svg', 'content': '', 'args': args,
-                   "render": render_video, 'positionner':positionner(x, y, width, height),
+                   "render": render_video,
+                   'positionner':positionner(args['x'], args['y'], args['width'], args['height']),
                    'filename': videofile}
 
         return add_to_slide( videout )
@@ -123,7 +120,7 @@ def video_image(args):
     """
 
     FFMPEG_CMD = document._external_cmd['video_encoder']
-    FFMPEG_CMD += ' -loglevel 8 -i %s -f image2 -ss %0.3f -vframes 1 -'%(args['filename'], args['still_time'])
+    FFMPEG_CMD += ' -loglevel 8 -i %s -f image2 -ss %0.3f -vframes 1 -'%(args['filename'], args['still_image_time'])
 
 
     img_out = os.popen(FFMPEG_CMD).read()
