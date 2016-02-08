@@ -267,6 +267,15 @@ def resize_raster_image(PILImage, max_width=document._width, jpegqual=95):
     else:
         tmp_resized = PILImage
 
+
+    #Test if it's an RGBA that the A band contains info (like in PNG transparency) if not convert to RGB
+    if tmp_resized.mode == 'RGBA':
+        Amin, Amax = tmp_resized.getextrema()[-1]
+        #If the band limits are equal -> no need for this alpha layer
+        if Amin == Amax:
+            print('Remove useless Alpha layer')
+            tmp_resized = tmp_resized.convert(mode='RGB')
+
     #Save to stringIO
     out_img = BytesIO()
     tmp_resized.save( out_img, PILImage.format, quality=jpegqual, optimize=True )
