@@ -13,7 +13,6 @@ from beampy.geometry import positionner
 import tempfile
 import os
 
-inkscapecmd='inkscape'
 try:
     from pygments import highlight
     from pygments.lexers import get_lexer_by_name, guess_lexer
@@ -56,7 +55,8 @@ def render_code( ct ):
     """
         function to render figures
     """
-
+    
+    inkscapecmd=document._external_cmd['inkscape']
     codein = ct['content']
     args = ct['args']
 

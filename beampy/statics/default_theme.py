@@ -10,6 +10,7 @@ THEME['document'] = {
     'width': 800,
     'height': 600,
     'optimize': True,
+    'resize_raster':True,
     'cache': True,
     'guide': False,
     'text_box': False,

@@ -89,12 +89,15 @@ def render_animatesvg( ct ):
             #Check if pdf_animations is True
             output = render_figure({'content':anime[0], 'args':args,
                                                'positionner':ct['positionner']})
+
+            #Todo
+            """
             if document._pdf_animations:
                 #Convert svg to pdf if we want to use them in animategraphics in latex
 
                 #Remove the output from the svg slide (it will be rendered later in latex)
                 output = ''
-
+            """
 
         return output
 

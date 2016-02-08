@@ -12,6 +12,7 @@ from beampy.functions import (gcs, convert_unit, optimize_svg,
 from beampy.geometry import positionner
 from bs4 import BeautifulSoup
 from PIL import Image
+from io import BytesIO
 import base64
 import tempfile
 import os
@@ -122,30 +123,21 @@ def render_figure( ct ):
     #read args in the dict
     args = ct['args']
 
-    #Read the image
-    #Convert image to svg if it's a pdf
-    if 'filename' in args:
-        if args['ext'] == 'pdf' :
-            figurein = convert_pdf_to_svg( args['filename'] )
-
-        #Or read the content for other formats
-        else:
-            with open( args['filename'], "r") as f:
-                figurein = f.read()
-
-            #If it's png/jpeg figure we need to encode them to base64
-            if args['ext'] in ( 'png', 'jpeg' ):
-                figurein = base64.encodestring(figurein)
-    else:
-        #special case of bokehfigure
-        figurein = ct['content']
-
     #Svg // pdf render
     if args['ext'] in ('svg', 'pdf') :
 
+        #Convert pdf to svg
+        if args['ext'] == 'pdf' :
+            figurein = convert_pdf_to_svg( args['filename'] )
+        else:
+            #Check if a filename is given for a svg file or directly read the content value
+            if 'filename' in args:
+                with open(args['filename']) as f:
+                    figurein = f.read()
+            else:
+                figurein = ct['content']
 
         #test if we need to optimise the svg
-
         if document._optimize_svg:
             figurein = optimize_svg(figurein)
 
@@ -153,6 +145,29 @@ def render_figure( ct ):
 
         #Change id in svg defs to use the global id system
         soup = make_global_svg_defs(soup)
+
+        #Optimize the size of embeded svg images !
+        if document._resize_raster:
+            imgs = soup.findAll('image')
+            if imgs:
+                for img in imgs:
+                    #True width and height of embed svg image
+                    width, height = int(img['width']), int(img['height'])
+                    img_ratio = height/float(width)
+                    b64content = img['xlink:href']
+
+                    try:
+                        in_img =  BytesIO( base64.b64decode(b64content.split(';base64,')[1]) )
+                        tmp_img = Image.open(in_img)
+                        #print(tmp_img)
+                        out_img = resize_raster_image( tmp_img )
+                        out_b64 = base64.b64encode( out_img.read() )
+
+                        #replace the resized image into the svg
+                        img['xlink:href'] = 'data:image/%s;base64, %s'%(tmp_img.format.lower(), out_b64)
+                    except:
+                        print('Unable to reduce the image size')
+                        pass
 
         svgtag = soup.find('svg')
 
@@ -199,6 +214,7 @@ def render_figure( ct ):
 
     #Bokeh images
     if args['ext'] == 'bokeh':
+        figurein = ct['content']
         figure_height = ct['positionner'].height
         figure_width =  ct['positionner'].width
         output = """%s"""%figurein
@@ -209,10 +225,20 @@ def render_figure( ct ):
         #Open image with PIL to compute size
         tmp_img = Image.open(args['filename'])
         _,_,tmpwidth,tmpheight = tmp_img.getbbox()
-        tmp_img.close()
         scale_x = ct['positionner'].width/float(tmpwidth)
         figure_height = float(tmpheight) * scale_x
         figure_width = ct['positionner'].width
+
+        if document._resize_raster:
+            #Rescale figure to the good size (to improve size and display speed)
+            out_img = resize_raster_image(tmp_img)
+            figurein = base64.b64encode(out_img.read())
+            out_img.close()
+        else:
+            with open( args['filename'], "r") as f:
+                figurein = base64.b64encode(f.read())
+
+        tmp_img.close()
 
     if args['ext'] == 'png':
         output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/png;base64, %s" />'%(figure_width, figure_height, figurein)
@@ -223,3 +249,27 @@ def render_figure( ct ):
     ct['positionner'].update_size(figure_width, figure_height)
 
     return output
+
+
+def resize_raster_image(PILImage, max_width=document._width, jpegqual=95):
+    """
+    Function to reduce the size of a given image keeping it's aspect ratio
+    """
+    img_w = PILImage.width
+    img_h = PILImage.height
+    img_ratio = img_h/float(img_w)
+
+    if (img_w > document._width):
+        print('Image resized from (%ix%i)px to (%ix%i)px'%(img_w, img_h, document._width, document._width*img_ratio))
+        width = document._width
+        height = document._width * img_ratio
+        tmp_resized = PILImage.resize( (int(width), int(height) ), Image.ANTIALIAS )
+    else:
+        tmp_resized = PILImage
+
+    #Save to stringIO
+    out_img = BytesIO()
+    tmp_resized.save( out_img, PILImage.format, quality=jpegqual, optimize=True )
+    out_img.seek(0)
+
+    return  out_img

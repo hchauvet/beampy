@@ -83,7 +83,7 @@ def pdf_export(name_out):
     #External tools cmd
     inkscapecmd = document._external_cmd['inkscape']
     pdfjoincmd = document._external_cmd['pdfjoin']
-    
+
     #use inkscape to translate svg to pdf
     svgcmd = inkscapecmd+" --without-gui  --file='%s' --export-pdf='%s'"
     bdir = os.path.dirname(name_out)
@@ -200,6 +200,7 @@ def html5_export():
             <script>%s</script>
             """%(bokcss, bokjs)
 
+    htmltheme = document._theme['document']['html']
     output += """
     <!-- Default Style -->
     <style>
@@ -222,7 +223,10 @@ def html5_export():
       }
 
 
-      html { background-color: #000; height: 100%; width: 100%;}
+      html { background-color: """+str(htmltheme['background_color'])+""";
+        height: 100%;
+        width: 100%;
+      }
 
       body.loaded { display: block;}
     </style>

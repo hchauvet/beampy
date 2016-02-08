@@ -28,7 +28,7 @@ def render_slide( slide ):
     xmlns:dc="http://purl.org/dc/elements/1.1/"
     xmlns:cc="http://creativecommons.org/ns#"
     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-    >"""%(document._width,document._height,slide['style'])
+    >"""%(document._width, document._height, slide['style'])
 
     #old style 'position: absolute; top:0px; left:0px;' but seems unused and cause inkscape complains when export to pdf
 

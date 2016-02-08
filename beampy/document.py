@@ -28,6 +28,7 @@ class document():
     _theme = THEME
     _cache = None
     _pdf_animations = False
+    _resize_raster = True
 
     #Define path to external commands (see default THEME file)
     _external_cmd = {}
@@ -44,7 +45,7 @@ class document():
             - text_box[False]: Draw box on slide elements to test width and height detection of elements (usefull to debug placement)
             - optimize[True]: Optimize svg using scour python script. This reduce the size but increase compilation time
             - cache[True]: Use cache system to not compile slides each times if nothing changed!
-
+            - resize_raster[True]: Resize raster images (inside svg and for jpeg/png figures)
             - theme: Define the path to your personal THEME dictionnary
         """
 
@@ -99,6 +100,7 @@ class document():
         document._text_box = good_values['text_box']
         document._cache = good_values['cache']
         document._optimize_svg = good_values['optimize']
+        document._resize_raster = good_values['resize_raster']
 
         if document._cache == False:
             document._cache = None
@@ -115,6 +117,7 @@ class document():
         document._theme = THEME
         document._cache = None
         document._external_cmd = {}
+        document._resize_raster= True
 
     def dict_deep_update( self, original, update ):
 
