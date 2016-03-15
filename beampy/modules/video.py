@@ -60,10 +60,9 @@ def video(videofile, **kwargs):
         #Add video to the document type_nohtml used to remplace video by svg still image when not exported to HTML5
         videout = {'type': 'html', 'type_nohtml': 'svg', 'content': '', 'args': args,
                    "render": render_video,
-                   'positionner':positionner(args['x'], args['y'], args['width'], args['height']),
                    'filename': videofile}
 
-        return add_to_slide( videout )
+        return add_to_slide( videout, x=args['x'], y=args['y'], width=args['width'], height=None  )
 
 
 def render_video( ct ):

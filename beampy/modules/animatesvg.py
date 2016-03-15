@@ -60,10 +60,9 @@ def animatesvg(files_folder, **kwargs):
             svgcontent += [f.read()]
 
     animout = {'type': 'animatesvg', 'content': svgcontent, 'args': args,
-               "render": render_animatesvg,
-               'positionner': positionner(args['x'], args['y'], args['width'], None)}
+               "render": render_animatesvg }
 
-    return add_to_slide( animout )
+    return add_to_slide( animout, args['x'], args['y'], args['width'], None)
 
 
 def render_animatesvg( ct ):

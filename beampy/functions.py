@@ -15,6 +15,8 @@ import sys
 from subprocess import check_call
 import tempfile
 import time
+import hashlib #To create uniq id for elements (from content and args_dict)
+
 
 def unit_operation( value, to=0 ):
     """
@@ -202,7 +204,7 @@ def latex2svg(latexstring):
     """
 
     dvisvgmcmd = document._external_cmd['dvisvgm']
-    
+
     #Write the document to a tmp file
     tmpfile, tmpnam = tempfile.mkstemp(prefix='beampytmp')
     #print tmpnam
@@ -424,13 +426,51 @@ def dict_deep_update( original, update ):
 
     return update
 
-def add_to_slide( content ):
+def add_to_slide( content, x, y, width, height ):
     """
         Function to add a given content to the current slide
     """
+    from beampy.geometry import positionner
 
-    document._contents[gcs()]['contents'] += [ content ]
-    document._global_counter['element'] += 1
+    elem_id = create_element_id( content )
+    #print(elem_id)
+    document._contents[gcs()]['element_keys'] += [ elem_id ]
+    document._contents[gcs()]['contents'][elem_id] =  content
+    content['positionner'] = positionner(x,y ,width, height, elem_id)
 
     #return the positionner for relative placement
     return content['positionner']
+
+
+def create_element_id( elem, use_args=True, use_render=True, use_content=True, add_slide=True, slide_position=True ):
+    """
+        create a unique id for the element using element['content'] and element['args'].keys() and element['render'].__name__
+    """
+    ct_to_hash = ''
+
+    if add_slide:
+        ct_to_hash += gcs()
+
+    if use_args and 'args' in elem:
+        ct_to_hash += ''.join(['%s:%s'%(k,v) for k,v in elem['args'].items()])
+
+    if use_render and 'render' in elem and elem['render'] != None:
+        ct_to_hash += elem['render'].__name__
+
+    if use_content and 'content' in elem:
+        ct_to_hash += str(elem['content'])
+
+    if slide_position:
+        ct_to_hash += str(len(document._contents[gcs()]['element_keys']))
+
+    outid = None
+    if ct_to_hash != '':
+        outid = hashlib.md5( ct_to_hash ).hexdigest()
+
+        if outid in document._contents[gcs()]['element_keys']:
+            print("Id for this element already exist!")
+            sys.exit(0)
+            outid = None
+        #print outid
+
+    return outid

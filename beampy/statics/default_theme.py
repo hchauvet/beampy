@@ -7,6 +7,7 @@
 THEME = {}
 
 THEME['document'] = {
+    'format': 'html5', #could be svg // pdf // html5
     'width': 800,
     'height': 600,
     'optimize': True,
@@ -14,6 +15,7 @@ THEME['document'] = {
     'cache': True,
     'guide': False,
     'text_box': False,
+    'debug': True,
     'html': {
         'background_color': 'black'
         },

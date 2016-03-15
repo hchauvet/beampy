@@ -5,6 +5,9 @@ from beampy import *
 
 doc = document(cache=True)
 
+#Color for bacground of code
+codeback = "#EFEFEF"
+
 slide()
 maketitle('Beampy a tool to make simple presentation','Hugo Chauvet')
 
@@ -12,86 +15,74 @@ slide()
 title("Text")
 text(r"""Use LaTeX to render text and equation \\ $$\sqrt{10}$$""")
 
-begingroup(width=700, height=90, background="#EFEFEF")
-code(r"""
+with group(width=700, height=90, background=codeback):
+    code(r"""
 slide()
 title("Text")
 text(r\"""Use LaTeX to render text and equation \\ $$\sqrt{10}$$\""")
-""", langage="python", width=530, x="1cm")
-endgroup()
+    """, langage="python", width=530, x="1cm")
 
-slide()
-title('Figure')
+
+slide('Figure')
 figure("./svg_anims/test_0.svg", width=500)
-begingroup(width=700, height=95, background="#EFEFEF")
-code(r"""
-slide()
-title("Figure")
+with group(width=700, height=95, background=codeback):
+    code(r"""
+slide("Figure")
 figure("./svg_anims/test_0.svg", width="500")
-""", langage="python", width=350, x="1cm")
-endgroup()
+    """, langage="python", width=350, x="1cm")
 
-slide()
-title('Svg animation')
+with slide('Svg animation'):
+    animatesvg("./svg_anims/", width="500")
+    with group(width=700, height=95, background=codeback):
+        code(r"""
+slide('Svg animation')
 animatesvg("./svg_anims/", width="500")
-begingroup(width=700, height=95, background="#EFEFEF")
-code(r"""
-slide()
-title('Svg animation')
-animatesvg("./svg_anims/", width="500")
-""", langage="python", width=300, x="1cm")
-endgroup()
+        """, langage="python", width=300, x="1cm")
 
-slide()
-title('Video')
-video("./test.webm", width="500", height="294")
-begingroup(width=700, height=95, background="#EFEFEF")
-code(r"""
-slide()
-title('Video')
-video("./test.webm", width="500", height="294")
-""", langage="python", width="400", x="1cm")
-endgroup()
+slide('Video')
+video("./test.webm", width=500, height=294)
 
-slide()
-title('Group and columns')
+with group(width=700, height=95, background=codeback):
+    code(r"""
+slide('Video')
+video("./test.webm", width="500", height="294")
+    """, langage="python", width="400", x="1cm")
+
+
+slide('Group and columns')
 colwidth=350
-g1 = begingroup(width=colwidth, height=doc._height-100, x="1cm", y="1.8cm", background="#000")
-text("""
+with group(width=colwidth, height=doc._height-100, x="1cm", y="1.8cm", background="#000") as g1:
+    text("""
 This is a test for a long text in a column style.
 
 $$ \sum_{i=0}^{10} x_i $$
-""", align="center", width=colwidth-20, color="#ffffff")
-endgroup()
+    """, align="center", width=colwidth-20, color="#ffffff")
 
-begingroup(width=colwidth, height=doc._height-100, x=g1.right+0.01, y=g1.top+0, background="#EFEFEF")
-code("""
-slide()
-title('Group and columns')
+with group(width=colwidth, height=doc._height-100, x=g1.right+0.01, y=g1.top+0, background=codeback):
+    code("""
+slide('Group and columns')
 colwidth=350
+with group(width=colwidth,
+    height=doc._height-100,
+    x="1cm", y="1.8cm",
+    background="#000") as g1:
 
-begingroup(width=colwidth,
-        height=doc._height-100,
-        x="1cm",
-        y="1.8cm",
-        background="#000")
+    text(\"""
+    This is a test for
+    a long text in a
+    column style.
 
-text(\"""This is a test for
- a long text in a column style.
-
-$$ \sum_{i=0}^{10} x_i $$
-\""", align="center",
-width=colwidth-20,
-color="#ffffff")
-
-endgroup()
-""", width=colwidth-40, langage="python", x="0.5cm")
-endgroup()
+    $$ \sum_{i=0}^{10} x_i $$
+    \""",
+    align="center",
+    width=colwidth-20,
+    color="#ffffff")
+    """, width=colwidth-40, langage="python", x="0.5cm")
 
 
 
-slide()
-title('Relative positioning')
+
+slide('Relative positioning')
 text("youpi x=1cm, y=0.1", x="1cm", y=0.1)
 text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
 text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
@@ -100,18 +91,18 @@ text("youpi x=+1cm, y=+0.5cm", x="+1cm", y="+0.5cm")
 text(r"youpi x=-0, \\ y=+0.5cm", x="-0", y="+0.5cm")
 text(r"youpi x=+1.5cm,\\ y=-0", x="+1.5cm", y="-0")
 
-begingroup(width=700, height=195, background="#EFEFEF", y="+2.1cm")
-code(r"""
-slide()
-title('Relative positioning')
+with group(width=700, height=195, background=codeback, y="+2.1cm"):
+    code(r"""
+slide('Relative positioning')
 text("youpi x=1cm, y=0.1", x="1cm", y=0.1)
 text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
 text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
+
 text("youpi x=+1cm, y=+0.5cm", x="+1cm", y="+0.5cm")
 text(r"youpi x=-0, \\ y=+0.5cm", x="-0", y="+0.5cm")
 text(r"youpi x=+1.5cm,\\ y=-0", x="+1.5cm", y="-0")
-""", langage="python", width="450", x="1cm")
-endgroup()
+    """, langage="python", width="450", x="1cm")
+
 
 slide("Using element's anchors")
 e0 = text('central element [e0]', y=0.2)
@@ -120,20 +111,18 @@ e2 = text('right of e0', y=e0.top+0, x=e0.right+0.1)
 e4 = text('anchors available: top, bottom, center, right, left',
           y=e0.bottom+'1cm', x=e0.center+{'shift':0, 'align':'middle'})
 
-begingroup(y=e4.bottom+0.15, width=700, height=150, background="#EFEFEF")
-code(r"""
+with group(y=e4.bottom+0.15, width=700, height=150, background=codeback):
+    code(r"""
 e0 = text('central element [e0]', y=0.2)
 e1 = text('left of e0', y=e0.top+0,
          x=e0.left-{'shift': 0.1, 'align':'right'})
 e2 = text('right of e0', y=e0.top+0, x=e0.right+0.1)
 e4 = text('anchors available: top, bottom, center, right, left',
           y=e0.bottom+'1cm', x=e0.center+{'shift':0, 'align':'middle'})
-""", langage="python", width=450, x=0.05)
-endgroup()
+    """, langage="python", width=450, x=0.05)
 
-slide()
-title('Tikz')
 
+slide('Tikz')
 p = tikz(r"""
  % Local definitions
   \def\costhirty{0.8660256}
@@ -207,25 +196,24 @@ p = tikz(r"""
           \alpha}}{\color{coscolor}\cos \alpha} = 1/\sqrt 3.
       \]%
     };
-""", figure_options="scale=3,cap=round", x="+3cm", y=0.1)
+""", figure_options="scale=3,cap=round", x=0.1, y=0.05)
 t = text(r"""
 \href{http://www.texample.net/tikz/examples/tutorial/}{ http://www.texample.net/tikz/examples/tutorial/}
-""", x="center", y=p.bottom+0.11)
+""", x="center", y=p.bottom+0.15)
 
-begingroup(width=700, height=90, background="#EFEFEF", y=t.bottom+0.02)
-code(r"""
+with group(width=700, height=90, background=codeback, y=t.bottom+0.03):
+    code(r"""
 slide()
 title('Tikz')
 p = tikz(r\""" ....[TIKZ LINES].... \""")
 t = text(r"\href{http://www.texample.net/tikz/examples/tutorial/}
 {http://www.texample.net/tikz/examples/tutorial/}",
 x="center", y=p.bottom+0.11)
-""", langage="python", width="300", x="1cm")
-endgroup()
+    """, langage="python", width="300", x="1cm")
 
 
-slide()
-title('Bokeh plot')
+
+slide('Bokeh plot')
 from bokeh.plotting import figure as bokfig
 import numpy as np
 p = bokfig(height=300, width=600)
@@ -234,8 +222,8 @@ y = np.sin(x)
 p.circle(x, y, legend="sin(x)")
 figure(p, y=0.1, x="center")
 
-begingroup(width=700, height=155, background="#EFEFEF", y="11cm")
-code("""
+with group(width=700, height=155, background=codeback, y="11cm"):
+    code("""
 slide()
 title('Bokeh plot')
 from bokeh.plotting import figure as bokfig
@@ -245,7 +233,6 @@ x = np.linspace(0, 4*np.pi, 30  )
 y = np.sin(x)
 p.circle(x, y, legend="sin(x)")
 figure(p, y="+5px", x="center")
-""", langage="python", width="300", x="1cm")
-endgroup()
+    """, langage="python", width="300", x="1cm")
 
 save('./beampy_tests.html')

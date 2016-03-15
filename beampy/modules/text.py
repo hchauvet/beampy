@@ -10,7 +10,6 @@ from beampy import document
 from beampy.functions import (gcs, convert_unit, make_global_svg_defs,
     latex2svg, load_args_from_theme, color_text, add_to_slide,
     check_function_args)
-from beampy.geometry import positionner
 from bs4 import BeautifulSoup
 import re
 import time
@@ -47,14 +46,12 @@ def text( textin, **kwargs):
 
 
     textout = {'type': 'text',
-               "positionner": positionner( x=args['x'], y=args['y'],
-                                           width=args['width'], height=None ),
                'content': textin,
                'args': args,
                "render": render_text}
 
     #Add text to the document
-    return add_to_slide( textout )
+    return add_to_slide( textout, x=args['x'], y=args['y'], width=args['width'], height=None )
 
 
 

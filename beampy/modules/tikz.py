@@ -47,11 +47,10 @@ def tikz(tikscommands, **kwargs):
 
     textout = {'type': 'tikz', 'content': tikscommands,
                'args': args,
-               'positionner': positionner(args['x'], args['y'], None, None),
                "render": render_tikz}
 
 
-    return add_to_slide( textout )
+    return add_to_slide( textout, args['x'], args['y'], None, None )
 
 def render_tikz( ct ):
     """

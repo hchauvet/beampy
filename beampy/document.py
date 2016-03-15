@@ -3,19 +3,23 @@
 Created on Fri May 22 18:28:59 2015
 @author: hugo
 """
-from ConfigParser import SafeConfigParser
 from beampy.statics.default_theme import THEME
 import sys
 from distutils.spawn import find_executable
+from cache import cache_slides
 #Auto change path
 import os
+import sys
 bppath = os.path.dirname(__file__) + '/'
+basename = os.path.basename(__file__)
+script_file_name = os.path.basename(sys.argv[0]).split('.')[0]
 
 class document():
     """
        Main function to define the document style etc...
     """
-    __version__ = 0.1
+
+    __version__ = 0.3
     #Global variables to sotre data
     _contents = {}
     _global_counter = {}
@@ -47,6 +51,7 @@ class document():
             - cache[True]: Use cache system to not compile slides each times if nothing changed!
             - resize_raster[True]: Resize raster images (inside svg and for jpeg/png figures)
             - theme: Define the path to your personal THEME dictionnary
+            - debug[False]: If true change the output of logging to logging.DEBUG
         """
 
 		#reset if their is old variables
@@ -65,7 +70,8 @@ class document():
                 document._theme = new_theme
 
             except ImportError:
-				print("No slide theme '" + theme + "', returning to default theme.")
+                print("No slide theme '" + theme + "', returning to default theme.")
+                sys.exit(0)
 
 
         #Load document options from THEME
@@ -73,6 +79,9 @@ class document():
 
         #Load external tools
         self.link_external_programs()
+
+        #Print the header message
+        print("="*20 + " BEAMPY START " + "="*20)
 
     def set_options(self, input_dict):
         #Get document option from THEME
@@ -101,9 +110,13 @@ class document():
         document._cache = good_values['cache']
         document._optimize_svg = good_values['optimize']
         document._resize_raster = good_values['resize_raster']
-
+        document._output_format = good_values['format']
         if document._cache == False:
             document._cache = None
+        else:
+            cache_file = './.beampy_cache_%s_%s.pklz'%(script_file_name, document._output_format)
+            print("\nChache file to %s"%(cache_file))
+            document._cache = cache_slides(cache_file, self)
 
         self.options = good_values
 
@@ -117,7 +130,8 @@ class document():
         document._theme = THEME
         document._cache = None
         document._external_cmd = {}
-        document._resize_raster= True
+        document._resize_raster = True
+        document._output_format = 'html5'
 
     def dict_deep_update( self, original, update ):
 
@@ -170,6 +184,7 @@ class document():
                     name = progname
 
                 print('Missing external tool: %s, please install it before running Beampy'%name)
-                sys.exit(1)
+                #sys.exit(1)
 
-        print document._external_cmd
+        outprint = '\n'.join(['%s:%s'%(k, v) for k, v in document._external_cmd.items()])
+        print('Linked external programs\n%s'%outprint)

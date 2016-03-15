@@ -8,7 +8,7 @@ Class to manage text for beampy
 """
 from beampy import document
 from beampy.functions import (gcs, load_args_from_theme, check_function_args,
-    inherit_function_args)
+    inherit_function_args, add_to_slide)
 from beampy.modules.text import render_text
 from beampy.geometry import positionner
 
@@ -26,11 +26,9 @@ def title( title_text , **kwargs):
         args['width'] = document._width
     
     titleout = {'type': 'svg',
-                "positionner": positionner( args['x'], args['y'],
-                                            width=args['width'], height=None),
                 'content':title_text,
                 "args":args,
                 "render": render_text }
 
-    titleout['positionner'].id = 'title'
     document._contents[gcs()]['title']=titleout
+    out = add_to_slide(titleout, args['x'], args['y'], width=args['width'], height=None)

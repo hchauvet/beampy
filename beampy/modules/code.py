@@ -43,10 +43,10 @@ def code( codetext, x='center', y='auto', width=None, height=None, langage=None,
     args = {"langage": langage, 'font-size': size }
 
     codeout = {'type': 'code', 'content': codetext, 'args': args,
-              "render": render_code, 'positionner': positionner(x, y, width, height)}
+              "render": render_code}
 
     if is_pigment:
-        return add_to_slide( codeout )
+        return add_to_slide( codeout, x, y, width, height )
     else:
         print("Python pygment is not installed, I can't translate code into svg...")
 
@@ -55,7 +55,7 @@ def render_code( ct ):
     """
         function to render figures
     """
-    
+
     inkscapecmd=document._external_cmd['inkscape']
     codein = ct['content']
     args = ct['args']

@@ -91,11 +91,10 @@ https://duckduckgo.com/?q=feder+inra&t=ffab
 
         figout = {'type': 'html',
                   'content': figdiv,
-                  'positionner': positionner(args['x'], args['y'], args['width'], args['height']),
                   'args': args,
                   'render': render_figure}
 
-        return add_to_slide( figout )
+        return add_to_slide( figout, args['x'], args['y'], args['width'], args['height'] )
 
 
     #Other filetype images
@@ -108,10 +107,9 @@ https://duckduckgo.com/?q=feder+inra&t=ffab
         args['filename']=filename
 
         figout = {'type': 'figure', 'content': filename, 'args': args,
-                  "render": render_figure,
-                  'positionner': positionner(args['x'], args['y'], args['width'], args['height'])}
+                  "render": render_figure}
 
-        return add_to_slide( figout )
+        return add_to_slide( figout, args['x'], args['y'], args['width'], args['height'] )
 
 
 def render_figure( ct ):

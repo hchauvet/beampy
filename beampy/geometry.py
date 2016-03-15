@@ -14,7 +14,7 @@ DEFAULT_Y = {'align': 'top', 'reference': 'slide', 'shift': 0, 'unit': 'width'}
 
 class positionner():
 
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, width, height, elem_id):
         """
             This class need position x and y of the element
 
@@ -39,21 +39,30 @@ class positionner():
         """
 
         #Create and id (positition in the dict of this element)
-        self.id = document._global_counter['element']
+        self.id = elem_id
+        try:
+            self.id_index = document._contents[gcs()]['element_keys'].index(self.id)
+        except:
+            print('Element not found in document._content[gcs()]')
+            self.id_index = -1 #Content not stored in slide contents (like group)
 
-
-        self.x = x
-        self.y = y
         self.width = width
         self.height = height
 
 
         #Make copy if x and y are dict input
-        if type(self.x) == type(dict()):
-            self.x = self.x.copy()
-        if type(self.y) == type(dict()):
-            self.y = self.y.copy()
+        if type(x) == type(dict()):
+            self.x = x.copy()
+        else:
+            self.x = x
 
+        if type(y) == type(dict()):
+            self.y = y.copy()
+        else:
+            self.y = y
+
+        #print({"id":self.id,'y':self.y})
+        #print(self.x)
         #Need to convert x, y to a standart dict
         self.convert_position()
 
@@ -90,6 +99,13 @@ class positionner():
         #Function to convert position of an element
         tmpx = DEFAULT_X.copy()
         tmpy = DEFAULT_Y.copy()
+        slidects = document._contents[gcs()]['contents']
+
+        #Get the previous content if it exist (to us "+xx" or "-yy" in x, y coords)
+        if self.id_index > 0:
+            prev_ct = slidects[document._contents[gcs()]['element_keys'][self.id_index - 1]]
+        else:
+            prev_ct = None
 
         #Check if x or y are only floats
         if type(self.x) == type(float()) or type(self.x) == type(int()):
@@ -101,11 +117,12 @@ class positionner():
         elif type(self.x) == type(str()):
 
             converted = False
+
             if '+' in self.x:
                 self.x = convert_unit( self.x.replace('+','') )
                 #Make relative placement
-                if self.id > 0:
-                    dict_old = document._contents[gcs()]['contents'][self.id - 1]['positionner'].right + float( self.x )
+                if prev_ct != None:
+                    dict_old = prev_ct['positionner'].right + float( self.x )
                     tmpx = dict_deep_update(tmpx, dict_old)
                 else:
                     tmpx['shift'] = float( self.x )
@@ -116,8 +133,8 @@ class positionner():
             if '-' in self.x:
                 self.x = convert_unit( self.x.replace('-','') )
                 #Make relative placement
-                if self.id > 0:
-                    dict_old = document._contents[gcs()]['contents'][self.id - 1]['positionner'].left - float( self.x )
+                if prev_ct != None:
+                    dict_old = prev_ct['positionner'].left - float( self.x )
                     tmpx = dict_deep_update(tmpx, dict_old)
                 else:
                     tmpx['shift'] = float( self.x )
@@ -154,8 +171,8 @@ class positionner():
             if '+' in self.y:
                 self.y = convert_unit( self.y.replace('+','') )
                 #Make relative placement
-                if self.id > 0:
-                    dict_old = document._contents[gcs()]['contents'][self.id - 1]['positionner'].bottom + float(self.y)
+                if prev_ct != None:
+                    dict_old = prev_ct['positionner'].bottom + float(self.y)
                     tmpy = dict_deep_update(tmpy, dict_old)
                 else:
                     tmpy['shift'] = float( self.y )
@@ -166,8 +183,8 @@ class positionner():
             if '-' in self.y:
                 self.y = convert_unit( self.y.replace('-','') )
                 #Make relative placement
-                if self.id > 0:
-                    dict_old = document._contents[gcs()]['contents'][self.id - 1]['positionner'].top - float(self.y)
+                if prev_ct != None :
+                    dict_old = prev_ct['positionner'].top - float(self.y)
                     tmpy = dict_deep_update(tmpy, dict_old)
                 else:
                     tmpy['shift'] = float( self.y )
@@ -249,23 +266,25 @@ class positionner():
                                                 pos_init=ytop) + self.y['shift']
 
         #Place element that are aligned left
-        if self.x['align'] == 'left' and self.x['reference'] == 'slide':
-            self.x['final'] = self.x['shift']
+        if self.x['reference'] == 'slide':
+            if self.x['align'] == 'left':
+                self.x['final'] = self.x['shift']
 
-        if self.x['align'] == 'right' and self.x['reference'] == 'slide':
-            self.x['final'] = available_width - self.x['shift']
+            if self.x['align'] == 'right':
+                self.x['final'] = available_width - self.x['shift']
 
-        if self.x['align'] == 'middle' and self.x['reference'] == 'slide':
-            self.x['final'] = self.x['shift'] + self.width/2.
+            if self.x['align'] == 'middle':
+                self.x['final'] = self.x['shift'] + self.width/2.
 
-        if self.y['align'] == 'top' and self.y['reference'] == 'slide':
-            self.y['final'] = self.y['shift']
+        if self.y['reference'] == 'slide':
+            if self.y['align'] == 'top':
+                self.y['final'] = self.y['shift']
 
-        if self.y['align'] == 'bottom' and self.y['reference'] == 'slide':
-            self.y['final'] = available_height - self.y['shift']
+            if self.y['align'] == 'bottom':
+                self.y['final'] = available_height - self.y['shift']
 
-        if self.y['align'] == 'middle' and self.y['reference'] == 'slide':
-            self.y['final'] = self.y['shift'] + self.height/2.
+            if self.y['align'] == 'middle':
+                self.y['final'] = self.y['shift'] + self.height/2.
 
         #Relative positionning
         if self.x['reference'] == 'relative':
@@ -291,6 +310,7 @@ class positionner():
         self.x['final'] = round( self.x['final'], 1 )
         self.y['final'] = round( self.y['final'], 1 )
 
+
 class anchor:
     def __init__(self, atype, elem_id):
         """
@@ -312,29 +332,29 @@ class anchor:
         self.position['math'] = "+"
         self.parse_newvalue(new_value)
 
-        return self.position
+        return self.position.copy()
 
     def __sub__(self, new_value):
         self.position['math'] = "-"
         self.parse_newvalue( new_value )
 
-        return self.position
+        return self.position.copy()
 
     def parse_newvalue(self, new_value):
         """
             New_value can be a string like "+5cm" or a float 0.4 or a new dict
             like {"shift": 0, "align": 'left'}
         """
-
+        #print(type(new_value))
         if type(new_value) == type(str()):
             self.position['shift'] = float( convert_unit(new_value) )
             self.position['unit'] = 'px'
 
-        elif type(new_value) == type(float()):
+        elif type(new_value) == type(float()) or type(new_value) == type(int()):
             self.position['shift'] = new_value
 
         elif type(new_value) == type(dict()):
-            self.position = dict_deep_update(new_value, self.position)
+            self.position = dict_deep_update(new_value.copy(), self.position)
 
         else:
             print('Invalid relative coordinate type!')
@@ -366,6 +386,7 @@ def relative_placement(prev_element_id, curpos, axis):
     """
 
     prev_elem, prev_slide = prev_element_id
+    #print({"prev_id":prev_elem,"prev_type": document._contents['slide_%i'%prev_slide]['contents'][prev_elem]['type']})
 
     #Add litteral operation : + or - in curpos['math']
     if curpos['math'] == '-':
@@ -379,6 +400,8 @@ def relative_placement(prev_element_id, curpos, axis):
 
     if axis == 'y':
         oldpos = document._contents['slide_%i'%prev_slide]['contents'][prev_elem]['positionner'].y
+
+        #print("oldpos y", oldpos)
 
     oldwidth = document._contents['slide_%i'%prev_slide]['contents'][prev_elem]['positionner'].width
     oldheight = document._contents['slide_%i'%prev_slide]['contents'][prev_elem]['positionner'].height
@@ -403,3 +426,22 @@ def relative_placement(prev_element_id, curpos, axis):
         newpos = op( (oldpos['final'] + oldheight), curpos['shift'] )
 
     return newpos
+
+
+def align(positionner_list, alignement):
+    """
+        Function to align all given elements defined by their positionner.
+
+        alignement:
+
+        'left': align left
+        'right': align right
+        'xcenter': align center (verticaly)
+        'ycenter': align center (horizontaly)
+        'baseline': if all elements are text align their baseline
+        'top': align top
+        'bottom': align bottom
+
+    """
+
+    print('TODO')

@@ -8,7 +8,6 @@ doc = document(cache=False)
 slide()
 maketitle('Beampy a tool to make simple presentation','Hugo Chauvet')
 
-
 slide()
 title("A simple slide")
 text(r"""Use LaTeX to render text and equation \\ $$\sqrt{10}$$""", y='center', x='center')
