@@ -11,7 +11,6 @@ from beampy.geometry import positionner
 #Used for group rendering
 from beampy.renders import render_content, auto_place_elements, write_content
 import sys
-from beampy.terminal_output import * #To display beampy messages correctly
 
 class slide():
     """

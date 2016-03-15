@@ -15,7 +15,6 @@ THEME['document'] = {
     'cache': True,
     'guide': False,
     'text_box': False,
-    'debug': True,
     'html': {
         'background_color': 'black'
         },

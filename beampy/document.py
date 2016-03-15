@@ -51,7 +51,6 @@ class document():
             - cache[True]: Use cache system to not compile slides each times if nothing changed!
             - resize_raster[True]: Resize raster images (inside svg and for jpeg/png figures)
             - theme: Define the path to your personal THEME dictionnary
-            - debug[False]: If true change the output of logging to logging.DEBUG
         """
 
 		#reset if their is old variables

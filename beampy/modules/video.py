@@ -104,7 +104,8 @@ def render_video( ct ):
     else:
         imgframe = base64.b64encode( imgframe )
         output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(str(width), str(height), imgframe)
-
+        ct['type'] = ct['type_nohtml']
+        
     ct['positionner'].update_size(width, height)
 
     return output
