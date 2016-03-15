@@ -8,7 +8,6 @@ Created on Fri May 15 16:27:48 2015
 from beampy.document import document
 from beampy.functions import *
 import time
-from beampy.terminal_output import * #To display beampy messages correctly
 
 def render_slide( slide ):
     """
