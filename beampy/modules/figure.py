@@ -150,7 +150,7 @@ def render_figure( ct ):
             if imgs:
                 for img in imgs:
                     #True width and height of embed svg image
-                    width, height = int(img['width']), int(img['height'])
+                    width, height = int( float(img['width']) ) , int( float(img['height']) )
                     img_ratio = height/float(width)
                     b64content = img['xlink:href']
 
@@ -253,15 +253,14 @@ def resize_raster_image(PILImage, max_width=document._width, jpegqual=95):
     """
     Function to reduce the size of a given image keeping it's aspect ratio
     """
-    img_w = PILImage.width
-    img_h = PILImage.height
+    img_w, img_h = PILImage.size
     img_ratio = img_h/float(img_w)
 
     if (img_w > document._width):
         print('Image resized from (%ix%i)px to (%ix%i)px'%(img_w, img_h, document._width, document._width*img_ratio))
-        width = document._width
-        height = document._width * img_ratio
-        tmp_resized = PILImage.resize( (int(width), int(height) ), Image.ANTIALIAS )
+        width = int(document._width)
+        height = int(document._width * img_ratio)
+        tmp_resized = PILImage.resize((width, height), Image.ANTIALIAS )
     else:
         tmp_resized = PILImage
 
