@@ -10,6 +10,15 @@ Beampy presentation output only one html file with every contents embedded.
 
 [See a Beampy tests presentation](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html) (source is in *examples/beampy_tests_modules.py*)
 
+## TODO:
+* **work in progress** Improvement of cache, (bug of color change for text)
+* A clear documentation
+
+## Curent version:
+### 0.4
+* All slide are now loaded into ram, improve speed
+* Modules are now classes which inherit from a base class "beampy_module" in modules/core.py
+
 ## Introduction
 
 Beampy is in between Latex beamer and html5 slide-show libraries.
@@ -42,16 +51,18 @@ Beampy uses a simple cache system to compile slide only when it's needed!
 from beampy import *
 
 doc = document()
+#to export in pdf add doc = document(format = pdf)
 
-slide()
-maketitle('Beampy a tool to make simple presentation','Hugo Chauvet')
+with slide():
+   maketitle('Beampy a tool to make simple presentation','Hugo Chauvet')
 
-slide()
-title("Beampy test")
-text("""Use LaTeX to render text and $$\\sqrt{10}$$""", align='center')
+with slide():
+   title("Beampy test")
+   text("""Use LaTeX to render text and $$\\sqrt{10}$$""", align='center')
 
 save('./beampy_presentation.html')
-#To save in pdf just change the above command to the following
+#To save in pdf just change the above command to the following and add the option
+#format = "pdf" to document class
 #save('./beampy_presentation.pdf')
 ```
 
@@ -142,9 +153,9 @@ To see all these examples download the output **beampy_tests.html** and source *
 from beampy import *
 doc = document()
 
-slide()
-title('Figure')
-figure("./svg_anims/test_0.svg", width="500")
+with slide():
+    title('Figure')
+    figure("./svg_anims/test_0.svg", width="500")
 
 save('test.html')
 ```
