@@ -348,44 +348,55 @@ doc._theme['title']['x'] = 'center'
 
 ## How to write your own module
 
-Check files in *./beampy/modules/* folder.
+Check files in *./beampy/modules/* folder. Especially check the "beampy_module" class in
+file beampy/modules/core.py 
 
-A module file contain to functions, one to define the command and the other to define the render (how command is transformed to svg (or html)
+A module is a class that inherit from beampy_module class 
 
 The base of a module file
-
 ```python
-from beampy.functions import add_to_slide
-from beampy.geometry import positionner
+from beampy.module.core import beampy_module
 
-#For the command function should output write dictionary
-#to document._data list with 'type', 'content', 'args' and 'render' keys
-def my_command( data, x='center', y='auto', width=None, height=None):
 
-    args = {"some_args_used_in_renders": "auto_conf"}
+class my_module(beampy_module):
 
-    command_out = {'type': 'svg', 'content': data,
-                    'args': args, "render": myrender_command,
-                    'positionner': positionner(x, y, width, height)}
+    def __init__(self, content, your_args, **kwargs): 
+        #Args need to be defined in the theme file (default_theme in static folder)
+        #in the theme file the key should have the same name of the module 
+        #to document._data list with 'type', 'content', 'args' and 'render' keys
+        
+        self.type = 'svg' #or 'html' 
 
-    #Add command_out dictionary to the document data and return the positionner
-    return add_to_slide( command_out )
+        #Add the extra args defined in the theme
+        self.check_args_from_theme(kwargs)
+        
+        #Add locally defined arg 
+        self.your_args = your_args
+        self.args['your_args'] = your_args
+        
+        #Register the content
+        self.content = content
+        
+        #Register your module 
+        self.register()
+        
+        
+    
+    def render( self ):
+        #You have to define this function to transform your content to svg or html
 
-#Render should output 1 variables:
-#the svgpart (as text)
-def myrender_command( content ):
+        #Now you have to translate datatin into svg syntax (or html, if args['type'] == 'html')
+        svgout = "<g> My svg output %s </g>"%self.content
+        width = my_svg_width
+        height = my_svg_height
 
-    #content will get the command_out dictionnary
+        #You need to update the size of your element in order to place it correctly
+        self.update_size(width, height)
 
-    #Now you have to translate datatin into svg syntax (or html, if args['type'] == 'html')
-    svgout = "<g> My svg output %s </g>"%content['content']
-    width = my_svg_width
-    height = my_svg_height
-
-    #You need to update the size of your element in order to place it correctly
-    content['positionner'].update_size( width=width, height=height )
-
-    return svgout
+        #For an svg you need to update the svgout variable
+        self.svgout = svgout
+        #For html
+        #self.htmlout = ""
 
 ```
 
@@ -400,7 +411,7 @@ doc = document()
 
 slide()
 title('My module')
-my_command("data needed by my module")
+my_module("data needed by my module")
 
 save('test.html')
 ```
