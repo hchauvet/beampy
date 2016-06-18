@@ -355,7 +355,7 @@ A module is a class that inherit from beampy_module class
 
 The base of a module file
 ```python
-from beampy.module.core import beampy_module
+from beampy.modules.core import beampy_module
 
 
 class my_module(beampy_module):
