@@ -6,10 +6,10 @@ Created on Sun Oct 25 19:05:18 2015
 """
 
 from beampy import document
-from beampy.functions import (gcs, convert_unit, optimize_svg,
- make_global_svg_defs, getsvgwidth, getsvgheight, convert_pdf_to_svg,
- add_to_slide, check_function_args)
-from beampy.geometry import positionner
+from beampy.functions import (convert_unit, optimize_svg,
+ make_global_svg_defs, getsvgwidth, getsvgheight, convert_pdf_to_svg)
+
+from beampy.modules.core import beampy_module
 from bs4 import BeautifulSoup
 from PIL import Image
 from io import BytesIO
@@ -23,230 +23,234 @@ try:
 except:
     pass
 
-def figure(filename, ext=None, **kwargs):
-    """
-        Add figure to current slide
-        Accepted format: [svg, png, jpeg, bokeh figure]
+class figure(beampy_module):
 
-        - x['center']: x coordinate of the image
-                       'center': center image relative to document._width
-                       '+1cm": place image relative to previous element
+    def __init__(self, filename, ext=None, **kwargs):
+        """
+            Add figure to current slide
+            Accepted format: [svg, png, jpeg, bokeh figure]
 
-        - y['auto']: y coordinate of the image
-                     'auto': distribute all slide element on document._height
-                     'center': center image relative to document._height (ignore other slide elements)
-                     '+3cm': place image relative to previous element
-https://duckduckgo.com/?q=feder+inra&t=ffab
-        - height[None]: Image heigt
+            - x['center']: x coordinate of the image
+                           'center': center image relative to document._width
+                           '+1cm": place image relative to previous element
 
-        - ext[None]: Image format, if None, format is guessed from filename.
+            - y['auto']: y coordinate of the image
+                         'auto': distribute all slide element on document._height
+                         'center': center image relative to document._height (ignore other slide elements)
+                         '+3cm': place image relative to previous element
 
-    """
+            - height[None]: Image heigt
 
-    args = check_function_args(figure, kwargs)
+            - ext[None]: Image format, if None, format is guessed from filename.
 
-    #Check if the given filename is a string
-    if type(filename) == type(''):
-        #Check extension
-        if ext == None:
-            if '.svg' in filename.lower():
-                ext = 'svg'
+        """
 
-            if '.png' in filename.lower():
-                ext = 'png'
+        #The type of the module
+        self.type = 'svg'
 
-            if ( '.jpeg' in filename.lower() ) or ( '.jpg' in filename.lower() ):
-                ext = 'jpeg'
+        #Add the extra args to the module
+        self.check_args_from_theme(kwargs)
+        self.ext = ext
 
-            if '.pdf' in filename.lower():
-                ext = 'pdf'
+        #Register the content
+        self.content = filename
 
-    else:
-        if "bokeh" in str(type(filename)):
-            ext = 'bokeh'
+        #Check if the given filename is a string
+        if type(filename) == type(''):
+            #Check extension
+            if self.ext == None:
+                if '.svg' in filename.lower():
+                    self.ext = 'svg'
 
-    ######################################
+                if '.png' in filename.lower():
+                    self.ext = 'png'
 
+                if ( '.jpeg' in filename.lower() ) or ( '.jpg' in filename.lower() ):
+                    self.ext = 'jpeg'
 
-    if ext == None:
-        print("figure format can't be guessed from file name")
-        sys.exit(1)
+                if '.pdf' in filename.lower():
+                    self.ext = 'pdf'
 
-    #Bokeh image
-    elif ext == 'bokeh':
-        #print('I got a bokeh figure')
-        figscript, figdiv = components(filename, wrap_script=False)
-
-        #Todo get width and height from a bokeh figure
-        if args['width'] == None:
-            args['width'] = '%ipx'%filename.plot_width
-        if args['height'] == None:
-            args['height'] = '%ipx'%filename.plot_height
-
-        #Transform figscript to givea function name load_bokehjs
-        tmp = figscript.splitlines()
-        goodscript = '\n'.join( ['["load_bokeh"] = function() {'] + tmp[1:-1] + ['};\n'] )
-        args['ext'] = ext
-        args['script']=goodscript
-
-        figout = {'type': 'html',
-                  'content': figdiv,
-                  'args': args,
-                  'render': render_figure}
-
-        return add_to_slide( figout, args['x'], args['y'], args['width'], args['height'] )
-
-
-    #Other filetype images
-    else:
-
-        if args['width'] == None:
-            args['width'] = document._width
-
-        args['ext']=ext
-        args['filename']=filename
-
-        figout = {'type': 'figure', 'content': filename, 'args': args,
-                  "render": render_figure}
-
-        return add_to_slide( figout, args['x'], args['y'], args['width'], args['height'] )
-
-
-def render_figure( ct ):
-
-    """
-        function to render figures
-    """
-
-    #read args in the dict
-    args = ct['args']
-
-    #Svg // pdf render
-    if args['ext'] in ('svg', 'pdf') :
-
-        #Convert pdf to svg
-        if args['ext'] == 'pdf' :
-            figurein = convert_pdf_to_svg( args['filename'] )
         else:
-            #Check if a filename is given for a svg file or directly read the content value
-            if 'filename' in args:
-                with open(args['filename']) as f:
-                    figurein = f.read()
+            #Check kind of objects that are passed to filename
+
+            #Bokeh plot
+            if "bokeh" in str(type(filename)):
+                self.ext = 'bokeh'
+
+        ######################################
+
+        #Check if the input filename can be treated
+        if self.ext == None:
+            print("figure format can't be guessed from file name")
+            sys.exit(1)
+
+        #Bokeh image
+        elif self.ext == 'bokeh':
+            #print('I got a bokeh figure')
+            figscript, figdiv = components(filename, wrap_script=False)
+
+            #Todo get width and height from a bokeh figure
+            if self.width == None:
+                self.width = int(filename.plot_width)
+            if self.height == None:
+                self.height = int(filename.plot_height)
+
+        #Other filetype images
+        else:
+
+            if self.width == None:
+                self.width = document._width
+
+        #Add this module to the current slide + add positionner
+        self.register()
+
+    def render(self):
+        """
+            function to render figures
+        """
+
+
+        #Svg // pdf render
+        if self.ext in ('svg', 'pdf') :
+            #Convert pdf to svg
+            if self.ext == 'pdf' :
+                figurein = convert_pdf_to_svg( self.content )
             else:
-                figurein = ct['content']
+                #Check if a filename is given for a svg file or directly read the content value
+                if os.path.isfile(self.content):
+                    with open(self.content) as f:
+                        figurein = f.read()
+                else:
+                    figurein = self.content
 
-        #test if we need to optimise the svg
-        if document._optimize_svg:
-            figurein = optimize_svg(figurein)
+            #test if we need to optimise the svg
+            if document._optimize_svg:
+                figurein = optimize_svg(figurein)
 
-        soup = BeautifulSoup(figurein, 'xml')
+            soup = BeautifulSoup(figurein, 'xml')
 
-        #Change id in svg defs to use the global id system
-        soup = make_global_svg_defs(soup)
+            #Change id in svg defs to use the global id system
+            soup = make_global_svg_defs(soup)
 
-        #Optimize the size of embeded svg images !
-        if document._resize_raster:
-            imgs = soup.findAll('image')
-            if imgs:
-                for img in imgs:
-                    #True width and height of embed svg image
-                    width, height = int( float(img['width']) ) , int( float(img['height']) )
-                    img_ratio = height/float(width)
-                    b64content = img['xlink:href']
+            #Optimize the size of embeded svg images !
+            if document._resize_raster:
+                imgs = soup.findAll('image')
+                if imgs:
+                    for img in imgs:
 
-                    try:
-                        in_img =  BytesIO( base64.b64decode(b64content.split(';base64,')[1]) )
-                        tmp_img = Image.open(in_img)
-                        #print(tmp_img)
-                        out_img = resize_raster_image( tmp_img )
-                        out_b64 = base64.b64encode( out_img.read() )
+                        #True width and height of embed svg image
+                        width, height = int( float(img['width']) ) , int( float(img['height']) )
+                        img_ratio = height/float(width)
+                        b64content = img['xlink:href']
 
-                        #replace the resized image into the svg
-                        img['xlink:href'] = 'data:image/%s;base64, %s'%(tmp_img.format.lower(), out_b64)
-                    except:
-                        print('Unable to reduce the image size')
-                        pass
+                        try:
+                            in_img =  BytesIO( base64.b64decode(b64content.split(';base64,')[1]) )
+                            tmp_img = Image.open(in_img)
+                            #print(tmp_img)
+                            out_img = resize_raster_image( tmp_img )
+                            out_b64 = base64.b64encode( out_img.read() )
 
-        svgtag = soup.find('svg')
+                            #replace the resized image into the svg
+                            img['xlink:href'] = 'data:image/%s;base64, %s'%(tmp_img.format.lower(), out_b64)
+                        except:
+                            print('Unable to reduce the image size')
+                            pass
 
-        svg_viewbox = svgtag.get("viewBox")
+            svgtag = soup.find('svg')
 
-        tmph = svgtag.get("height")
-        tmpw = svgtag.get("width")
-        if tmph == None or tmpw == None:
-            fmpf, tmpname = tempfile.mkstemp(prefix="beampytmp")
-            with open( tmpname+'.svg', 'w' ) as f:
-                f.write(figurein)
-                #print figurein
-            tmph = getsvgheight( tmpname+'.svg' )
-            tmpw = getsvgwidth( tmpname+'.svg' )
-            #print tmpw, tmph
-            os.remove(tmpname+'.svg')
+            svg_viewbox = svgtag.get("viewBox")
 
-
-        svgheight = convert_unit( tmph )
-        svgwidth = convert_unit( tmpw )
-
-        if svg_viewbox != None:
-            svgheight = svg_viewbox.split(' ')[3]
-            svgwidth = svg_viewbox.split(' ')[2]
-
-        #SCALE OK need to keep the original viewBox !!!
-        scale_x = ct['positionner'].width/float(svgwidth)
-        #print svgwidth, svgheight, scale_x
-        #scale_y = float(convert_unit(args['height']))/float(svgheight)
-        good_scale = scale_x
-
-        #BS4 get the svg tag content without <svg> and </svg>
-        tmpfig = svgtag.renderContents()
-
-        #print tmpfig[:100]
-
-        #Add the correct first line and last
-        #tmphead = '<g  transform="matrix(%s,0,0,%s,%s,%s)" viewBox="%s">'%(str(good_scale), str(good_scale), convert_unit(args['x']), convert_unit(args['y']), svg_viewbox))
-        tmphead = '\n<g transform="scale(%0.5f)">'%(good_scale)
-        output = tmphead + tmpfig + '</g>\n'
-
-        figure_height = float(svgheight)*good_scale
-        figure_width = ct['positionner'].width
-
-    #Bokeh images
-    if args['ext'] == 'bokeh':
-        figurein = ct['content']
-        figure_height = ct['positionner'].height
-        figure_width =  ct['positionner'].width
-        output = """%s"""%figurein
+            tmph = svgtag.get("height")
+            tmpw = svgtag.get("width")
+            if tmph == None or tmpw == None:
+                fmpf, tmpname = tempfile.mkstemp(prefix="beampytmp")
+                with open( tmpname+'.svg', 'w' ) as f:
+                    f.write(figurein)
+                    #print figurein
+                tmph = getsvgheight( tmpname+'.svg' )
+                tmpw = getsvgwidth( tmpname+'.svg' )
+                #print tmpw, tmph
+                os.remove(tmpname+'.svg')
 
 
-    #For the other format
-    if args['ext'] in ['png', 'jpeg']:
-        #Open image with PIL to compute size
-        tmp_img = Image.open(args['filename'])
-        _,_,tmpwidth,tmpheight = tmp_img.getbbox()
-        scale_x = ct['positionner'].width/float(tmpwidth)
-        figure_height = float(tmpheight) * scale_x
-        figure_width = ct['positionner'].width
+            svgheight = convert_unit( tmph )
+            svgwidth = convert_unit( tmpw )
 
-        if document._resize_raster:
-            #Rescale figure to the good size (to improve size and display speed)
-            out_img = resize_raster_image(tmp_img)
-            figurein = base64.b64encode(out_img.read())
-            out_img.close()
-        else:
-            with open( args['filename'], "r") as f:
-                figurein = base64.b64encode(f.read())
+            if svg_viewbox != None:
+                svgheight = svg_viewbox.split(' ')[3]
+                svgwidth = svg_viewbox.split(' ')[2]
 
-        tmp_img.close()
+            #SCALE OK need to keep the original viewBox !!!
+            scale_x = self.positionner.width/float(svgwidth)
+            #print svgwidth, svgheight, scale_x
+            #scale_y = float(convert_unit(args['height']))/float(svgheight)
+            good_scale = scale_x
 
-    if args['ext'] == 'png':
-        output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/png;base64, %s" />'%(figure_width, figure_height, figurein)
+            #BS4 get the svg tag content without <svg> and </svg>
+            tmpfig = svgtag.renderContents()
 
-    if args['ext'] == 'jpeg':
-        output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(figure_width, figure_height, figurein)
+            #Add the correct first line and last
+            tmphead = '\n<g transform="scale(%0.5f)">'%(good_scale)
+            output = tmphead + tmpfig + '</g>\n'
 
-    ct['positionner'].update_size(figure_width, figure_height)
+            figure_height = float(svgheight)*good_scale
+            figure_width = self.width
 
-    return output
+            #Update the final svg size
+            self.update_size(figure_width, figure_height)
+            #Add the final svg output of the figure
+            self.svgout = output
+
+        #Bokeh images
+        if self.ext == 'bokeh':
+
+            #Run the bokeh components function to separate figure html div and js script
+            figscript, figdiv = components(self.content, wrap_script=False)
+
+            #Transform figscript to givea function name load_bokehjs
+            tmp = figscript.splitlines()
+            goodscript = '\n'.join( ['["load_bokeh"] = function() {'] + tmp[1:-1] + ['};\n'] )
+
+            #Add the htmldiv to htmlout
+            self.htmlout = figdiv
+            #Add the script to scriptout
+            self.jsout = goodscript
+
+        #For the other format
+        if self.ext in ('png', 'jpeg'):
+            #Open image with PIL to compute size
+            tmp_img = Image.open(self.content)
+            _,_,tmpwidth,tmpheight = tmp_img.getbbox()
+            scale_x = self.positionner.width/float(tmpwidth)
+            figure_height = float(tmpheight) * scale_x
+            figure_width = self.positionner.width
+
+            if document._resize_raster:
+                #Rescale figure to the good size (to improve size and display speed)
+                out_img = resize_raster_image(tmp_img)
+                figurein = base64.b64encode(out_img.read())
+                out_img.close()
+            else:
+                with open( self.content, "r") as f:
+                    figurein = base64.b64encode(f.read())
+
+            tmp_img.close()
+
+            if self.ext == 'png':
+                output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/png;base64, %s" />'%(figure_width, figure_height, figurein)
+
+            if self.ext == 'jpeg':
+                output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(figure_width, figure_height, figurein)
+
+            #Update the final size of the figure
+            self.update_size(figure_width, figure_height)
+            #Add the final svg to svgout
+            self.svgout = output
+
+        #print self.width, self.height
+        #Update the rendered state of the module
+        self.rendered = True
 
 
 def resize_raster_image(PILImage, max_width=document._width, jpegqual=95):

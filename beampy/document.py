@@ -10,18 +10,21 @@ from cache import cache_slides
 #Auto change path
 import os
 import sys
+import glob
 bppath = os.path.dirname(__file__) + '/'
 basename = os.path.basename(__file__)
 script_file_name = os.path.basename(sys.argv[0]).split('.')[0]
 
 class document():
+
     """
        Main function to define the document style etc...
     """
 
-    __version__ = 0.3
+    __version__ = 0.4
     #Global variables to sotre data
     _contents = {}
+    _slides = {}
     _global_counter = {}
     _width = 0
     _height = 0
@@ -33,12 +36,17 @@ class document():
     _cache = None
     _pdf_animations = False
     _resize_raster = True
+    _source_code = [] #Store the source code of the input script
+
+    #Store data that need to be globally loded in html like raster contents
+    #images, video, etc...
+    #Format of an entre in the list: {'type': 'svg (or html)', 'content': the data to be loaded}
+    _global_store = []
 
     #Define path to external commands (see default THEME file)
     _external_cmd = {}
 
     def __init__(self, **kwargs):
-
         """
             Create document to store slides
             options (see THEME)
@@ -63,15 +71,31 @@ class document():
         #Check if we want to load a new theme
         if 'theme' in kwargs:
             theme = kwargs['theme']
+
+            #Check if it's a python file which is given or a name of themes (stored in beampy/themes)
+            themelist = []
+            if '.py' in theme:
+                themename = theme.split('.')[0]
+            else:
+                available_themes = glob.glob(bppath + 'themes/*_theme.py')
+
+                if theme in '|'.join(available_themes):
+                    print available_themes, theme
+                    themename = 'beampy.themes.'+theme+'_theme'
+                    themelist = [theme+'_theme']
+
+                    print themename
+                else:
+                    themename = None
             try :
-                new_theme = self.dict_deep_update( document._theme, __import__( theme.split('.')[0] ).THEME )
+                new_theme = self.dict_deep_update( document._theme, __import__( themename, fromlist=themelist ).THEME )
                 self.theme =  new_theme
+                self.theme_name = themename
                 document._theme = new_theme
 
             except ImportError:
+                self.theme_name = 'default'
                 print("No slide theme '" + theme + "', returning to default theme.")
-                sys.exit(0)
-
 
         #Load document options from THEME
         self.set_options(kwargs)
@@ -79,12 +103,17 @@ class document():
         #Load external tools
         self.link_external_programs()
 
+        #Load the source code of the current presentation
+        self.get_source_code()
+
         #Print the header message
         print("="*20 + " BEAMPY START " + "="*20)
 
     def set_options(self, input_dict):
         #Get document option from THEME
         default_options = self._theme['document']
+        if 'theme' in input_dict:
+            default_options['theme'] = input_dict['theme']
 
         good_values = {}
         for key, value in input_dict.items():
@@ -121,6 +150,7 @@ class document():
 
     def reset(self):
         document._contents = {}
+        document._slides = {}
         document._global_counter = {}
         document._width = 0
         document._height = 0
@@ -187,3 +217,9 @@ class document():
 
         outprint = '\n'.join(['%s:%s'%(k, v) for k, v in document._external_cmd.items()])
         print('Linked external programs\n%s'%outprint)
+
+    def get_source_code(self):
+        in_file = sys.argv[0]
+        fo = open(in_file, 'r')
+        document._source_code = fo.readlines()
+        fo.close()

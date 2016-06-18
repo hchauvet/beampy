@@ -41,7 +41,7 @@ def itemize( items_list, **kwargs):
 				number += 1
 
 			else :
-				item_char = item_style
+				item_char = args['item_style']
 
 			# Add color
 

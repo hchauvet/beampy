@@ -5,16 +5,16 @@ from beampy import *
 
 doc = document(cache=False)
 
-slide()
-maketitle('Beampy a tool to make simple presentation','Hugo Chauvet')
+with slide():
+    maketitle('Beampy a tool to make simple presentation',
+    'Hugo Chauvet','Institut de python',date="now")
 
-slide()
-title("A simple slide")
-text(r"""Use LaTeX to render text and equation \\ $$\sqrt{10}$$""", y='center', x='center')
+with slide():
+    title("A simple slide")
+    text(r"""Use LaTeX to render text and equation \\ $$\sqrt{10}$$""", y='center', x='center')
 
-
-slide()
-title('A seconde title')
-text(r'\href{#0}{Go to Title}')
+with slide():
+    title('A seconde title')
+    text(r'\href{#0}{Go to Title}')
 
 save('./simple_one.html')

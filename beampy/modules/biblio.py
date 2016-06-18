@@ -17,4 +17,4 @@ def cite( list_authors, **kwargs):
     #Check arguments
     args = check_function_args(cite, kwargs)
 
-    text( citestr, args)
+    text( citestr, **args)

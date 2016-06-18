@@ -26,6 +26,10 @@ THEME['document'] = {
         "pdf2svg": "auto"}
 }
 
+THEME['slide'] = {
+    'background': "white",
+}
+
 THEME['text'] = {
     'size':20,
     'font':'CMR',
@@ -62,7 +66,8 @@ THEME['maketitle'] = {
     'date_size':15,
     'date_color':'#888888',
     'subtitle_color':'#888888',
-    'subtitle_size':20
+    'subtitle_size':20,
+    'template': None #here you redefine a link to a function "def mytitle(titlein, author, subtitle, date, args)"" that is executed in maketitle to replace the default template
 }
 
 THEME['video'] = {

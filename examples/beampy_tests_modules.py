@@ -3,9 +3,10 @@
 
 from beampy import *
 
-doc = document(cache=True)
-
+doc = document(cache=False)
+#To test other theme: theme='hipsterchic' as instance
 #Color for bacground of code
+
 codeback = "#EFEFEF"
 
 slide()
@@ -87,9 +88,9 @@ text("youpi x=1cm, y=0.1", x="1cm", y=0.1)
 text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
 text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
 
-text("youpi x=+1cm, y=+0.5cm", x="+1cm", y="+0.5cm")
-text(r"youpi x=-0, \\ y=+0.5cm", x="-0", y="+0.5cm")
-text(r"youpi x=+1.5cm,\\ y=-0", x="+1.5cm", y="-0")
+#text("youpi x=+1cm, y=+0.5cm", x="+1cm", y="+0.5cm")
+#text(r"youpi x=-0, \\ y=+0.5cm", x="-0", y="+0.5cm")
+#text(r"youpi x=+1.5cm,\\ y=-0", x="+1.5cm", y="-0")
 
 with group(width=700, height=195, background=codeback, y="+2.1cm"):
     code(r"""

@@ -70,7 +70,7 @@ def pdf_export(name_out):
     for islide in xrange(document._global_counter['slide']+1):
         print('slide %i'%islide)
         #check if content type need to be changed
-        check_content_type_change( document._contents["slide_%i"%islide] )
+        #check_content_type_change( document._contents["slide_%i"%islide] )
 
         #Use inkscape to render svg to pdf
         res = os.popen(svgcmd%(bdir+'/tmp/slide_%i.svg'%islide, bdir+'/tmp/slide_%i.pdf'%islide) )
@@ -100,9 +100,16 @@ def svg_export(dir_name):
     for islide in xrange(document._global_counter['slide']+1):
         print("Export slide %i"%islide)
 
+        slide = document._slides["slide_%i"%islide]
+        #Render the slide
+        slide.render()
+
+        #save the list of rendered svg to a new dict as a string
+        tmp = slide.svgheader + ''.join(slide.svgout) + slide.svgfooter
+
         #check if content type need to be changed
-        check_content_type_change( document._contents["slide_%i"%islide] )
-        tmp = render_slide( document._contents["slide_%i"%islide] )
+        #check_content_type_change( document._contents["slide_%i"%islide] )
+        #tmp = render_slide( document._contents["slide_%i"%islide] )
 
         with open(dir_name+'slide_%i.svg'%islide, 'w') as f:
             f.write(tmp)
@@ -121,33 +128,65 @@ def html5_export():
     #If we directly want to charge the content in pure html
     tmpout = {}
     tmpscript = {}
+    global_store = {}
     for islide in xrange(document._global_counter['slide']+1):
         #print("[Beampy] export slide %i"%islide)
         tnow = time.time()
 
-        tmpout["slide_%i"%islide] = {}
-        tmp = render_slide( document._contents["slide_%i"%islide] )
-        #save the rendered svg to a new dict
-        tmpout["slide_%i"%islide]['svg'] = document._contents["slide_%i"%islide]['svg_output']
+        slide_id = "slide_%i"%islide
+        tmpout[slide_id] = {}
+        global_store[slide_id] = {}
+        slide = document._slides[slide_id]
 
-        if 'svg_animations' in document._contents["slide_%i"%islide]:
-            tmpout["slide_%i"%islide]['animations'] = document._contents["slide_%i"%islide]['svg_animations']
+        #Render the slide
+        slide.render()
 
-        if 'script' in document._contents["slide_%i"%islide]:
-            tmpscript['slide_%i'%islide] = document._contents["slide_%i"%islide]['script']
+        #Add a small peace of svg that will be used to get the data from the global store
+        tmpout[slide_id]['svg'] = '%s\n<use xlink:href="#%s" x="0" y="0"/>\n%s\n'%(slide.svgheader, slide_id, slide.svgfooter)
 
-        if 'html_output' in document._contents['slide_%i'%islide]:
-            tmpout["slide_%i"%islide]['htmlcontent'] = document._contents["slide_%i"%islide]['html_output']
+        #save the list of rendered svg to a new dict as a string that is loaded globally in the html
+        global_store[slide_id]['svg'] = ''.join(slide.svgout)
+
+        if slide.animout != None:
+            #print [f['frames'] for f in slide.animout]
+            tmpout[slide_id]['svganimates'] = []
+            headers = []
+            for ianim, data in enumerate(slide.animout):
+                headers += [data['header']]
+                data.pop('header')
+                tmpout[slide_id]['svganimates'] += [data]
+
+            #pass
+
+            #Add cached images to global_store
+            if headers != []:
+                global_store[slide_id]['svg'] += ''.join(headers)
+
+        if slide.scriptout != None:
+            tmpscript['slide_%i'%islide] = ''.join(slide.scriptout)
+
+        if slide.htmlout != None:
+            global_store["slide_%i"%islide]['html'] = ''.join(slide.htmlout)
 
         print("Done in %0.3f seconds"%(time.time()-tnow))
 
-    #Create a json file of all slides output
+    #Create a json file of all slides output (refs to store)
     jsonfile = stringio.StringIO()
     json.dump(tmpout,jsonfile, indent=None)
-
     jsonfile.seek(0)
 
-    output += '<script> var slides = eval( ( %s ) );</script>'%jsonfile.read()
+    #Create a json file for the store
+    jsonstore = stringio.StringIO()
+    json.dump(global_store, jsonstore, indent=None)
+    jsonstore.seek(0)
+
+
+
+    #Create store divs for each slides
+    output += ''.join(['<div id="store_slide_%s"></div>'%s for s in xrange(document._global_counter['slide']+1)])
+    output += '<script> slides = eval( ( %s ) );</script>'%jsonfile.read()
+    output += '<script> store = eval( ( %s ) );</script>'%jsonstore.read()
+
 
     #Javascript output
     #format: scripts_slide[slide_i]['function_name'] = function() { ... }
@@ -178,7 +217,10 @@ def html5_export():
     output += """
     <!-- Default Style -->
     <style>
-      * { margin: 0; padding: 0; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; outline: none; border: none;}
+      * { margin: 0; padding: 0;
+        -moz-box-sizing: border-box; -webkit-box-sizing: border-box;
+        box-sizing: border-box; outline: none; border: none;
+        }
 
       body {
         width: """+str(document._width)+"""px;
@@ -201,6 +243,11 @@ def html5_export():
         height: 100%;
         width: 100%;
       }
+
+      video {
+        visibility: hidden;
+      }
+
 
       body.loaded { display: block;}
     </style>

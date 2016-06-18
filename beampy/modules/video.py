@@ -7,154 +7,140 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.functions import gcs, convert_unit, add_to_slide, check_function_args
-from beampy.geometry import positionner
+from beampy.modules.core import beampy_module
 import base64
 import os
 import cStringIO
 from PIL import Image
+import sys
 
 
-def video(videofile, **kwargs):
-    """
-    Add video in webm/ogg/mp4 format
+class video(beampy_module):
 
-    arguments
-    ---------
+    def __init__(self, videofile, **kwargs):
+        """
+        Add video in webm/ogg/mp4 format
 
-    width = None -> document._width
-    heigh = None -> document._height
+        arguments
+        ---------
 
-    x ['center']: x position
-    y ['auto']: y position
+        width = None -> document._width
+        heigh = None -> document._height
 
-    autoplay [False]: To launch video when slide appears
+        x ['center']: x position
+        y ['auto']: y position
 
-    control [True]: Display video control bar
+        autoplay [False]: To launch video when slide appears
 
-    still_image_time [0]: extract the still image for pdf export at the given still_image_time in second
-    """
+        control [True]: Display video control bar
 
-    #Check function args
-    args = check_function_args(video, kwargs)
+        still_image_time [0]: extract the still image for pdf export at the given still_image_time in second
+        """
 
-    #if no width is given get the default width
-    if args['width'] == None:
-        args['width'] = str(document._width)
+        self.type = 'html'
+        #Check function args
+        self.check_args_from_theme(kwargs)
 
-    #check extension
-    ext = None
-    if '.webm' in videofile.lower():
-        ext = 'webm'
-    elif '.ogg' in videofile.lower():
-        ext = 'ogg'
-    elif '.mp4' in videofile.lower():
-        ext = 'mp4'
-    else:
-        print('Video need to be in webm/ogg/mp4(h.264) format!')
+        #if no width is given get the default width
+        if self.width== None:
+            self.width = document._width
 
-    if ext != None:
-        args['ext'] = ext
-        args['filename'] = videofile
-
-        #Add video to the document type_nohtml used to remplace video by svg still image when not exported to HTML5
-        videout = {'type': 'html', 'type_nohtml': 'svg', 'content': '', 'args': args,
-                   "render": render_video,
-                   'filename': videofile}
-
-        return add_to_slide( videout, x=args['x'], y=args['y'], width=args['width'], height=None  )
-
-
-def render_video( ct ):
-    """
-    Render video (webm) encoded in base64 in svg command
-    """
-
-    #Read file and convert data to base64
-    with open(ct['filename'], 'rb') as fin:
-        videob64 = base64.b64encode( fin.read() )
-
-    args = ct['args']
-    #Get video image
-    size, imgframe = video_image(args)
-    #Get video size to get the ratio (to estimage the height)
-    _, _, vidw, vidh = size
-    scale_x = ct['positionner'].width/float(vidw)
-    width = ct['positionner'].width
-    height = vidh * scale_x
-
-
-    if document._output_format=='html5':
-        #HTML tag for video
-        output = """<video id='video' width="%spx" %s><source type="video/%s" src="data:video/%s;base64, %s"></video>"""
-
-        #Check if we need autoplay
-        otherargs = ''
-        if args['autoplay'] == True:
-            otherargs += ' autoplay'
-
-        if args['control'] == True:
-            otherargs += ' controls="controls"'
+        #check extension
+        self.ext = None
+        if '.webm' in videofile.lower():
+            self.ext = 'webm'
+        elif '.ogg' in videofile.lower() or '.ogv' in videofile.lower():
+            self.ext = 'ogg'
+        elif '.mp4' in videofile.lower():
+            self.ext = 'mp4'
         else:
-            #Add click event to run video
-            otherargs += ' onclick="this.paused?this.play():this.pause();"'
+            print('Video need to be in webm/ogg/mp4(h.264) format!')
+            sys.exit(0)
 
-        output = output%(width, otherargs, args['ext'], args['ext'], videob64)
+        if self.ext != None:
+            self.content = videofile
 
-    else:
-        imgframe = base64.b64encode( imgframe )
-        output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(str(width), str(height), imgframe)
-        ct['type'] = ct['type_nohtml']
-        
-    ct['positionner'].update_size(width, height)
-
-    return output
+        #Register the module
+        self.register()
 
 
+    def render( self ):
+        """
+        Render video (webm) encoded in base64 in svg command
+        """
 
-def video_image(args):
-    """
-        Function used to get the first image of a video
+        #Read file and convert data to base64
+        with open(self.content, 'rb') as fin:
+            videob64 = base64.b64encode( fin.read() )
 
-        It use FFMPEG to extract one image
-    """
-
-    FFMPEG_CMD = document._external_cmd['video_encoder']
-    FFMPEG_CMD += ' -loglevel 8 -i %s -f image2 -ss %0.3f -vframes 1 -'%(args['filename'], args['still_image_time'])
-
-
-    img_out = os.popen(FFMPEG_CMD).read()
-
-    img = cStringIO.StringIO(img_out)
-
-    out = Image.open(img)
-
-
-    #Get image size
-    size = out.getbbox()
-
-    #Save image to string
-    outimg = cStringIO.StringIO()
-    out.save(outimg, 'JPEG')
-    out.close()
-
-    strimg = outimg.getvalue()
-
-    outimg.close()
-
-    #Need to close img at then end
-    img.close()
-
-    return size, strimg
+        #Get video image
+        size, imgframe = self.video_image()
+        #Get video size to get the ratio (to estimage the height)
+        _, _, vidw, vidh = size
+        scale_x = self.width/float(vidw)
+        width = self.width
+        height = vidh * scale_x
 
 
-def get_video_size(args):
-    """
-        Get video size by extracting width and height of first frame
-    """
+        if document._output_format=='html5':
+            #HTML tag for video
+            output = """<video id='video' width="%spx" %s><source type="video/%s" src="data:video/%s;base64, %s"></video>"""
 
-    size, frame = video_image(args)
+            #Check if we need autoplay
+            otherargs = ''
+            if self.autoplay == True:
+                otherargs += ' autoplay'
 
-    _, _, width, height = size
+            if self.control == True:
+                otherargs += ' controls="controls"'
+            else:
+                #Add click event to run video
+                otherargs += ' onclick="this.paused?this.play():this.pause();"'
 
-    return width, height
+            output = output%(width, otherargs, self.ext, self.ext, videob64)
+
+            self.update_size(width, height)
+            self.htmlout = output
+        else:
+            imgframe = base64.b64encode( imgframe )
+            output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(str(width), str(height), imgframe)
+            #ct['type'] = ct['type_nohtml']
+
+            self.update_size(width, height)
+            self.svgout = output
+
+
+    def video_image(self):
+        """
+            Function used to get the first image of a video
+
+            It use FFMPEG to extract one image
+        """
+
+        FFMPEG_CMD = document._external_cmd['video_encoder']
+        FFMPEG_CMD += ' -loglevel 8 -i %s -f image2 -ss %0.3f -vframes 1 -'%(self.content, self.still_image_time)
+
+
+        img_out = os.popen(FFMPEG_CMD).read()
+
+        img = cStringIO.StringIO(img_out)
+
+        out = Image.open(img)
+
+
+        #Get image size
+        size = out.getbbox()
+
+        #Save image to string
+        outimg = cStringIO.StringIO()
+        out.save(outimg, 'JPEG')
+        out.close()
+
+        strimg = outimg.getvalue()
+
+        outimg.close()
+
+        #Need to close img at then end
+        img.close()
+
+        return size, strimg

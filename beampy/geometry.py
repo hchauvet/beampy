@@ -41,7 +41,7 @@ class positionner():
         #Create and id (positition in the dict of this element)
         self.id = elem_id
         try:
-            self.id_index = document._contents[gcs()]['element_keys'].index(self.id)
+            self.id_index = document._slides[gcs()].element_keys.index(self.id)
         except:
             print('Element not found in document._content[gcs()]')
             self.id_index = -1 #Content not stored in slide contents (like group)
@@ -99,11 +99,11 @@ class positionner():
         #Function to convert position of an element
         tmpx = DEFAULT_X.copy()
         tmpy = DEFAULT_Y.copy()
-        slidects = document._contents[gcs()]['contents']
+        slidects = document._slides[gcs()].contents
 
         #Get the previous content if it exist (to us "+xx" or "-yy" in x, y coords)
         if self.id_index > 0:
-            prev_ct = slidects[document._contents[gcs()]['element_keys'][self.id_index - 1]]
+            prev_ct = slidects[document._slides[gcs()].element_keys[self.id_index - 1]]
         else:
             prev_ct = None
 
@@ -134,7 +134,7 @@ class positionner():
                 self.x = convert_unit( self.x.replace('-','') )
                 #Make relative placement
                 if prev_ct != None:
-                    dict_old = prev_ct['positionner'].left - float( self.x )
+                    dict_old = prev_ct.positionner.left - float( self.x )
                     tmpx = dict_deep_update(tmpx, dict_old)
                 else:
                     tmpx['shift'] = float( self.x )
@@ -172,7 +172,7 @@ class positionner():
                 self.y = convert_unit( self.y.replace('+','') )
                 #Make relative placement
                 if prev_ct != None:
-                    dict_old = prev_ct['positionner'].bottom + float(self.y)
+                    dict_old = prev_ct.positionner.bottom + float(self.y)
                     tmpy = dict_deep_update(tmpy, dict_old)
                 else:
                     tmpy['shift'] = float( self.y )
@@ -184,7 +184,7 @@ class positionner():
                 self.y = convert_unit( self.y.replace('-','') )
                 #Make relative placement
                 if prev_ct != None :
-                    dict_old = prev_ct['positionner'].top - float(self.y)
+                    dict_old = prev_ct.positionner.top - float(self.y)
                     tmpy = dict_deep_update(tmpy, dict_old)
                 else:
                     tmpy['shift'] = float( self.y )
@@ -271,7 +271,7 @@ class positionner():
                 self.x['final'] = self.x['shift']
 
             if self.x['align'] == 'right':
-                self.x['final'] = available_width - self.x['shift']
+                self.x['final'] = (available_width - self.width) - self.x['shift']
 
             if self.x['align'] == 'middle':
                 self.x['final'] = self.x['shift'] + self.width/2.
@@ -285,6 +285,7 @@ class positionner():
 
             if self.y['align'] == 'middle':
                 self.y['final'] = self.y['shift'] + self.height/2.
+
 
         #Relative positionning
         if self.x['reference'] == 'relative':
@@ -396,15 +397,15 @@ def relative_placement(prev_element_id, curpos, axis):
 
     #get the relative element dict for the given axis
     if axis == 'x':
-        oldpos = document._contents['slide_%i'%prev_slide]['contents'][prev_elem]['positionner'].x
+        oldpos = document._slides['slide_%i'%prev_slide].contents[prev_elem].positionner.x
 
     if axis == 'y':
-        oldpos = document._contents['slide_%i'%prev_slide]['contents'][prev_elem]['positionner'].y
+        oldpos = document._slides['slide_%i'%prev_slide].contents[prev_elem].positionner.y
 
         #print("oldpos y", oldpos)
 
-    oldwidth = document._contents['slide_%i'%prev_slide]['contents'][prev_elem]['positionner'].width
-    oldheight = document._contents['slide_%i'%prev_slide]['contents'][prev_elem]['positionner'].height
+    oldwidth = document._slides['slide_%i'%prev_slide].contents[prev_elem].positionner.width
+    oldheight = document._slides['slide_%i'%prev_slide].contents[prev_elem].positionner.height
 
     if curpos['ref_anchor'] == 'left' and axis == 'x':
         newpos = op(oldpos['final'], curpos['shift'])

@@ -7,28 +7,31 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.functions import (gcs, load_args_from_theme, check_function_args,
-    inherit_function_args, add_to_slide)
-from beampy.modules.text import render_text
-from beampy.geometry import positionner
+from beampy.functions import gcs
+from beampy.modules.text import text
 
-def title( title_text , **kwargs):
-    """
-        Add a title to a slide
-    """
+class title( text ):
 
-    #Check function arguments from THEME
-    args = check_function_args(title, kwargs)
-    #Add text arguments because we use the text render
-    args = inherit_function_args('text', args)
+    def __init__(self, titlein , **kwargs):
+        """
+            Add a title to a slide
+        """
 
-    if args['width'] == None:
-        args['width'] = document._width
-    
-    titleout = {'type': 'svg',
-                'content':title_text,
-                "args":args,
-                "render": render_text }
+        #Set the type as text
+        self.type = 'text'
+        #Check function arguments from THEME
+        self.check_args_from_theme(kwargs)
 
-    document._contents[gcs()]['title']=titleout
-    out = add_to_slide(titleout, args['x'], args['y'], width=args['width'], height=None)
+        self.content = titlein
+
+        #Add text arguments because we use the text render
+        self.load_extra_args('text')
+
+        if self.width == None:
+            self.width = document._width
+        self.height = None
+
+        #Add the title to the slide
+        document._slides[gcs()].title = self
+        #Register this module
+        self.register()

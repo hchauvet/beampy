@@ -6,9 +6,8 @@ Created on Sun Oct 25 19:05:18 2015
 """
 
 from beampy import document
-from beampy.functions import gcs, add_to_slide
-from beampy.modules.figure import render_figure
-from beampy.geometry import positionner
+from beampy.modules.figure import figure
+import cStringIO as StringIO
 
 import tempfile
 import os
@@ -21,79 +20,88 @@ try:
 except:
     is_pigment = False
 
-def code( codetext, x='center', y='auto', width=None, height=None, langage=None, size="14px" ):
-    """
-        Color a given code using python pygment
+class code(figure):
+    #Transform the code to svg using pigment and then use the classic render for figure
 
-        option
-        ------
+    def __init__(self, codetext, x='center', y='auto', width=None, height=None, langage=None, size="14px" ):
+        """
+            Color a given code using python pygment
 
-        langage[None]: try to infer the lexer from codetext
+            option
+            ------
 
-        size['9px']: size of the text
+            langage[None]: try to infer the lexer from codetext
 
-    """
+            size['9px']: size of the text
+
+        """
+
+        self.type = 'svg'
+        self.content = codetext
+
+        if width == None:
+            self.width = document._width
+        else:
+            self.width = width
+
+        if height == None:
+            self.height = document._height
+        else:
+            self.height = height
+
+        self.args = {"langage": langage, 'font_size': size }
+        self.langage = langage
+        self.font_size = size
 
 
-    if width == None:
-        width = float(document._width)
-    if height == None:
-        height = float(document._height)
+        self.code2svg()
 
-    args = {"langage": langage, 'font-size': size }
-
-    codeout = {'type': 'code', 'content': codetext, 'args': args,
-              "render": render_code}
-
-    if is_pigment:
-        return add_to_slide( codeout, x, y, width, height )
-    else:
-        print("Python pygment is not installed, I can't translate code into svg...")
+        if is_pigment:
+            self.register()
+        else:
+            print("Python pygment is not installed, I can't translate code into svg...")
 
 
-def render_code( ct ):
-    """
-        function to render figures
-    """
+    def code2svg(self):
+        """
+            function to render code to svg
+        """
 
-    inkscapecmd=document._external_cmd['inkscape']
-    codein = ct['content']
-    args = ct['args']
+        inkscapecmd=document._external_cmd['inkscape']
+        codein = self.content
 
-    #Try to infer the lexer
-    if args['langage'] == None:
-        lexer = guess_lexer(codein)
-    else:
-        lexer = get_lexer_by_name(args['langage'], stripall=True)
 
-    #Convert code to svgfile
-    svgcode = highlight(codein, lexer, SvgFormatter(fontsize=args['font-size'],style='tango'))
+        #Try to infer the lexer
+        if self.langage == None:
+            lexer = guess_lexer(codein)
+        else:
+            lexer = get_lexer_by_name(self.langage, stripall=True)
 
-    #Create a tmpfile
-    tmpfile, tmpname = tempfile.mkstemp(prefix='beampytmp')
-    #tmppath = tmpname.replace(os.path.basename(tmpname),'')
+        #Convert code to svgfile
+        svgcode = highlight(codein, lexer, SvgFormatter(fontsize=self.font_size, style='tango'))
 
-    with open( tmpname+'.svg', 'w' ) as f:
-        f.write(svgcode)
+        #Create a tmpfile
+        tmpfile, tmpname = tempfile.mkstemp(prefix='beampytmp')
+        #tmppath = tmpname.replace(os.path.basename(tmpname),'')
 
-    #Convert svgfile with inkscape to transform text to path
-    cmd = inkscapecmd + ' -z -T -l=%s %s'%(tmpname+'_good.svg', tmpname+'.svg')
+        with open( tmpname+'.svg', 'w' ) as f:
+            f.write(svgcode)
 
-    req = os.popen(cmd)
-    req.close()
+        #Convert svgfile with inkscape to transform text to path
+        cmd = inkscapecmd + ' -z -T -l=%s %s'%(tmpname+'_good.svg', tmpname+'.svg')
 
-    #Read the good svg
-    with open(tmpname+'_good.svg','r') as f:
-        goodsvg = f.read()
+        req = os.popen(cmd)
+        req.close()
 
-    #remove files
-    os.remove(tmpname+'.svg')
-    os.remove(tmpname+'_good.svg')
+        #Read the good svg
+        with open(tmpname+'_good.svg','r') as f:
+            goodsvg = f.read()
 
-    #use the classic figure render
-    args['ext'] = 'svg'
-    tmpout = render_figure( {'content':goodsvg, 'args':args,
-                            'positionner':ct['positionner']})
-    #print tmpw, tmph
-    tmpout = '<g> %s </g>'%(tmpout)
-    return tmpout
+        #remove files
+        os.remove(tmpname+'.svg')
+        os.remove(tmpname+'_good.svg')
+
+        #Add the figure extension
+        self.ext = 'svg'
+        self.args['ext'] = 'svg'
+        self.content = goodsvg

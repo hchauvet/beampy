@@ -6,10 +6,8 @@ Created on Sun Oct 25 19:05:18 2015
 
 Class to manage pandas table output as latex for beampy
 """
-
-
 #TODO: Add *args for pandas to_latex(args)
-def table(pandas_table, x='center', y='auto', width=None):
+def table(pandas_table, x='center', y='auto', width=None, mode='latex'):
     """
         Function to output pandas table in beampy presentation
 

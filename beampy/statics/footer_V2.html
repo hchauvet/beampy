@@ -13,11 +13,56 @@
     document.body.className = "loaded";
     this.slides = Object.keys(slides); <!-- load slides from json -->
     this.html = document.body.parentNode;
+    //Load slides in store
+    this.load_store();
     this.setup();
     this.onhashchange();
     this.setupTouchEvents();
     this.onresize();
     this.initmouse();
+
+  }
+
+  Beampy.load_store = function() {
+
+     $('#msg').html('<progress id="pbar" max="'+(this.slides.length-1)+'" value="0" style="border: none; height: 8px; width: 100%; 	position:fixed; top:0;"></progress>');
+     $('#msg').css('width', '100%');
+     var pbar = $('#pbar');
+     var i=0;
+     var pTimer = setTimeout(update, 0, this, pbar);
+
+     function update(s, pbar){
+  	if (i < s.slides.length){
+	    $('#store_'+s.slides[i]).html("<svg><defs><g id='"+s.slides[i]+"'>"+store[s.slides[i]]['svg']+"</g></defs></svg>" );
+
+  	    //check if we need to had html
+            if( store[s.slides[i]].hasOwnProperty('html') ){
+  	    	$('#store_'+s.slides[i]).append('<div id="html_store_'+s.slides[i]+'">'+store[s.slides[i]].html+'</div>');
+  	    }
+
+  	    //check if we need to had svg animation
+  	    //if(store[s.slides[i]].hasOwnProperty('animations')]){
+		//TODO: Load cached images
+
+  	    //}
+  	    pbar.val(i);
+  	    //delete the content from the store (for memory)
+  	    delete store[s.slides[i]];
+
+            //console.log(i);
+  	    i++;
+  	    var pTimer = setTimeout(update, 0, s, pbar);
+     	} else {
+
+  	//console.log('End of loading store clean timer');
+     	clearTimeout(pTimer);
+  	$('#msg').html('');
+  	delete store;
+  	Beampy.toggleContent();
+  	}
+     }
+
+
   }
 
   Beampy.setup = function() {
@@ -27,6 +72,7 @@
       Beampy.params[keyVal[0]] = decodeURIComponent(keyVal[1]);
     });
   }
+
 
   Beampy.onkeydown = function(aEvent) {
     // Don't intercept keyboard shortcuts
@@ -60,7 +106,15 @@
     }
     if (aEvent.keyCode == 32) { // space
       aEvent.preventDefault();
-      this.toggleContent();
+      $("#html_store_slide_"+this.id_slide+" video").each(function(){
+	    if (this.paused || this.ended){
+  	        this.play();
+  	    } else {
+  	        this.pause();
+  	    }
+
+
+      });
     }
     if (aEvent.keyCode == 70) { // f
       aEvent.preventDefault();
@@ -138,32 +192,55 @@
 
 
   Beampy.toggleContent = function() {
-    // If a Video is present in this new slide, play it.
-    // If a Video is present in the previous slide, stop it.
-    s = $("section[selected]");
-    if (s) {
-      video = document.getElementById('video');
-      if (video) {
-        if (video.ended || video.paused) {
-          video.play();
-        } else {
-          video.pause();
-        }
-      }
+    //get the video in the store for the current id_slide
+    var videos = $("#html_store_slide_"+this.id_slide+" video");
+
+    //if they are visible hidde them and reset their content to 0
+    if (videos.css('visibility') == 'visible'){
+        videos.css('visibility', 'hidden');
+        videos.each(function(){
+	    //reset the video to position 0 in time
+            this.pause();
+            this.currentTime = 0;
+        });
+    } else {
+    	videos.css('visibility', 'visible');
+        videos.focus();
+    }
+
+    //get the div in html_store_slide to set their visibility
+    var divs = $("#html_store_slide_"+this.id_slide+" div");
+    if (divs.css('visibility') == 'visible'){
+        divs.css('visibility', 'hidden');
+    } else {
+        divs.css('visibility', 'visible');
     }
   }
 
- Beampy.animatesvg = function(anim_number, fps){
-    var frames = slides['slide_'+Beampy.id_slide].animations[anim_number].frames;
-    var frameCount = Object.keys(frames).length - 1;
-    
+ Beampy.animatesvg = function(anim_number, fps, number_of_frames){
+    //Count can be donne via javascript maingroup.childElementCount - 1
+    var frameCount = number_of_frames;
+    var anim_number = anim_number;
     //Reset frame view NO JQUERY FOR SVG !!!
     var maingroup = document.getElementById('svganimate_'+anim_number);
-    
-    var i = 0;
+    var curslide = slides['slide_'+this.id_slide];
+    var i = 1;
+    var frames = maingroup.childNodes;
+    //reset frames to none
+    //for (j = 0; j<frameCount; j++){
+//	console.log(j);
+//    	frames[j].style['visibility'] = 'hidden';
+//    }
+
     var display_frames = function(){
         //console.log(i)
-        maingroup.innerHTML = frames['frame_'+i] ;
+
+        if( curslide.hasOwnProperty('svganimates') ){
+      	    maingroup.innerHTML = curslide['svganimates'][anim_number]['frames'][i] ;
+      	}
+
+        //maingroup.innerHTML = '<use xlink:href="#frame_'+i+'" x="0" y="0"/>'
+        //maingroup.setAttributeNS('http://www.w3.org/2000/svg', 'xlink:href','#frame_'+i)
         i++;
         
         if (i == frameCount){
@@ -225,6 +302,10 @@
 
 
   Beampy.setSlide = function(aIdx) {
+
+    //Deselect the previous store
+    Beampy.toggleContent();
+    //$("#store_slide_"+this.id_slide).attr('selected', false);
     this.id_slide = aIdx;
 
     if (aIdx <= this.slides.length - 1) {
@@ -233,44 +314,25 @@
       
       
       //check if we need to had html
-      if( curslide.hasOwnProperty('htmlcontent') ){
-        $("section").html( curslide.svg + curslide.htmlcontent );      
-      } else {
+      //if( curslide.hasOwnProperty('htmlcontent') ){
+      //  $("section").html( curslide.svg + curslide.htmlcontent );
+      //} else {
         //Only render svg
         $("section").html( curslide.svg );
-      }
-      //Check if we need to display svg_animations
-      if (curslide.hasOwnProperty('animations')) {
-            
-            if (curslide.animations.length > 0) {
-                for (i=0; i < curslide.animations.length; i++){
-                //NO JQUERY FOR SVG!!!
-                var animgroup = document.getElementById("svganimate_"+i);
-                if (curslide.animations[i].hasOwnProperty('header')) {
-                    $('defs#pre_loaded_images_'+i).html( curslide.animations[i].header )
-                }
-                //Load the initial frame
-                animgroup.innerHTML = curslide.animations[i].frames.frame_0 ;
+        Beampy.toggleContent();
+       //set the store as selected
+       //$("#store_slide_"+this.id_slide).attr('selected', true);
+      //}
 
-                
-                //Check if it's an autoplay video
-                if (curslide.animations[i]['config']['autoplay'] == true){
-                    Beampy.animatesvg(i,curslide.animations[i]['config']['fps']);
-                }
 
-                }
-            }
-    
-      } 
-
-      var video = $("video");
+      //var video = $("video");
       //old stange !!+before this.params.autoplay
-      if (video.length && this.params.autoplay) {
-        video.play();
-      }
-    
-      
-      
+      //if (video.length && this.params.autoplay) {
+      //  video.play();
+      //}
+
+
+
     //Pour bokeh
     var bokeh = $('.plotdiv');
     if (bokeh.length) {
@@ -282,7 +344,7 @@
     if (bokeh_trash.length) {
         bokeh_trash.remove(); //Remove these remainings divs
     }
-    
+
     } else {
       // That should not happen
       this.id_slide = -1;

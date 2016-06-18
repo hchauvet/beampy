@@ -17,6 +17,9 @@ import tempfile
 import time
 import hashlib #To create uniq id for elements (from content and args_dict)
 
+#Lib to check the source code
+import linecache
+import inspect
 
 def unit_operation( value, to=0 ):
     """
@@ -442,35 +445,63 @@ def add_to_slide( content, x, y, width, height ):
     return content['positionner']
 
 
-def create_element_id( elem, use_args=True, use_render=True, use_content=True, add_slide=True, slide_position=True ):
+def create_element_id( bpmod, use_args=True, use_name=True, use_content=True, add_slide=True, slide_position=True ):
     """
-        create a unique id for the element using element['content'] and element['args'].keys() and element['render'].__name__
+        create a unique id for the beampy_module using bpmod.content and bpmod.args.keys() and bpmod.name
     """
     ct_to_hash = ''
 
     if add_slide:
         ct_to_hash += gcs()
 
-    if use_args and 'args' in elem:
-        ct_to_hash += ''.join(['%s:%s'%(k,v) for k,v in elem['args'].items()])
+    if use_args and bpmod.args != None:
+        ct_to_hash += ''.join(['%s:%s'%(k,v) for k,v in bpmod.args.items()])
 
-    if use_render and 'render' in elem and elem['render'] != None:
-        ct_to_hash += elem['render'].__name__
+    if use_name and bpmod.name != None:
+        ct_to_hash += bpmod.name
 
-    if use_content and 'content' in elem:
-        ct_to_hash += str(elem['content'])
+    if use_content and bpmod.content != None:
+        ct_to_hash += str(bpmod.content)
 
     if slide_position:
-        ct_to_hash += str(len(document._contents[gcs()]['element_keys']))
+        ct_to_hash += str(len(document._slides[gcs()].element_keys))
 
     outid = None
     if ct_to_hash != '':
         outid = hashlib.md5( ct_to_hash ).hexdigest()
 
-        if outid in document._contents[gcs()]['element_keys']:
+        if outid in document._slides[gcs()].element_keys:
             print("Id for this element already exist!")
             sys.exit(0)
             outid = None
         #print outid
 
     return outid
+
+
+
+def get_command_line(func_name):
+    #Function to print the line of the command in the source code file
+    frame,filename,nline,function_name,lines,index = inspect.stack()[-1]
+    if type(func_name) != type(''):
+        func_name = func_name.func_name
+
+    #print(frame,filename,nline,function_name,lines,index)
+    start = None
+    for cpt, line in enumerate(document._source_code[:nline][::-1]):
+        if func_name+'(' in line:
+            start = (nline) - (cpt + 1)
+            break
+
+    #print start
+    if start != None:
+        #print('line (%i->%i):\n'%(start,nline-1) +''.join(document._source_code[start:nline]))
+        stop = nline-1
+        source = ''.join(document._source_code[start:nline])
+    else:
+        start = 0
+        stop = 0
+        source = 'Not found\n'
+        #print(frame,filename,nline,function_name,lines,index)
+
+    return (start, nline-1, source)

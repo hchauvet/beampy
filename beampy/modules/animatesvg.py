@@ -8,97 +8,111 @@ Class to manage text for beampy
 """
 from beampy import document
 from beampy.functions import gcs, add_to_slide, check_function_args
-from beampy.modules.figure import render_figure
+from beampy.modules.figure import figure
+from beampy.modules.core import beampy_module
 from beampy.geometry import positionner
+import base64
 import re
 import glob
 
-def animatesvg(files_folder, **kwargs):
-    """
-        Function to create svg animation from a folder containing svg files
 
-        - files_folder: Folder containing svg like "./my_folder/"
+class animatesvg(beampy_module):
 
-        - x['center']: x coordinate of the image
-                       'center': center image relative to document._width
-                       '+1cm": place image relative to previous element
+    def __init__(self, files_folder, **kwargs):
+        """
+            Function to create svg animation from a folder containing svg files
 
-        - y['auto']: y coordinate of the image
-                     'auto': distribute all slide element on document._height
-                     'center': center image relative to document._height (ignore other slide elements)
-                     '+3cm': place image relative to previous element
+            - files_folder: Folder containing svg like "./my_folder/"
 
-        - start[0]: svg image number to start the sequence
-        - end['end']: svg image number to stop the sequence
-        - width[None]: Width of the figure (None = slide width)
-        - fps[25]: animation framerate
-        - autoplay[False]: autoplay animation when slide is displayed
+            - x['center']: x coordinate of the image
+                           'center': center image relative to document._width
+                           '+1cm": place image relative to previous element
 
-    """
+            - y['auto']: y coordinate of the image
+                         'auto': distribute all slide element on document._height
+                         'center': center image relative to document._height (ignore other slide elements)
+                         '+3cm': place image relative to previous element
 
-    #Check input args for this module
-    args = check_function_args(animatesvg, kwargs)
+            - start[0]: svg image number to start the sequence
+            - end['end']: svg image number to stop the sequence
+            - width[None]: Width of the figure (None = slide width)
+            - fps[25]: animation framerate
+            - autoplay[False]: autoplay animation when slide is displayed
 
-    if args['width'] == None:
-        args['width'] = str(document._width)
+        """
 
-    #Read all svg files
-    svg_files = glob.glob(files_folder+'*.svg')
+        #Add type
+        self.type = 'animatesvg'
 
-    #Need to sort using the first digits finded in the name
-    svg_files = sorted(svg_files, key=lambda x: int(''.join(re.findall(r'\d+', x))))
+        #Check input args for this module
+        self.check_args_from_theme(kwargs)
 
-    #check how many images we wants
-    if args['end'] == 'end':
-        args['end'] = len(svg_files)
+        if self.width == None:
+            self.width = document._width
 
-    svg_files = svg_files[args['start']:args['end']]
+        #Read all svg files
+        svg_files = glob.glob(files_folder+'*.svg')
 
-    svgcontent = []
-    for svgf in svg_files:
-        with open(svgf,'r') as f:
-            svgcontent += [f.read()]
+        #Need to sort using the first digits finded in the name
+        svg_files = sorted(svg_files, key=lambda x: int(''.join(re.findall(r'\d+', x))))
 
-    animout = {'type': 'animatesvg', 'content': svgcontent, 'args': args,
-               "render": render_animatesvg }
+        #check how many images we wants
+        if self.end == 'end':
+            self.end = len(svg_files)
 
-    return add_to_slide( animout, args['x'], args['y'], args['width'], None)
+        #Add content
+        self.content = svg_files[self.start:self.end]
+
+        #Register the module
+        self.register()
 
 
-def render_animatesvg( ct ):
 
-    anime = ct['content']
-    args = ct['args']
+    def render( self ):
+        """
+            Render several images as an animation in html
+        """
+        #Read all files and store their content
+        svgcontent = []
+        #Render each figure in a group
+        output = []
+        fig_args = {"width": self.width, "height": self.height, "x": 0, "y": 0}
 
-    #Render each figure in a group
-    args['ext'] = 'svg'
-    output = []
+        if len(self.content)>0:
+            #Test if output format support video
+            if document._output_format=='html5':
+                for iframe, svgfile in enumerate(self.content):
+                    #print iframe
+                    img = figure(svgfile, **fig_args)
+                    img.positionner = self.positionner
+                    img.render()
 
-    if len(anime)>0:
-        #Test if output format support video
-        if document._output_format=='html5':
-            for iframe, svg in enumerate(anime):
-                tmpout = render_figure( {'content':svg, 'args':args,
-                                                'positionner':ct['positionner']} )
-                #parse the svg
-                tmpout = '<g id="frame_%i">'%iframe + tmpout + '</g>'
+                    if iframe == 0:
+                        self.update_size(img.width, img.height)
 
-                output += [tmpout]
+
+                    #parse the svg
+                    tmpout = '''<g id="frame_%i">%s</g>'''%(iframe, img.svgout)
+
+                    output += [tmpout]
+                    img.delete()
+
+
+
+
+                self.animout = output
+
+            else:
+                #Check if pdf_animations is True
+                img = figure(self.content[0], **fig_args)
+                img.positionner = self.positionner
+                img.render()
+                self.update_size(img.width, img.height)
+                self.svgout = img.svgout
+                img.delete()
+
+
+            #return output
+
         else:
-            #Check if pdf_animations is True
-            output = render_figure({'content':anime[0], 'args':args,
-                                               'positionner':ct['positionner']})
-
-            #Todo
-            """
-            if document._pdf_animations:
-                #Convert svg to pdf if we want to use them in animategraphics in latex
-
-                #Remove the output from the svg slide (it will be rendered later in latex)
-                output = ''
-            """
-
-        return output
-
-    else:
-        print('nothing found')
+            print('nothing found')

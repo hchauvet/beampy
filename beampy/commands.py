@@ -15,11 +15,10 @@ from beampy.modules.figure import *
 from beampy.modules.animatesvg import *
 from beampy.modules.video import *
 from beampy.modules.tikz import *
-from beampy.modules.maketitle import *
 from beampy.modules.code import *
 
-#Small functions 
+#Small functions
 from beampy.modules.biblio import cite
 from beampy.modules.arrow import arrow
 from beampy.modules.itemize import itemize
-
+from beampy.modules.maketitle import *

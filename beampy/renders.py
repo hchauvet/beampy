@@ -9,7 +9,7 @@ from beampy.document import document
 from beampy.functions import *
 import time
 
-def render_slide( slide ):
+def render_slide_old( slide ):
     """
         Function to render a slide to an svg figure
     """
@@ -20,16 +20,143 @@ def render_slide( slide ):
     """
 
     print( '-'*20 + ' slide_%i '%slide['num'] + '-'*20 )
-    if slide['style'] == None:
-        slide['style'] = ''
 
-    out = pre+"""\n<svg width='%ipx' height='%ipx' style='%s'
+    out = pre+"""\n<svg width='%ipx' height='%ipx' style='background-color: "%s";'
     xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny"
     xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns:dc="http://purl.org/dc/elements/1.1/"
     xmlns:cc="http://creativecommons.org/ns#"
     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-    >"""%(document._width, document._height, slide['style'])
+    >"""%(document._width, document._height, slide['args']['background'])
+
+    animout = [] #dict to store animations
+    cpt_anim = slide['cpt_anim'] #animations counter
+    element_id = 0 #counter for element
+    scriptout = slide['scriptout'] #String to store javascript output
+    htmlout = slide['htmlout'] #for html
+    ytop = 0 #Offset of the title
+
+    #Check if their is a title in the slide
+    if slide['title'] != None:
+        #Check if we have a title on slide
+        ytop = float(convert_unit(slide['title']['args']['reserved_y']))
+
+    #Check if elements can be obtained from cache or render the element
+    cptcache = 0
+    t = time.time()
+    for i, ct in slide['contents'].iteritems():
+        cptcache = render_content( ct, cptcache )
+        #print ct.keys()
+
+    if cptcache > 0:
+        if cptcache == 1:
+            outstr = 'Get %i element from cache'%(cptcache)
+        else:
+            outstr = 'Get %i elements from cache'%(cptcache)
+
+        print(outstr)
+
+    print('Rendering elements in %0.3f sec'%(time.time()-t))
+    t = time.time()
+
+    #Render contents and place groups
+    htmlingroup = []
+    all_height = {}
+
+    for cpt, i in enumerate(slide['element_keys']):
+        ct = slide['contents'][i]
+        #Si on trouve des texts
+        if 'type' in ct and ct['render'] != None:
+            #print(ct['type'])
+            #Check if it's a group
+            if ct['type'] == 'group':
+                #render the group
+                tmpsvg = ct['render']( ct )
+                ct['rendered'] = tmpsvg
+
+            #get htmlcontents position
+            if ct['type'] == 'html' and 'group_id' in ct:
+                htmlingroup += [i]
+            else:
+                #Check if it's an auto placement or we can place the element
+                if ct['positionner'].y['align'] == 'auto':
+                    all_height[cpt] = {"height": ct['positionner'].height, "id":i}
+                else:
+                    ct['positionner'].place( (document._width, document._height), ytop=ytop )
+
+
+
+    #Manage auto placement
+    if all_height != {}:
+        auto_place_elements(all_height, (document._width, document._height),
+                            'y', slide['contents'], ytop)
+
+    #Extra operations for html contents
+    if htmlingroup != []:
+
+        for i in htmlingroup:
+            ct = slide['contents'][i]
+            #add off set to the html div position
+            igroup = slide['element_keys'].index(ct['group_id'])
+            ct['positionner'].x['final'] += slide['contents'][ct['group_id']]['positionner'].x['final']
+            ct['positionner'].y['final'] += slide['contents'][ct['group_id']]['positionner'].y['final']
+
+    #Write rendered content
+    for key in slide['element_keys']:
+        ct = slide['contents'][key]
+        if 'rendered' in ct:
+            #add the content to the output
+            out, animout, htmlout, cpt_anim = write_content(ct, out, animout, htmlout, cpt_anim)
+            #Check if we have javascript to output
+            if 'script' in ct['args']:
+                scriptout += ct['args']['script']
+
+    #Add grid and fancy stuff...
+    if document._guide:
+        available_height = document._height - ytop
+        out += '<g><line x1="400" y1="0" x2="400" y2="600" style="stroke: #777"/></g>'
+        out += '<g><line x1="0" y1="%0.1f" x2="800" y2="%0.1f" style="stroke: #777"/></g>'%(ytop + available_height/2.0, ytop + available_height/2.0)
+        out += '<g><line x1="0" y1="%0.1f" x2="800" y2="%0.1f" style="stroke: #777"/></g>'%(ytop, ytop)
+
+    #Close the main svg
+    out += "\n</svg>\n"
+
+    slide['svg_output'] = out
+    if animout != []:
+        slide['svg_animations'] = animout
+
+    #Add html
+    if htmlout != "":
+        slide['html_output'] = htmlout
+        #print htmlout
+
+    #Add script to the end of svg_output
+    if scriptout != "":
+        slide['script'] = scriptout
+
+    print('Placing elements in %0.3f'%(time.time()-t))
+
+    return out
+
+def render_slide_old( slide ):
+    """
+        Function to render a slide to an svg figure
+    """
+
+    pre = """<?xml version="1.0" encoding="utf-8" standalone="no"?>
+    <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+    "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+    """
+
+    print( '-'*20 + ' slide_%i '%slide['num'] + '-'*20 )
+
+    out = pre+"""\n<svg width='%ipx' height='%ipx' style='background-color: "%s";'
+    xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:cc="http://creativecommons.org/ns#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    >"""%(document._width, document._height, slide['args']['background'])
 
     animout = [] #dict to store animations
     cpt_anim = slide['cpt_anim'] #animations counter
