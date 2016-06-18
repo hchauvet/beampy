@@ -1,0 +1,6 @@
+include README.md
+include LICENSE
+include *.py
+recursive-include beampy *
+recursive-include examples *
+recursive-include tests *
