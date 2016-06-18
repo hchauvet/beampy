@@ -11,5 +11,6 @@ setup(
         "beautifulsoup4",
         "pillow",
         "six",
+        "lxml",
     ]
 )
