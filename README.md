@@ -14,7 +14,7 @@ Beampy presentation output only one html file with every contents embedded.
 * **work in progress** Improvement of cache, (bug of color change for text)
 * A clear documentation
 
-## Curent version:
+## Current version:
 ### 0.4
 * All slide are now loaded into ram, improve speed
 * Modules are now classes which inherit from a base class "beampy_module" in modules/core.py
