@@ -49,6 +49,7 @@ class slide():
         #The id for this slide
         self.id = gcs()
 
+
         #Change from dict to class
         self.tmpout = out
         self.contents = out['contents']
@@ -268,6 +269,14 @@ class beampy_module():
     width = None
     height = None
 
+    #Special args used to create cache id from md5
+    args_for_cache_id = None
+    #Do cache for this element or not
+    cache = True
+
+    #Save the id of the current slide for the module
+    slide_id = None
+
     def __init__(self, **kargs):
 
         self.check_args_from_theme(kargs)
@@ -278,6 +287,9 @@ class beampy_module():
     def register(self):
         #Function to register the module (run the function add to slide)
 
+        #Save the id of the current slide for the module
+        self.slide_id = gcs()
+
         #Ajout du nom du module
         self.name = self.get_name()
 
@@ -285,7 +297,7 @@ class beampy_module():
         self.id = create_element_id( self )
 
         #print(elem_id)
-        document._slides[gcs()].add_module(self.id, self)
+        document._slides[self.slide_id].add_module(self.id, self)
 
         self.positionner = positionner( self.x, self.y , self.width, self.height, self.id)
 
@@ -330,7 +342,7 @@ class beampy_module():
         #Get the current slide object
         slide = document._slides[gcs()]
 
-        if document._cache != None:
+        if self.cache and document._cache != None:
             ct_cache = document._cache.is_cached('slide_%i'%slide.num, self)
             if ct_cache:
                 #Update the state of the module to rendered
@@ -444,8 +456,8 @@ class beampy_module():
         #Export animation of list of svg
         if type(self.animout) == type(list()):
             #Get the current slide object
-            slide = document._slides[gcs()]
-
+            slide = document._slides[self.slide_id]
+            #print(self.slide_id, slide.cpt_anim)
             #Pre cache raster images
             frames_svg_cleaned, all_images = pre_cache_svg_image( self.animout )
 
@@ -455,9 +467,10 @@ class beampy_module():
             animout['config'] = { 'autoplay':self.autoplay, 'fps': self.fps }
             animout['frames'] = frames_svg_cleaned
 
-
+            slide_number = int(self.slide_id.split('_')[-1])
             #out = "<defs id='pre_loaded_images_%i'></defs>"%(slide.cpt_anim)
-            out = '<g id="svganimate_%i" transform="translate(%s,%s)" onclick="Beampy.animatesvg(%i,%i,%i);">'%(slide.cpt_anim,
+            out = '<g id="svganimate_s%i_%i" transform="translate(%s,%s)" onclick="Beampy.animatesvg(%i,%i,%i);">'%(slide_number,
+                    slide.cpt_anim,
                     self.positionner.x['final'],
                     self.positionner.y['final'],
                     slide.cpt_anim, self.fps, len(self.animout))
@@ -506,20 +519,20 @@ class group(beampy_module):
 
         if elements_to_group != None:
             eids = [e.id for e in elements_to_group]
-            print("[Beampy][%s] render %i elements in group %i"%(gcs(), len(eids), self.idg))
+            print("[Beampy][%s] render %i elements in group %i"%(self.slide_id, len(eids), self.idg))
             self.render_ingroup( eids )
 
 
     def __enter__(self):
         #get the position of the first element
-        self.content_start = len(document._contents[gcs()]['contents'])
+        self.content_start = len(document._contents[self.slide_id]['contents'])
 
         return self.positionner
 
     def __exit__(self, type, value, traceback):
 
         #link the current slide
-        slide = document._slides[gcs()]
+        slide = document._slides[self.slide_id]
         if len(slide.groups) > self.idg:
             #Get the last group
             self.content_stop = len(slide.contents)
@@ -544,7 +557,7 @@ class group(beampy_module):
         """
 
         #link the current slide
-        slide = document._slides[gcs()]
+        slide = document._slides[self.slide_id]
 
         #Add the group id to all the elements in this group
         cptcache = 0

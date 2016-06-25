@@ -96,12 +96,17 @@ class figure(beampy_module):
             if self.height == None:
                 self.height = int(filename.plot_height)
 
+            #Do not cache this element if it's bokeh plot
+            self.cache = False
+
         #Other filetype images
         else:
 
             if self.width == None:
                 self.width = document._width
 
+        #Special args for cache id
+        self.args_for_cache_id = ['width','ext']
         #Add this module to the current slide + add positionner
         self.register()
 

@@ -7,14 +7,10 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.functions import gcs, add_to_slide, check_function_args
 from beampy.modules.figure import figure
 from beampy.modules.core import beampy_module
-from beampy.geometry import positionner
-import base64
-import re
 import glob
-
+import re
 
 class animatesvg(beampy_module):
 
@@ -85,7 +81,9 @@ class animatesvg(beampy_module):
                     #print iframe
                     img = figure(svgfile, **fig_args)
                     img.positionner = self.positionner
-                    img.render()
+                    img.call_cmd = str(iframe)+'->'+self.call_cmd.strip()
+                    img.call_lines = self.call_lines
+                    img.run_render()
 
                     if iframe == 0:
                         self.update_size(img.width, img.height)

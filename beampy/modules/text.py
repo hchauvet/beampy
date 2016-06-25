@@ -54,6 +54,11 @@ class text(beampy_module):
         if self.width == None:
             self.width = float(document._width)
 
+        #Add special args for cache id
+        #Text need to be re-rendered from latex if with, color or size are changed
+        self.initial_width = self.width
+        self.args_for_cache_id = ['initial_width','color','size','align']
+
         #Register the function to the current slide
         self.register()
 

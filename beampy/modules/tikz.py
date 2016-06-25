@@ -46,6 +46,10 @@ class tikz(beampy_module):
         self.type = 'svg'
         self.content = tikzcmd
         self.check_args_from_theme(kwargs)
+
+        #Special args for cache id (when do we need to re-run latex render)
+        self.args_for_cache_id = ['figure_options','tex_packages','tikz_header']
+
         self.register()
 
 

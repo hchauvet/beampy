@@ -33,5 +33,6 @@ class title( text ):
 
         #Add the title to the slide
         document._slides[gcs()].title = self
+
         #Register this module
         self.register()

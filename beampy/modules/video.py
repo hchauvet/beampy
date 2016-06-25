@@ -60,6 +60,8 @@ class video(beampy_module):
         if self.ext != None:
             self.content = videofile
 
+        #Special args for cache id
+        self.args_for_cache_id = ['width','still_image_time']
         #Register the module
         self.register()
 

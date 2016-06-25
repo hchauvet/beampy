@@ -21,7 +21,7 @@ class document():
        Main function to define the document style etc...
     """
 
-    __version__ = 0.4
+    __version__ = '0.4.1'
     #Global variables to sotre data
     _contents = {}
     _slides = {}
@@ -142,7 +142,8 @@ class document():
         if document._cache == False:
             document._cache = None
         else:
-            cache_file = './.beampy_cache_%s_%s.pklz'%(script_file_name, document._output_format)
+            #cache_file = './.beampy_cache_%s_%s.pklz'%(script_file_name, document._output_format)
+            cache_file = './.beampy_cache_%s.pklz'%(script_file_name)
             print("\nChache file to %s"%(cache_file))
             document._cache = cache_slides(cache_file, self)
 

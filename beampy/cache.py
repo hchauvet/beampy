@@ -139,7 +139,7 @@ class cache_slides():
 #TODO: solve import bug when we try to import this function from beampy.functions...
 def create_element_id( bp_mod, use_args=True, use_render=True,
                        use_content=True, add_slide=True, slide_position=True,
-                       use_size = True ):
+                       use_size = False ):
     """
         create a unique id for the element using element['content'] and element['args'].keys() and element['render'].__name__
     """
@@ -175,6 +175,16 @@ def create_element_id( bp_mod, use_args=True, use_render=True,
 
     if slide_position:
         ct_to_hash += str(len(document._slides[gcs()].element_keys))
+
+    if bp_mod.args_for_cache_id != None:
+        for key in bp_mod.args_for_cache_id:
+            try:
+                tmp = getattr(bp_mod, key)
+                ct_to_hash += str(tmp)
+            except:
+                print('No parameters %s for cache id for %s'%(key, bp_mod.name))
+
+
 
     outid = None
     if ct_to_hash != '':

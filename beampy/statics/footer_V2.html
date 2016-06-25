@@ -1,4 +1,3 @@
-
 <script>
   //Beampy script is inspired by DzSlides javascript code (https://github.com/paulrouget/dzslides)
   
@@ -222,7 +221,7 @@
     var frameCount = number_of_frames;
     var anim_number = anim_number;
     //Reset frame view NO JQUERY FOR SVG !!!
-    var maingroup = document.getElementById('svganimate_'+anim_number);
+    var maingroup = document.getElementById('svganimate_s'+this.id_slide+'_'+anim_number);
     var curslide = slides['slide_'+this.id_slide];
     var i = 1;
     var frames = maingroup.childNodes;

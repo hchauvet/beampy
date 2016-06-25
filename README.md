@@ -11,13 +11,14 @@ Beampy presentation output only one html file with every contents embedded.
 [See a Beampy tests presentation](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html) (source is in *examples/beampy_tests_modules.py*)
 
 ## TODO:
-* **work in progress** Improvement of cache, (bug of color change for text)
 * A clear documentation
 
 ## Curent version:
-### 0.4
+### 0.4.1
 * All slide are now loaded into ram, improve speed
 * Modules are now classes which inherit from a base class "beampy_module" in modules/core.py
+* cache is now unique for all format (pdf, svg, html) and special keys can be added
+  to modules in order to create their chache id
 
 ## Introduction
 
@@ -51,7 +52,6 @@ Beampy uses a simple cache system to compile slide only when it's needed!
 from beampy import *
 
 doc = document()
-#to export in pdf add doc = document(format = pdf)
 
 with slide():
    maketitle('Beampy a tool to make simple presentation','Hugo Chauvet')
@@ -61,8 +61,7 @@ with slide():
    text("""Use LaTeX to render text and $$\\sqrt{10}$$""", align='center')
 
 save('./beampy_presentation.html')
-#To save in pdf just change the above command to the following and add the option
-#format = "pdf" to document class
+#To save in pdf just change the above command to the following
 #save('./beampy_presentation.pdf')
 ```
 
@@ -81,6 +80,30 @@ sys.path.append('/path/to/folder/beampy-master/')
 #Test to import beampy
 from beampy import *
 ```
+
+### From pip
+
+You can use python pip to install beampy.
+```bash
+pip install -e git+https://github.com/hchauvet/beampy.git#egg=beampy
+```
+
+You can also use python vitual environements to install beampy and all the dependencies
+in a contained space:
+[http://docs.python-guide.org/en/latest/dev/virtualenvs/](http://docs.python-guide.org/en/latest/dev/virtualenvs/)
+
+####Optionals packages to install with pip
+for code coloration *pygments*:
+```bash
+pip install pygments
+```
+
+for bokeh figures *bokeh*:
+```bash
+pip install bokeh
+```
+
+
 
 ### Requirements:
 Beampy includes a version of svg optimized written in python "scour"
@@ -110,31 +133,24 @@ Beampy includes a version of svg optimized written in python "scour"
 - pdf2svg To translate pdf2svg [github](https://github.com/db9052/pdf2svg) (sudo apt-get install pdf2svg // For os X available on MacPort)
 
 The executable of these external programs is set-up automatically. If this fail, you can set manually the path to the executable of the external program.
-For that, you have create a new theme file **my_theme.py** containing:
 
-```python
-
-#To let Bempy search automatically for a program replace
-#the path by "auto" (check the default_theme.py file)
-
-THEME = {
-
-'document':{
-    'external_app': {"inkscape": "/path/to/inkscape",
-        "dvisvgm": "/path/to/dvisvgm",
-        "pdfjoin": "/path/to/pdfjoin",
-        "video_encoder": '/path/to/ffmpeg [or avconv]',
-        "pdf2svg": "/path/to/pdf2svg"}
-    }
-}
-```
-
-Then when you create your beampy document, load your theme, this will set the new paths for external programs.
+For that:
 
 ```python
 from beampy import *
 
-doc = document(theme='/path/to/my_theme.py')
+doc = document()
+
+#To let Bempy search automatically for a program replace
+#the path by "auto" (check the default_theme.py file)
+
+doc._theme['document']['external_app'] = {
+"inkscape": "/path/to/inkscape",
+"dvisvgm": "/path/to/dvisvgm",
+"pdfjoin": "/path/to/pdfjoin",
+"video_encoder": '/path/to/ffmpeg [or avconv]',
+"pdf2svg": "/path/to/pdf2svg"
+}
 ```
 
 ##### Optionals
@@ -170,9 +186,8 @@ Click on figure to start the animation
 from beampy import *
 doc = document()
 
-slide()
-title('Svg animation')
-animatesvg("./svg_anims/", width="500")
+with slide('Svg animation'):
+    animatesvg("./svg_anims/", width="500")
 
 save('test.html')
 ```
@@ -185,9 +200,8 @@ save('test.html')
 from beampy import *
 doc = document()
 
-slide()
-title('Video')
-video("./test.webm", width="500", height="294")
+with slide('Video'):
+    video("./test.webm", width=500, height=294)
 
 save('test.html')
 ```
@@ -200,16 +214,13 @@ save('test.html')
 from beampy import *
 doc = document()
 
-slide()
-title('Group and columns')
-colwidth=350
-begingroup(width=colwidth, height=doc._height-100, x="1cm", y="1.8cm", background="#000")
-text("""
-This is a test for a long text in a column style.
+with slide('Group and columns'):
+    colwidth=350
+    with group(width=colwidth, height=doc._height-100, x="1cm", y="1.8cm", background="#000"):
+	text("""This is a test for a long text in a column style.
+	$$ \sum_{i=0}^{10} x_i $$
+	""", align="center", width=colwidth-20, color="#ffffff")
 
-$$ \sum_{i=0}^{10} x_i $$
-""", align="center", width=colwidth-20, color="#ffffff")
-endgroup()
 
 save('test.html')
 ```
@@ -218,6 +229,37 @@ save('test.html')
 
 ###Relative positioning
 
+#### Relative to a given element in the presentation
+```python
+from beampy import *
+doc = document()
+
+with slide("Using element's anchors"):
+    e0 = text('central element [e0]', y=0.2)
+    e1 = text('left of e0', y=e0.top+0, x=e0.left-{'shift': 0.1, 'align':'right'})
+    e2 = text('right of e0', y=e0.top+0, x=e0.right+0.1)
+    e4 = text('anchors available: top, bottom, center, right, left',
+              y=e0.bottom+'1cm', x=e0.center+{'shift':0, 'align':'middle'})
+
+#You can create shortcuts for relative centering or relative right
+#you also have the "top" and "bottom" for the "align" key of the new element
+def ecenter( shift = 0 ):
+    return {"shift":shift, "align": 'middle'}
+
+def eright( shift = 0 ):
+    return {"shift":shift, "align": 'right'}
+
+with slide("Using element's anchors 2"):
+    e0 = text('central element [e0]', y=0.2)
+    e1 = text('left of e0', y=e0.top+0, x=e0.left-eright(0.1))
+    e2 = text('right of e0', y=e0.top+0, x=e0.right+0.1)
+    e4 = text('anchors available: top, bottom, center, right, left',
+              y=e0.bottom+'1cm', x=e0.center+ecenter())
+
+save('test.html')
+```
+
+#### Relative to the previous element
 ```python
 from beampy import *
 doc = document()
@@ -236,6 +278,7 @@ save('test.html')
 ```
 
 [Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#6)
+
 
 ###Tikz
 
@@ -322,7 +365,7 @@ doc = document()
 slide('Test arrow')
 
 #An arrow starting at 400px, 400px, and of size 40 in x and 40 in y.
-arrow(400, 400, 40, 40, bend='left')
+arrow("400px", "400px", 40, 40, bend='left')
 
 save('test.html')
 ```
@@ -331,7 +374,22 @@ save('test.html')
 
 Basic theme features are store in a dictionary *document._theme*. You can check
 the default features in [/beampy/statics/default_theme.py]. You can adapt this dictionary
-to fit your needs:
+to fit your needs.
+
+To create personal themes you can place your theme inside beampy/themes/
+(check avalaible exemples inside this folder to create your theme files)
+
+The name of your theme file should end-up with the suffix *_theme.py*.
+Then you can load them in your presentation as follow:
+
+```python
+from beampy import *
+
+#for a file named mytheme_theme.py in beampy/themes folder
+doc = document(theme='mytheme')
+```
+
+You can also change theme dictionnary directly in your presentation file
 
 ```python
 from beampy import *
@@ -343,8 +401,8 @@ print doc._theme
 #Change some keys
 doc._theme['title']['color'] = '#000000'
 doc._theme['title']['x'] = 'center'
-
 ```
+
 
 ## How to write your own module
 
