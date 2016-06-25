@@ -9,39 +9,6 @@
 
 ####################### Define a new maketitle layout ##########################
 
-def hipstertitle(titlein, author, subtitle, date, args):
-    from beampy.modules.core import group
-    from beampy.modules.text import text
-    from beampy.document import document
-    from beampy.modules.tikz import tikz
-
-    #TODO: the rectangle with a raw svg command
-    tikz(r'\draw[fill={color}, line width=1.5pt] (0,0) rectangle (100,100);'.format(color=args['background-color']),
-     x=0, y=0)
-
-    with group(x=0.015, y='center', width=document._width-document._width*0.015):
-
-        text(r"{\scshape %s}"%(titlein), x= 0, width=document._width*0.9, 
-        y=0, color=args['title_color'], size=args['title_size'], 
-        align='left')
-
-        #TODO: the line with a raw svg command not tikz
-        tikz(r'\draw[color={color}, line width=1.5pt] (0,0) -- ++ (800,0);'.format(color=args['title_color']),
-         x=0, y='+0.2cm')
-
-        if author != None :
-            a = text(author, x=0, y="+0.6cm", color=args['author_color'],
-            size=args['author_size'], align='left', width=document._width*0.45)
-
-        if subtitle != None:
-            st = text(r"\textit{%s}"%(subtitle), x={"align":'right', 'shift':0.02},
-                 y=a.bottom+{"align":"bottom", "shift":0},
-                 color=args['subtitle_color'], size=args['subtitle_size'],
-                 width=document._width*0.45, align='left')
-
-    if date != None:
-        text(date, x='center', y={"align":'bottom', 'shift':0.05},
-        color=args['date_color'], size=args['date_size'])
 
 ########################## THEME DICT ##########################################
 
@@ -83,7 +50,6 @@ THEME['maketitle'] = {
     'background-color': 'WhiteSmoke',
     'date_color':'#888888',
     'subtitle_color':'#888888',
-    'template': hipstertitle
 }
 
 
@@ -101,3 +67,45 @@ THEME['itemize'] = {
     'text_color':THEME['text']['color'],
     'width':None
 }
+
+##################################################################
+
+from beampy.modules.core import group
+from beampy.modules.text import text
+from beampy.document import document
+from beampy.modules.tikz import tikz
+
+def hipstertitle(titlein, author= None, subtitle = None, date= None):
+
+    
+    args = THEME['maketitle']
+    
+    #TODO: the rectangle with a raw svg command
+    tikz(r'\draw[fill={color}, line width=1.5pt] (0,0) rectangle (100,100);'.format(color=args['background-color']),
+     x=0, y=0)
+
+    with group(x=0.015, y='center', width=document._width-document._width*0.015):
+
+        text(r"{\scshape %s}"%(titlein), x= 0, width=document._width*0.9, 
+        y=0, color=args['title_color'], size=args['title_size'], 
+        align='left')
+
+        #TODO: the line with a raw svg command not tikz
+        tikz(r'\draw[color={color}, line width=1.5pt] (0,0) -- ++ (800,0);'.format(color=args['title_color']),
+         x=0, y='+0.2cm')
+
+        if author != None :
+            a = text(author, x=0, y="+0.6cm", color=args['author_color'],
+            size=args['author_size'], align='left', width=document._width*0.45)
+
+        if subtitle != None:
+            st = text(r"\textit{%s}"%(subtitle), x={"align":'right', 'shift':0.02},
+                 y=a.bottom+{"align":"bottom", "shift":0},
+                 color=args['subtitle_color'], size=args['subtitle_size'],
+                 width=document._width*0.45, align='left')
+
+    if date != None:
+        text(date, x='center', y={"align":'bottom', 'shift':0.05},
+        color=args['date_color'], size=args['date_size'])
+
+THEME['maketitle']['template'] = hipstertitle

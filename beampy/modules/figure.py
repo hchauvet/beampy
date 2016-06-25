@@ -7,7 +7,7 @@ Created on Sun Oct 25 19:05:18 2015
 
 from beampy import document
 from beampy.functions import (convert_unit, optimize_svg,
- make_global_svg_defs, getsvgwidth, getsvgheight, convert_pdf_to_svg)
+ make_global_svg_defs, getsvgwidth, getsvgheight, convert_pdf_to_svg, guess_file_type)
 
 from beampy.modules.core import beampy_module
 from bs4 import BeautifulSoup
@@ -25,7 +25,7 @@ except:
 
 class figure(beampy_module):
 
-    def __init__(self, filename, ext=None, **kwargs):
+    def __init__(self, content, ext=None, **kwargs):
         """
             Add figure to current slide
             Accepted format: [svg, png, jpeg, bokeh figure]
@@ -53,36 +53,30 @@ class figure(beampy_module):
         self.ext = ext
 
         #Register the content
-        self.content = filename
+        self.content = content
+        
+        print content
 
         #Check if the given filename is a string
-        if type(filename) == type(''):
+        
+        if type( self.content ) == type(''):
             #Check extension
-            if self.ext == None:
-                if '.svg' in filename.lower():
-                    self.ext = 'svg'
-
-                if '.png' in filename.lower():
-                    self.ext = 'png'
-
-                if ( '.jpeg' in filename.lower() ) or ( '.jpg' in filename.lower() ):
-                    self.ext = 'jpeg'
-
-                if '.pdf' in filename.lower():
-                    self.ext = 'pdf'
-
+        
+            self.ext = guess_file_type( self.content, self.ext )
+        
         else:
-            #Check kind of objects that are passed to filename
+        #Check kind of objects that are passed to filename
 
             #Bokeh plot
-            if "bokeh" in str(type(filename)):
+            if "bokeh" in str(type(self.content)):
                 self.ext = 'bokeh'
+            
 
         ######################################
 
         #Check if the input filename can be treated
         if self.ext == None:
-            print("figure format can't be guessed from file name")
+            print("figure format can't be guessed.")
             sys.exit(1)
 
         #Bokeh image

@@ -505,3 +505,31 @@ def get_command_line(func_name):
         #print(frame,filename,nline,function_name,lines,index)
 
     return (start, nline-1, source)
+
+def guess_file_type( file_name, file_type = None ) :
+    
+    file_extensions = {
+        'svg':['svg'],
+        'pdf':['pdf'],
+        'png':['png'],
+        'jpeg':['jpg','jpeg']
+        }
+    
+    if file_type == None:
+        
+        try :
+            
+            ext = file_name.lower().split('.')[-1]
+            
+            for file_type in file_extensions:
+                
+                if ext in file_extensions[file_type] :
+                    
+                    break
+                
+            
+        except :
+            
+            print('Unknown file type for file name: ' + file_name + '.' )
+
+    return file_type
