@@ -21,6 +21,7 @@ class cache_slides():
         """
         self.file = cache_file
         self.version = document.__version__
+        self.global_store = document._global_store
         self.data = {} #Cache data are stored in a dict
 
         #Try to read cache
@@ -31,6 +32,10 @@ class cache_slides():
         if 'version' not in self.data:
             print('Cache file from an other beampy version!')
             self.data = {}
+
+        #Restore glyphs definitions
+        if 'glyphs' in self.data:
+            document._global_store['glyphs'] = self.data['glyphs']
 
     def clear(self):
 
@@ -133,6 +138,10 @@ class cache_slides():
                 print(self.data[ct][elem]['element'].keys())
         """
 
+        #Check if their is some glyphs in the global_store
+        if 'glyphs' in self.global_store:
+            self.data['glyphs'] = self.global_store['glyphs']
+            
         with gzip.open(self.file, 'wb') as f:
             pkl.dump(self.data, f, protocol=2)
 

@@ -25,6 +25,9 @@ THEME['document'] = {
     'height': 600
 }
 
+THEME['slide'] = {
+    'background': "#ffffff"   
+}
 THEME['text'] = {
     'size':20,
     'font':'CMR',
@@ -113,3 +116,31 @@ def theme_maketitle(titlein, author = [], affiliation = None, meeting = None, le
             text(date, width=750, y="+1cm", color=args['date_color'], size=args['date_size'])
 
 THEME['maketitle']['template'] = theme_maketitle
+
+
+def background_layout():
+
+    from beampy.document import document
+    N = len( document._slides )
+    cur_slide = document._global_counter['slide'] + 1
+    
+    slide_width = float(document._width)
+    slide_height = float(document._height)
+    slide_R  = slide_width/slide_height
+   
+    #Display the page number 
+    t1 = text('%i/%i'%(cur_slide, N), x={"shift": 0.01,"align":"right"}, 
+              y={"shift": 0.035, "unit":"height", "align":"bottom"}, size=13,
+              color='gray')
+         
+         
+    #Create a progress bar     
+    svg("""
+    <rect width="%i" height="5" style="fill:grey;"/>
+    """%(cur_slide/float(N) * slide_width - 0.1*slide_width), x=0.01, y=t1.center+{"shift":0.0, "align":"middle"})
+    
+    
+         
+   
+    
+THEME['slide']['layout'] = background_layout

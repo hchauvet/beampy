@@ -28,6 +28,10 @@ THEME['document'] = {
 
 THEME['slide'] = {
     'background': "white",
+    'layout': None, #Could be changed to a function that will decorate the current slide with elements
+                    #this can be used to create a specific layout for a theme 
+                    #Could also be a string that refer to the key of the LAYOUT[key] dict if you need several layouts 
+                    #for a presentation
 }
 
 THEME['text'] = {

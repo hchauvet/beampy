@@ -34,6 +34,7 @@ class slide():
         #check args from THEME
         self.args = check_function_args(slide, kwargs)
 
+        
         out = {'title':title,
                'contents': {},
                'num':document._global_counter['slide']+1,
@@ -45,10 +46,11 @@ class slide():
                'cpt_anim': 0,
                'element_keys': [] #list to store elements id in order
                }
-
+        
+        
         #The id for this slide
         self.id = gcs()
-
+        self.slide_num = document._global_counter['slide'] 
 
         #Change from dict to class
         self.tmpout = out
@@ -66,6 +68,10 @@ class slide():
         self.svgheader = ''
         self.svgfooter = '\n</svg>\n'
 
+        #Do we need to render the THEME layout on this slide 
+        self.render_layout = True 
+        
+        #If we want to add background slide decodaration like header-bar or footer informations
         self.cpt_anim = 0
         self.groups = []
 
@@ -73,6 +79,7 @@ class slide():
         document._contents[self.id] = out
         document._slides[self.id] = self
 
+            
         if title!= None:
             from beampy.modules.title import title as bptitle
             bptitle( title )
@@ -81,6 +88,7 @@ class slide():
             self.ytop = 0
 
 
+        
     def add_module(self, module_id, module_content):
         #Add a module to the current slide
         self.element_keys += [module_id]
@@ -140,6 +148,20 @@ class slide():
         self.svgheader = out
         #self.add_rendered( svg=out )
 
+        #Check if we have a background layout to render    
+        if self.render_layout:    
+            if self.args['layout'] != None and 'function' in str(type(self.args['layout'])):
+                
+                #We need to restor the id of the slide for each module produced in the layout
+                
+                save_global_ct = document._global_counter['slide'] #backup the total number of slides
+                document._global_counter['slide'] = self.slide_num #put the slide number in the counter 
+                
+                #Run the layout function (which contains beampy modules)
+                self.args['layout']( )
+                
+                document._global_counter['slide'] = save_global_ct #restor the slide counter
+            
         #Run render of each elements
         t = time.time()
         for i, ct in self.contents.iteritems():
@@ -148,7 +170,6 @@ class slide():
             #print ct.keys()
 
         print('Rendering elements in %0.3f sec'%(time.time()-t))
-
         t = time.time()
 
         #Place contents that's are not inside groups
@@ -165,11 +186,7 @@ class slide():
             else:
                 if ct.type != None:
                     #print(ct['type'])
-                    #Check if it's a group
-                    #if ct.type == 'group':
-                        #render the group
-                    #    ct.run_render()
-
+                    
                     #Check if it's an auto placement or we can place the element
                     if ct.positionner.y['align'] == 'auto':
                         all_height[cpt] = {"height": ct.positionner.height, "id":i}
@@ -289,7 +306,7 @@ class beampy_module():
 
         #Save the id of the current slide for the module
         self.slide_id = gcs()
-
+        
         #Ajout du nom du module
         self.name = self.get_name()
 
@@ -408,6 +425,14 @@ class beampy_module():
             if not hasattr(self, key):
                 setattr(self, key, value)
 
+    def load_args(self, kwargs_dict):
+        """
+            Function to transform input kwargs dict into attribute of the module
+        """
+        
+        for key, value in kwargs_dict.items():
+            setattr(self, key, value)
+        
     def update_size(self, width, height):
         """
             Update the size (width, height) of the current module
@@ -639,7 +664,7 @@ def begingroup(**kwargs):
     """
     print('DEPRECATED usage of begingroup ... use with group(...): instead')
     gp = group(**kwargs)
-    gp.data['gp'] = gp
+    #gp.data['gp'] = gp
     return gp.__enter__()
 
 def endgroup():
@@ -648,7 +673,7 @@ def endgroup():
     """
     slide = document._contents[gcs()]
     if len(slide['groups']) > 0:
-        slide['groups'][-1]['gp'].__exit__(None,None,None)
+        slide['groups'][-1].__exit__(None,None,None)
 
 
 def set_group_size(group, slide):

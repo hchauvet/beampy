@@ -16,6 +16,7 @@ from beampy.modules.animatesvg import *
 from beampy.modules.video import *
 from beampy.modules.tikz import *
 from beampy.modules.code import *
+from beampy.modules.svg import *
 
 #Small functions
 from beampy.modules.biblio import cite

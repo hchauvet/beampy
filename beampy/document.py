@@ -21,7 +21,7 @@ class document():
        Main function to define the document style etc...
     """
 
-    __version__ = '0.4.1'
+    __version__ = '0.4.2'
     #Global variables to sotre data
     _contents = {}
     _slides = {}
@@ -38,11 +38,11 @@ class document():
     _resize_raster = True
     _source_code = [] #Store the source code of the input script
 
-    #Store data that need to be globally loded in html like raster contents
+    #Store data that need to be globally loaded in html like raster contents
     #images, video, etc...
-    #Format of an entre in the list: {'type': 'svg (or html)', 'content': the data to be loaded}
-    _global_store = []
-
+    #Format of an entry in the list: {'type': 'svg (or html)', 'content': the data to be loaded}
+    _global_store = {}
+    
     #Define path to external commands (see default THEME file)
     _external_cmd = {}
 

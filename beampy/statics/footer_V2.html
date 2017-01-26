@@ -13,56 +13,15 @@
     this.slides = Object.keys(slides); <!-- load slides from json -->
     this.html = document.body.parentNode;
     //Load slides in store
-    this.load_store();
+    //this.load_store();
+    
     this.setup();
     this.onhashchange();
     this.setupTouchEvents();
     this.onresize();
     this.initmouse();
-
   }
 
-  Beampy.load_store = function() {
-
-     $('#msg').html('<progress id="pbar" max="'+(this.slides.length-1)+'" value="0" style="border: none; height: 8px; width: 100%; 	position:fixed; top:0;"></progress>');
-     $('#msg').css('width', '100%');
-     var pbar = $('#pbar');
-     var i=0;
-     var pTimer = setTimeout(update, 0, this, pbar);
-
-     function update(s, pbar){
-  	if (i < s.slides.length){
-	    $('#store_'+s.slides[i]).html("<svg><defs><g id='"+s.slides[i]+"'>"+store[s.slides[i]]['svg']+"</g></defs></svg>" );
-
-  	    //check if we need to had html
-            if( store[s.slides[i]].hasOwnProperty('html') ){
-  	    	$('#store_'+s.slides[i]).append('<div id="html_store_'+s.slides[i]+'">'+store[s.slides[i]].html+'</div>');
-  	    }
-
-  	    //check if we need to had svg animation
-  	    //if(store[s.slides[i]].hasOwnProperty('animations')]){
-		//TODO: Load cached images
-
-  	    //}
-  	    pbar.val(i);
-  	    //delete the content from the store (for memory)
-  	    delete store[s.slides[i]];
-
-            //console.log(i);
-  	    i++;
-  	    var pTimer = setTimeout(update, 0, s, pbar);
-     	} else {
-
-  	//console.log('End of loading store clean timer');
-     	clearTimeout(pTimer);
-  	$('#msg').html('');
-  	delete store;
-  	Beampy.toggleContent();
-  	}
-     }
-
-
-  }
 
   Beampy.setup = function() {
     var p = window.location.search.substr(1).split('&');
@@ -125,7 +84,7 @@
   Beampy.onmousewheel = function(event) {
   
     //Test if their is a bokeh figure to prevent conflict
-    var bokeh = $('.plotdiv');
+    var bokeh = $('#html_store_slide_'+Beampy.id_slide+' .plotdiv');
     if (bokeh.length == 0) {
         event.preventDefault();
         //console.log(event);
@@ -225,11 +184,7 @@
     var curslide = slides['slide_'+this.id_slide];
     var i = 1;
     var frames = maingroup.childNodes;
-    //reset frames to none
-    //for (j = 0; j<frameCount; j++){
-//	console.log(j);
-//    	frames[j].style['visibility'] = 'hidden';
-//    }
+
 
     var display_frames = function(){
         //console.log(i)
@@ -304,7 +259,6 @@
 
     //Deselect the previous store
     Beampy.toggleContent();
-    //$("#store_slide_"+this.id_slide).attr('selected', false);
     this.id_slide = aIdx;
 
     if (aIdx <= this.slides.length - 1) {
@@ -312,28 +266,17 @@
       var curslide = slides['slide_'+aIdx];
       
       
-      //check if we need to had html
-      //if( curslide.hasOwnProperty('htmlcontent') ){
-      //  $("section").html( curslide.svg + curslide.htmlcontent );
-      //} else {
-        //Only render svg
-        $("section").html( curslide.svg );
-        Beampy.toggleContent();
-       //set the store as selected
-       //$("#store_slide_"+this.id_slide).attr('selected', true);
-      //}
+
+    $("section").html( curslide.svg );
+    Beampy.toggleContent();
 
 
-      //var video = $("video");
-      //old stange !!+before this.params.autoplay
-      //if (video.length && this.params.autoplay) {
-      //  video.play();
-      //}
+
 
 
 
     //Pour bokeh
-    var bokeh = $('.plotdiv');
+    var bokeh = $('#html_store_slide_'+Beampy.id_slide+' .plotdiv');
     if (bokeh.length) {
         scripts_slide['slide_'+Beampy.id_slide].load_bokeh();
     }

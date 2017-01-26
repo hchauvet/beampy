@@ -14,6 +14,12 @@ Beampy presentation output only one html file with every contents embedded.
 * A clear documentation
 
 ## Curent version:
+
+### 0.4.2
+* Glyph paths from Latex are now unique (this reduce the number of svg lines in documents)
+* Add *svg* command ton include raw svg in slide
+* Improve the theme flexibility, a background with interactive elements can now be created!
+
 ### 0.4.1
 * All slide are now loaded into ram, improve speed
 * Modules are now classes which inherit from a base class "beampy_module" in modules/core.py
@@ -31,7 +37,7 @@ Slide can contains:
 
 - Raster images (png, jpeg)
 
-- Raster videos (using webm format)
+- Raster videos (using webm or mp4 format)
 
 - Animated vectorial graphics (list of svg figures)
 
@@ -40,6 +46,8 @@ Slide can contains:
 - Texts are rendered using Latex (then translated to svg, as vector paths)
 
 - Tikz/PGF figure and graphics
+
+- Inline svg commands. 
 
 Svg slides are exported in html5 with every raster elements embed in one file.
 The slides can also be exported to svg and pdf (videos and animations are rendered as first frame image in pdf/Svg)
@@ -53,13 +61,14 @@ from beampy import *
 doc = document()
 
 with slide():
-   maketitle('Beampy a tool to make simple presentation','Hugo Chauvet')
+   maketitle('Beampy a tool to make simple presentation', ['Hugo Chauvet'] )
 
 with slide():
    title("Beampy test")
    text("""Use LaTeX to render text and $$\\sqrt{10}$$""", align='center')
 
 save('./beampy_presentation.html')
+
 #To save in pdf just change the above command to the following
 #save('./beampy_presentation.pdf')
 ```
@@ -376,7 +385,7 @@ the default features in [/beampy/statics/default_theme.py]. You can adapt this d
 to fit your needs.
 
 To create personal themes you can place your theme inside beampy/themes/
-(check avalaible exemples inside this folder to create your theme files)
+(check available examples inside this folder to create your theme files)
 
 The name of your theme file should end-up with the suffix *_theme.py*.
 Then you can load them in your presentation as follow:

@@ -39,7 +39,7 @@ class figure(beampy_module):
                          'center': center image relative to document._height (ignore other slide elements)
                          '+3cm': place image relative to previous element
 
-            - height[None]: Image heigt
+            - width[None]: Image width (None is the size of the image)
 
             - ext[None]: Image format, if None, format is guessed from filename.
 
@@ -54,8 +54,6 @@ class figure(beampy_module):
 
         #Register the content
         self.content = content
-        
-        print content
 
         #Check if the given filename is a string
         
@@ -82,13 +80,13 @@ class figure(beampy_module):
         #Bokeh image
         elif self.ext == 'bokeh':
             #print('I got a bokeh figure')
-            figscript, figdiv = components(filename, wrap_script=False)
+            figscript, figdiv = components(self.content, wrap_script=False)
 
             #Todo get width and height from a bokeh figure
             if self.width == None:
-                self.width = int(filename.plot_width)
+                self.width = int(self.content.plot_width)
             if self.height == None:
-                self.height = int(filename.plot_height)
+                self.height = int(self.content.plot_height)
 
             #Do not cache this element if it's bokeh plot
             self.cache = False

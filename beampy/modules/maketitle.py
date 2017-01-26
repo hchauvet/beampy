@@ -9,7 +9,7 @@ Class to manage text for beampy
 from beampy import document
 from beampy.modules.text import text
 from beampy.modules.core import *
-from beampy.functions import get_command_line
+from beampy.functions import (get_command_line, gcs)
 import datetime
 
 
@@ -45,6 +45,10 @@ def maketitle( *args, **kwargs ):
     """
     #get_command_line(maketitle)
     #Check function arguments from THEME
+    
+    #The maketitle disable the layout that could be defined in THEME['slide']
+    slide = document._slides[ gcs() ]
+    slide.render_layout = False
     
     try :
         document._theme['maketitle']['template']( *args, **kwargs )

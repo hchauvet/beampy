@@ -7,18 +7,16 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.functions import (gcs, convert_unit, make_global_svg_defs,
-    latex2svg, load_args_from_theme, color_text, add_to_slide,
-    check_function_args, get_command_line, getsvgwidth, getsvgheight)
+from beampy.functions import (gcs, latex2svg, color_text,getsvgwidth,
+                              getsvgheight)
 
 from beampy.modules.core import beampy_module
 import tempfile
 import os
 
 from bs4 import BeautifulSoup
-import re
-import time
 import sys
+import hashlib
 
 class text(beampy_module):
 
@@ -37,6 +35,19 @@ class text(beampy_module):
                          'auto': distribute all slide element on document._height
                          'center': center image relative to document._height (ignore other slide elements)
                          '+3cm': place image relative to previous element
+                         
+             
+             - size[20]: the font size  
+             
+             - font['CMR']: the Tex font
+             
+             - color['#000000']: the text color 
+             
+             - usetex[True]: Could be turned to False to use raw svg to render text,
+             
+             - va['']: How to align the text vertically, could be '*baseline*' to align
+                       to the first line baseline and not the top of the text 
+                       
 
             Exemples
             --------
@@ -58,6 +69,11 @@ class text(beampy_module):
         #Text need to be re-rendered from latex if with, color or size are changed
         self.initial_width = self.width
         self.args_for_cache_id = ['initial_width','color','size','align']
+
+
+        #Initialise the global store on document._content to store letter
+        if 'svg_glyphs' not in document._contents:
+            document._contents['svg_glyphs'] = {}
 
         #Register the function to the current slide
         self.register()
@@ -119,41 +135,64 @@ class text(beampy_module):
             #Parse the ouput with beautifullsoup
             soup = BeautifulSoup(testsvg, 'xml')
             svgsoup = soup.find('svg')
-
+            #print(soup)
+            
+            #Find the width and height
+            xinit, yinit, text_width, text_height = svgsoup.get('viewBox').split()
+            text_width = float(text_width)
+            text_height = float(text_height)
+            
+            #TODO: REPLACE BeautifulSoup by lxml (which is faster)
+            #from lxml import etree
+            #doc = etree.fromstring(testsvg)
+            #dtest = doc.xpath('//path/id')
+            #print(dtest)
+                
             #Get id of paths element to make a global counter over the entire document
             if 'path' not in document._global_counter:
                 document._global_counter['path'] = 0
 
-            #Create unique_id_ with time
-            text_id =  ("%0.2f"%time.time()).split('.')[-1]
+            #Create unique_id_ with time 
+            #text_id =  ("%0.2f"%time.time()).split('.')[-1]
+            """
             for path in soup.find_all('path'):
                 pid = path.get('id')
                 new_pid = '%s_%i'%(text_id, document._global_counter['path'])
-                testsvg = re.sub(pid,new_pid, testsvg)
-                #path['id'] = new_pid //Need to change also the id ine each use elements ... replace (above) is simpler
+
+                #Check genereta an hash of the glyphs svg path and check if it's
+                #already define in the global store
+                md5print = hashlib.md5(path.get('d')).hexdigest()
+
+                new_svg_path = "<path d='%s', id='%s'> "%(path.get('d'), new_pid)
+                print(new_svg_path)
+               
+                print(md5print, 'for ', pid, 'nid', new_pid)
+
+                #Old way on the global svg
+                testsvg = re.sub(pid, new_pid, testsvg)
                 document._global_counter['path'] += 1
 
             #Reparse the svg
             soup = BeautifulSoup(testsvg, 'xml')
+            """
 
+            #New method with a global glyph store
+            svgsoup = parse_dvisvgm_svg( svgsoup )
+            
             #Change id in svg defs to use the global id system
-            soup = make_global_svg_defs(soup)
+            #soup = make_global_svg_defs(soup)
 
-            svgsoup = soup.find('svg')
-
-            xinit, yinit, text_width, text_height = svgsoup.get('viewBox').split()
-            text_width = float(text_width)
-            text_height = float(text_height)
+            #svgsoup = soup.find('svg')
 
             #Find all links to apply the style defined in theme['link']
-            links = soup.find_all('a')
+            links = svgsoup.find_all('a')
             style = ' '.join(['%s:%s;'%(str(key), str(value)) for key, value in document._theme['link'].items()])
             for link in links:
                 link['style'] = style
 
             #Use the first <use> in svg to get the y of the first letter
             try:
-                uses = soup.find_all('use')
+                uses = svgsoup.find_all('use')
             except:
                 print soup
 
@@ -170,7 +209,7 @@ class text(beampy_module):
                     #print baseline
 
                 #Get the group tag to get the transform matrix to add yoffset
-                g = soup.find('g')
+                g = svgsoup.find('g')
                 transform_matrix = g.get('transform')
 
 
@@ -251,3 +290,66 @@ class text(beampy_module):
         self.svgout = output
         #Update the rendered state of the module
         self.rendered = True
+
+
+
+def parse_dvisvgm_svg( soup_data ):
+    """
+    Function to transform the svg produced by dvisvgm. 
+    Make a global glyph store to use them as defs in svg 
+    to reduce the size off the global presentation.
+
+    soup_data: BeautifulSoup parsed svg
+
+    return: soup_data (without the defs part)
+    """
+
+    #Check if their is an entry in the global_store for the glyphs
+    if 'glyphs' not in document._global_store:
+        document._global_store['glyphs'] = {}
+        
+    #Extract defs containing glyphs from the svg file
+    defs = soup_data.find_all('defs')[0].extract()
+    
+    for path in defs.find_all('path'):
+        #store the id of the glyph given by dvisvgm
+        path_id = path['id']
+        #store the bezier coordinates of the glyph
+        path_d = path['d']
+        hash_id = hashlib.md5(path_d).hexdigest()
+
+        #print(hash_id, path_id)
+        
+        #check if the glyph is in the store or add it
+        if hash_id not in document._global_store['glyphs']:
+            #Add the glyph to the store and create a new uniq id for it
+            uniq_id = "g_"+str( len(document._global_store['glyphs']) )
+            new_svg = "<path d='%s' id='%s'/>"%(path_d, uniq_id)
+            document._global_store['glyphs'][ hash_id ] = {"old_id": path_id, "d": path_d, "id": uniq_id, 'svg':new_svg}
+
+            
+        else:
+            data_store = document._global_store['glyphs'][ hash_id ]
+            uniq_id = data_store['id']
+            
+        #Find all the xlink:href to this glyph in the use part of the svg
+        for tag in soup_data.find_all('use', { 'xlink:href':'#%s'%(path_id) }):
+            #Change the dvisvgm ref to the new uniq_id ref of the glyph
+            tag['xlink:href'] = '#%s'%(uniq_id)
+                
+        
+        #Theirs is also definition use in the defs
+        for use in defs.find_all('use', {'xlink:href':'#%s'%(path_id)}):
+            #store the id of the glyph given by dvisvgm
+            u_id = use['id']
+            use_id = "g_"+str( len(document._global_store['glyphs']) )
+            use['id'] = use_id
+            use['xlink:href'] = '#%s'%(uniq_id)
+            document._global_store['glyphs'][ use_id ] = {"old_id": u_id,  "id": use_id, 'svg':str(use)}
+
+            #Find all the xlink:href to this glyph in the use part of the svg
+            for tag in soup_data.find_all('use', { 'xlink:href':'#%s'%(u_id) }):
+                #Change the dvisvgm ref to the new uniq_id ref of the glyph
+                tag['xlink:href'] = '#%s'%(use_id)
+        
+    return soup_data

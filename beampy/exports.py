@@ -105,7 +105,18 @@ def svg_export(dir_name):
         slide.render()
 
         #save the list of rendered svg to a new dict as a string
-        tmp = slide.svgheader + ''.join(slide.svgout) + slide.svgfooter
+        tmp = slide.svgheader
+
+        #The global svg glyphs need also to be added to the html5 page
+        if 'glyphs' in document._global_store:
+            glyphs_svg='<defs>%s</defs>'%( ''.join( [ glyph['svg'] for glyph in document._global_store['glyphs'].itervalues() ] ).decode('utf-8', errors='replace') )
+            tmp += glyphs_svg
+
+        #Join all the svg contents 
+        tmp += ''.join(slide.svgout).decode('utf-8', errors='replace')
+
+        #Add the svgfooter
+        tmp += slide.svgfooter
 
         #check if content type need to be changed
         #check_content_type_change( document._contents["slide_%i"%islide] )
@@ -124,95 +135,7 @@ def html5_export():
     with open(curdir+'statics/header_V2.html','r') as f:
         output = f.read()%jquery
 
-    #Loop over slides in the document
-    #If we directly want to charge the content in pure html
-    tmpout = {}
-    tmpscript = {}
-    global_store = {}
-    for islide in xrange(document._global_counter['slide']+1):
-        #print("[Beampy] export slide %i"%islide)
-        tnow = time.time()
-
-        slide_id = "slide_%i"%islide
-        tmpout[slide_id] = {}
-        global_store[slide_id] = {}
-        slide = document._slides[slide_id]
-
-        #Render the slide
-        slide.render()
-
-        #Add a small peace of svg that will be used to get the data from the global store
-        tmpout[slide_id]['svg'] = '%s\n<use xlink:href="#%s" x="0" y="0"/>\n%s\n'%(slide.svgheader, slide_id, slide.svgfooter)
-
-        #save the list of rendered svg to a new dict as a string that is loaded globally in the html
-        global_store[slide_id]['svg'] = ''.join(slide.svgout)
-
-        if slide.animout != None:
-            #print [f['frames'] for f in slide.animout]
-            tmpout[slide_id]['svganimates'] = []
-            headers = []
-            for ianim, data in enumerate(slide.animout):
-                headers += [data['header']]
-                data.pop('header')
-                tmpout[slide_id]['svganimates'] += [data]
-
-            #pass
-
-            #Add cached images to global_store
-            if headers != []:
-                global_store[slide_id]['svg'] += ''.join(headers)
-
-        if slide.scriptout != None:
-            tmpscript['slide_%i'%islide] = ''.join(slide.scriptout)
-
-        if slide.htmlout != None:
-            global_store["slide_%i"%islide]['html'] = ''.join(slide.htmlout)
-
-        print("Done in %0.3f seconds"%(time.time()-tnow))
-
-    #Create a json file of all slides output (refs to store)
-    jsonfile = stringio.StringIO()
-    json.dump(tmpout,jsonfile, indent=None)
-    jsonfile.seek(0)
-
-    #Create a json file for the store
-    jsonstore = stringio.StringIO()
-    json.dump(global_store, jsonstore, indent=None)
-    jsonstore.seek(0)
-
-
-
-    #Create store divs for each slides
-    output += ''.join(['<div id="store_slide_%s"></div>'%s for s in xrange(document._global_counter['slide']+1)])
-    output += '<script> slides = eval( ( %s ) );</script>'%jsonfile.read()
-    output += '<script> store = eval( ( %s ) );</script>'%jsonstore.read()
-
-
-    #Javascript output
-    #format: scripts_slide[slide_i]['function_name'] = function() { ... }
-    if tmpscript != {}:
-        bokeh_required = False
-        output += '\n <script> scripts_slide = {}; //dict with scrip function for slides \n'
-        for slide in tmpscript:
-            output += '\nscripts_slide["%s"] = {};\n scripts_slide["%s"]%s; \n'%(slide, slide, tmpscript[slide])
-            if 'bokeh' in tmpscript[slide].lower():
-                bokeh_required = True
-
-        output += '</script>\n'
-
-        if bokeh_required:
-            #TODO: download the goodversion of bokeh from CDN Need to download bokeh
-            with open(curdir+'statics/bokeh/bokeh.min.js','r') as f:
-                bokjs = f.read()
-
-            with open(curdir+'statics/bokeh/bokeh.min.css','r') as f:
-                bokcss = f.read()
-
-            output += """
-            <style>%s</style>
-            <script>%s</script>
-            """%(bokcss, bokjs)
-
+    #Add the style 
     htmltheme = document._theme['document']['html']
     output += """
     <!-- Default Style -->
@@ -253,6 +176,109 @@ def html5_export():
     </style>
 
     """
+    #Loop over slides in the document
+    #If we directly want to charge the content in pure html
+    tmpout = {}
+    tmpscript = {}
+    global_store = []
+    for islide in xrange(document._global_counter['slide']+1):
+        #print("[Beampy] export slide %i"%islide)
+        tnow = time.time()
+
+        slide_id = "slide_%i"%islide
+        tmpout[slide_id] = {}
+        #global_store[slide_id] = {}
+        slide = document._slides[slide_id]
+
+        #Render the slide
+        slide.render()
+
+        #Add a small peace of svg that will be used to get the data from the global store
+        tmpout[slide_id]['svg'] = '%s\n<use xlink:href="#%s" x="0" y="0"/>\n%s\n'%(slide.svgheader, slide_id, slide.svgfooter)
+
+        #save the list of rendered svg to a new dict as a string that is loaded globally in the html
+        #global_store[slide_id]['svg'] = ''.join(slide.svgout)
+        tmp = ''.join(slide.svgout).decode('utf-8', errors='replace')
+        global_store += "<svg><defs><g id='slide_"+str(islide)+"'>"+tmp+"</g></defs></svg>"
+        
+        if slide.animout != None:
+            #print [f['frames'] for f in slide.animout]
+            tmpout[slide_id]['svganimates'] = []
+            headers = []
+            for ianim, data in enumerate(slide.animout):
+                headers += [data['header']]
+                data.pop('header')
+                tmpout[slide_id]['svganimates'] += [data]
+
+            #pass
+
+            #Add cached images to global_store
+            if headers != []:
+                tmp = ''.join(headers).decode('utf-8', errors='replace')
+                global_store += "<svg>%s</svg>"%(tmp)
+
+        if slide.scriptout != None:
+            tmpscript['slide_%i'%islide] = ''.join(slide.scriptout)
+            
+        if slide.htmlout != None:
+            #global_store["slide_%i"%islide]['html'] = ''.join(slide.htmlout)
+            global_store += '<div id="html_store_slide_%i">%s</div>'%(islide, ''.join(slide.htmlout) )
+
+        print("Done in %0.3f seconds"%(time.time()-tnow))
+        
+        
+    #Create a json file of all slides output (refs to store)
+    jsonfile = stringio.StringIO()
+    json.dump(tmpout,jsonfile, indent=None)
+    jsonfile.seek(0)
+
+    #Create a json file for the store
+    #jsonstore = stringio.StringIO()
+    #json.dump(global_store, jsonstore, indent=None)
+    #jsonstore.seek(0)
+
+
+    
+    #The global svg glyphs need also to be added to the html5 page
+    if 'glyphs' in document._global_store:
+        glyphs_svg='<svg id="glyph_store"><defs>%s</defs></svg>'%( ''.join( [ glyph['svg'] for glyph in document._global_store['glyphs'].itervalues() ] ) )
+        output += glyphs_svg
+    #Add the svg content
+    
+    output += u"".join( global_store )    
+    
+    
+    #Create store divs for each slides
+    #output += ''.join(['<div id="store_slide_%s"></div>'%s for s in xrange(document._global_counter['slide']+1)])
+    output += '<script> slides = eval( ( %s ) );</script>'%jsonfile.read()
+    #output += '<script> store = eval( ( %s ) );</script>'%jsonstore.read()
+
+
+    #Javascript output
+    #format: scripts_slide[slide_i]['function_name'] = function() { ... }
+    if tmpscript != {}:
+        bokeh_required = False
+        output += '\n <script> scripts_slide = {}; //dict with scrip function for slides \n'
+        for slide in tmpscript:
+            output += '\nscripts_slide["%s"] = {};\n scripts_slide["%s"]%s; \n'%(slide, slide, tmpscript[slide])
+            if 'bokeh' in tmpscript[slide].lower():
+                bokeh_required = True
+
+        output += '</script>\n'
+
+        if bokeh_required:
+            #TODO: download the goodversion of bokeh from CDN Need to download bokeh
+            with open(curdir+'statics/bokeh/bokeh.min.js','r') as f:
+                bokjs = f.read()
+
+            with open(curdir+'statics/bokeh/bokeh.min.css','r') as f:
+                bokcss = f.read()
+
+            output += """
+            <style>%s</style>
+            <script>%s</script>
+            """%(bokcss, bokjs)
+
 
     with open(curdir+'statics/footer_V2.html','r') as f:
         output += f.read()
@@ -285,22 +311,28 @@ def display_matplotlib(slide_id):
     from numpy import asarray
     from copy import deepcopy
 
-    #Make a copy of the current slide
-    content_save = deepcopy(document._contents[slide_id])
-    old_cache = document._cache
+    slide = document._slides[slide_id]
 
-    document._cache = None
-    check_content_type_change( document._contents[slide_id] )
-    svgout = render_slide( document._contents[slide_id] )
-    check_content_type_change( document._contents[slide_id], nothtml=False )
-    #Restore the copy to the contents dict
-    document._contents[slide_id] = content_save
-    document._cache = old_cache
+    slide.render()
+        
+    #save the list of rendered svg to a new dict as a string
+    tmp = slide.svgheader
 
+    #The global svg glyphs need also to be added to the html5 page
+    if 'glyphs' in document._global_store:
+        glyphs_svg='<defs>%s</defs>'%( ''.join( [ glyph['svg'] for glyph in document._global_store['glyphs'].itervalues() ] ).decode('utf-8', errors='replace') )
+        tmp += glyphs_svg
+
+    #Join all the svg contents 
+    tmp += ''.join(slide.svgout).decode('utf-8', errors='replace')
+
+    #Add the svgfooter
+    tmp += slide.svgfooter
+    
     #Write it to a file
     tmpname = './.%s'%slide_id
     with open(tmpname+'.svg', 'w') as f:
-        f.write( svgout )
+        f.write( tmp )
 
     #Change it a png
     inkscapecmd = document._external_cmd['inkscape']

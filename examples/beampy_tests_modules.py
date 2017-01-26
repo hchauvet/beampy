@@ -3,34 +3,34 @@
 
 from beampy import *
 
-doc = document(cache=False)
-#To test other theme: theme='hipsterchic' as instance
+doc = document(cache=False, theme='ComplicatedBlue')
+#Turn cache to True to speed up compilation
 #Color for bacground of code
 
 codeback = "#EFEFEF"
 
-slide()
-maketitle('Beampy a tool to make simple presentation','Hugo Chauvet')
+with slide( ):
+    maketitle('Beampy a tool to make simple presentation',('Hugo Chauvet',), 'Univ. of python', 'HTML5 presentation' )
 
-slide()
-title("Text")
-text(r"""Use LaTeX to render text and equation \\ $$\sqrt{10}$$""")
+with slide():
+    title("Text")
+    text(r"""Use LaTeX to render text and equation \\ $$\sqrt{10}$$""")
 
-with group(width=700, height=90, background=codeback):
-    code(r"""
-slide()
-title("Text")
-text(r\"""Use LaTeX to render text and equation \\ $$\sqrt{10}$$\""")
-    """, langage="python", width=530, x="1cm")
+    with group(width=700, height=90, background=codeback):
+        code(r"""
+    with slide():
+        title("Text")
+        text(r\"""Use LaTeX to render text and equation \\ $$\sqrt{10}$$\""")
+        """, langage="python", width=530, x="1cm")
 
 
-slide('Figure')
-figure("./svg_anims/test_0.svg", width=500)
-with group(width=700, height=95, background=codeback):
-    code(r"""
-slide("Figure")
-figure("./svg_anims/test_0.svg", width="500")
-    """, langage="python", width=350, x="1cm")
+with slide('Figure'):
+    figure("./svg_anims/test_0.svg", width=500)
+    with group(width=700, height=95, background=codeback):
+        code(r"""
+    slide("Figure")
+    figure("./svg_anims/test_0.svg", width="500")
+        """, langage="python", width=350, x="1cm")
 
 with slide('Svg animation'):
     animatesvg("./svg_anims/", width="500")
@@ -40,89 +40,89 @@ slide('Svg animation')
 animatesvg("./svg_anims/", width="500")
         """, langage="python", width=300, x="1cm")
 
-slide('Video')
-video("./test.webm", width=500, height=294)
+with slide('Video'):
+    video("./test.webm", width=500, height=294)
+    
+    with group(width=700, height=95, background=codeback):
+        code(r"""
+    slide('Video')
+    video("./test.webm", width="500", height="294")
+        """, langage="python", width="400", x="1cm")
+    
 
-with group(width=700, height=95, background=codeback):
-    code(r"""
-slide('Video')
-video("./test.webm", width="500", height="294")
-    """, langage="python", width="400", x="1cm")
-
-
-slide('Group and columns')
-colwidth=350
-with group(width=colwidth, height=doc._height-100, x="1cm", y="1.8cm", background="#000") as g1:
-    text("""
-This is a test for a long text in a column style.
-
-$$ \sum_{i=0}^{10} x_i $$
-    """, align="center", width=colwidth-20, color="#ffffff")
-
-with group(width=colwidth, height=doc._height-100, x=g1.right+0.01, y=g1.top+0, background=codeback):
-    code("""
-slide('Group and columns')
-colwidth=350
-with group(width=colwidth,
-    height=doc._height-100,
-    x="1cm", y="1.8cm",
-    background="#000") as g1:
-
-    text(\"""
-    This is a test for
-    a long text in a
-    column style.
-
+with slide('Group and columns'):
+    colwidth=350
+    with group(width=colwidth, height=doc._height-100, x="1cm", y="1.8cm", background="#000") as g1:
+        text("""
+    This is a test for a long text in a column style.
+    
     $$ \sum_{i=0}^{10} x_i $$
-    \""",
-    align="center",
-    width=colwidth-20,
-    color="#ffffff")
-    """, width=colwidth-40, langage="python", x="0.5cm")
+        """, align="center", width=colwidth-20, color="#ffffff")
+    
+    with group(width=colwidth, height=doc._height-100, x=g1.right+0.01, y=g1.top+0, background=codeback):
+        code("""
+    slide('Group and columns')
+    colwidth=350
+    with group(width=colwidth,
+        height=doc._height-100,
+        x="1cm", y="1.8cm",
+        background="#000") as g1:
+    
+        text(\"""
+        This is a test for
+        a long text in a
+        column style.
+    
+        $$ \sum_{i=0}^{10} x_i $$
+        \""",
+        align="center",
+        width=colwidth-20,
+        color="#ffffff")
+        """, width=colwidth-40, langage="python", x="0.5cm")
 
 
 
 
-slide('Relative positioning')
-text("youpi x=1cm, y=0.1", x="1cm", y=0.1)
-text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
-text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
+with slide('Relative positioning'):
+    text("youpi x=1cm, y=0.1", x="1cm", y=0.1)
+    text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
+    text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
+    
+    #text("youpi x=+1cm, y=+0.5cm", x="+1cm", y="+0.5cm")
+    #text(r"youpi x=-0, \\ y=+0.5cm", x="-0", y="+0.5cm")
+    #text(r"youpi x=+1.5cm,\\ y=-0", x="+1.5cm", y="-0")
+    
+    with group(width=700, height=195, background=codeback, y="+2.1cm"):
+        code(r"""
+    slide('Relative positioning')
+    text("youpi x=1cm, y=0.1", x="1cm", y=0.1)
+    text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
+    text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
+    
+    text("youpi x=+1cm, y=+0.5cm", x="+1cm", y="+0.5cm")
+    text(r"youpi x=-0, \\ y=+0.5cm", x="-0", y="+0.5cm")
+    text(r"youpi x=+1.5cm,\\ y=-0", x="+1.5cm", y="-0")
+        """, langage="python", width="450", x="1cm")
+    
 
-#text("youpi x=+1cm, y=+0.5cm", x="+1cm", y="+0.5cm")
-#text(r"youpi x=-0, \\ y=+0.5cm", x="-0", y="+0.5cm")
-#text(r"youpi x=+1.5cm,\\ y=-0", x="+1.5cm", y="-0")
-
-with group(width=700, height=195, background=codeback, y="+2.1cm"):
-    code(r"""
-slide('Relative positioning')
-text("youpi x=1cm, y=0.1", x="1cm", y=0.1)
-text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
-text("youpi x=1cm, y=+0.5cm", x="1cm", y="+0.5cm")
-
-text("youpi x=+1cm, y=+0.5cm", x="+1cm", y="+0.5cm")
-text(r"youpi x=-0, \\ y=+0.5cm", x="-0", y="+0.5cm")
-text(r"youpi x=+1.5cm,\\ y=-0", x="+1.5cm", y="-0")
-    """, langage="python", width="450", x="1cm")
-
-
-slide("Using element's anchors")
-e0 = text('central element [e0]', y=0.2)
-e1 = text('left of e0', y=e0.top+0, x=e0.left-{'shift': 0.1, 'align':'right'})
-e2 = text('right of e0', y=e0.top+0, x=e0.right+0.1)
-e4 = text('anchors available: top, bottom, center, right, left',
-          y=e0.bottom+'1cm', x=e0.center+{'shift':0, 'align':'middle'})
-
-with group(y=e4.bottom+0.15, width=700, height=150, background=codeback):
-    code(r"""
-e0 = text('central element [e0]', y=0.2)
-e1 = text('left of e0', y=e0.top+0,
-         x=e0.left-{'shift': 0.1, 'align':'right'})
-e2 = text('right of e0', y=e0.top+0, x=e0.right+0.1)
-e4 = text('anchors available: top, bottom, center, right, left',
-          y=e0.bottom+'1cm', x=e0.center+{'shift':0, 'align':'middle'})
-    """, langage="python", width=450, x=0.05)
-
-
+with slide("Using element's anchors"):
+    e0 = text('central element [e0]', y=0.2)
+    e1 = text('left of e0', y=e0.top+0, x=e0.left-{'shift': 0.1, 'align':'right'})
+    e2 = text('right of e0', y=e0.top+0, x=e0.right+0.1)
+    e4 = text('anchors available: top, bottom, center, right, left',
+              y=e0.bottom+'1cm', x=e0.center+{'shift':0, 'align':'middle'})
+    
+    with group(y=e4.bottom+0.15, width=700, height=150, background=codeback):
+        code(r"""
+    e0 = text('central element [e0]', y=0.2)
+    e1 = text('left of e0', y=e0.top+0,
+             x=e0.left-{'shift': 0.1, 'align':'right'})
+    e2 = text('right of e0', y=e0.top+0, x=e0.right+0.1)
+    e4 = text('anchors available: top, bottom, center, right, left',
+              y=e0.bottom+'1cm', x=e0.center+{'shift':0, 'align':'middle'})
+        """, langage="python", width=450, x=0.05)
+    
+    
 slide('Tikz')
 p = tikz(r"""
  % Local definitions

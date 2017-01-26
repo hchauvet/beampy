@@ -18,8 +18,10 @@ import time
 import hashlib #To create uniq id for elements (from content and args_dict)
 
 #Lib to check the source code
-import linecache
 import inspect
+
+#Create REGEX pattern 
+find_svg_tags = re.compile('id="(.*)"')
 
 def unit_operation( value, to=0 ):
     """
@@ -91,14 +93,53 @@ def pre_cache_svg_image( svg_frames ):
 
     return out_svg_frames, all_images
 
-def make_global_svg_defs(svg_soup):
+def make_global_svg_defs( svg_soup ):
+    """
+        Function to change svg refs and id to a global counter 
+        to avoid miss-called elements in slides
+        
+        Input -> svg_soup: beautifulsoup object of the svg
+    """
+    
+    
+    #tps = time.time()
+    #Test if it exist a svg_id global counter
+    if 'svg_id' not in document._global_counter:
+        document._global_counter['svg_id'] = 0  #init the counter
+        
+    #Get all id from defined object in <defs>         
+    for defs in svg_soup.find_all('defs'):
+        tags_to_replace = find_svg_tags.findall( str(defs) )
+        
+        
+        base_name = "beampy"
+        for cpt, tag in enumerate(tags_to_replace):
+            #print(tag)
+            #print({'xlink:href': '#%s'%tag})
+            #Some use of this defs 
+            new_tag = "%s_%i"%(base_name, document._global_counter['svg_id'])
+            for elem in svg_soup.find_all(attrs={'xlink:href': '#%s'%tag}):
+                elem['xlink:href'] = "#%s"%new_tag
+    
+            #Inside defs get the good one to change
+            for elem in svg_soup.find_all(attrs={'id': tag}):
+                elem['id'] = new_tag
+
+            document._global_counter['svg_id'] += 1
+
+    #print('Svg refs changed in %0.4fs'%(time.time() - tps))
+    
+    return svg_soup
+    
+def make_global_svg_defs_old(svg_soup):
     """
         Function to use global counter for id in svg defs and use
 
         svg_soup a BeautifulSoup object of the svg file
     """
 
-
+    tps = time.time()
+    
     #Test if it exist a svg_id global counter
     if 'svg_id' not in document._global_counter:
         document._global_counter['svg_id'] = 0  #init the counter
@@ -127,7 +168,8 @@ def make_global_svg_defs(svg_soup):
 
     #Reparse the new svg
     soup = BeautifulSoup(strsvg, 'xml')
-
+    print('Svg refs changed in %0.4fs'%(time.time() - tps))
+    
     return soup
 
 
@@ -196,7 +238,9 @@ def optimize_svg(svgfile_in):
 
     #run scour
     #print('optimize svg...')
+    t = time.time()
     svgout = scour.scourString(svgfile_in, opts).encode("UTF-8")
+    print('optimize svg run in %f'%(time.time()-t))
     #print('done')
 
     return svgout
@@ -217,7 +261,9 @@ def latex2svg(latexstring):
         f.write( latexstring )
 
     #Run Latex
+    #t = time.time()
     tex = os.popen( "cd "+tmppath+" && latex -interaction=nonstopmode "+tmpnam+".tex" )
+    #print('latex run in %f'%(time.time()-t))
     #print tex.read() #To print tex output
     """
     This is a test to get the base line from latex output
@@ -240,7 +286,7 @@ def latex2svg(latexstring):
         print output
     else:
         #dvisvgm to convert dvi to svg [old -e option not compatible with linkmark]
-        res = os.popen( dvisvgmcmd+' -n -s --linkmark=none -v0 '+tmpnam+'.dvi' )
+        res = os.popen( dvisvgmcmd+' -n -s -a --linkmark=none -v0 '+tmpnam+'.dvi' )
         testsvg = res.read()
         res.close()
 
@@ -288,7 +334,6 @@ def gcs(doc=document):
 
     return "slide_%i"%(doc._global_counter['slide'])
 
-
 def gce(doc=document):
     """
         Function to get the current element number
@@ -296,6 +341,7 @@ def gce(doc=document):
 
     return doc._global_counter['element']
 
+    
 def pdf2svg( pdf_input_file, svg_output_file  ) :
 
 	'''
@@ -429,20 +475,6 @@ def dict_deep_update( original, update ):
 
     return update
 
-def add_to_slide( content, x, y, width, height ):
-    """
-        Function to add a given content to the current slide
-    """
-    from beampy.geometry import positionner
-
-    elem_id = create_element_id( content )
-    #print(elem_id)
-    document._contents[gcs()]['element_keys'] += [ elem_id ]
-    document._contents[gcs()]['contents'][elem_id] =  content
-    content['positionner'] = positionner(x,y ,width, height, elem_id)
-
-    #return the positionner for relative placement
-    return content['positionner']
 
 
 def create_element_id( bpmod, use_args=True, use_name=True, use_content=True, add_slide=True, slide_position=True ):
@@ -479,7 +511,7 @@ def create_element_id( bpmod, use_args=True, use_name=True, use_content=True, ad
     return outid
 
 
-
+#TODO: Improve this function
 def get_command_line(func_name):
     #Function to print the line of the command in the source code file
     frame,filename,nline,function_name,lines,index = inspect.stack()[-1]
@@ -501,7 +533,7 @@ def get_command_line(func_name):
     else:
         start = 0
         stop = 0
-        source = 'Not found\n'
+        source = func_name
         #print(frame,filename,nline,function_name,lines,index)
 
     return (start, nline-1, source)
