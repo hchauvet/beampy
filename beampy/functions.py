@@ -93,7 +93,7 @@ def pre_cache_svg_image( svg_frames ):
 
     return out_svg_frames, all_images
 
-def make_global_svg_defs( svg_soup ):
+def make_global_svg_defs_new_but_buggy( svg_soup ):
     """
         Function to change svg refs and id to a global counter 
         to avoid miss-called elements in slides
@@ -131,14 +131,14 @@ def make_global_svg_defs( svg_soup ):
     
     return svg_soup
     
-def make_global_svg_defs_old(svg_soup):
+def make_global_svg_defs(svg_soup):
     """
         Function to use global counter for id in svg defs and use
 
         svg_soup a BeautifulSoup object of the svg file
     """
 
-    tps = time.time()
+    #tps = time.time()
     
     #Test if it exist a svg_id global counter
     if 'svg_id' not in document._global_counter:
@@ -168,7 +168,7 @@ def make_global_svg_defs_old(svg_soup):
 
     #Reparse the new svg
     soup = BeautifulSoup(strsvg, 'xml')
-    print('Svg refs changed in %0.4fs'%(time.time() - tps))
+    #print('Svg refs changed in %0.4fs'%(time.time() - tps))
     
     return soup
 

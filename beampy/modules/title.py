@@ -26,7 +26,9 @@ class title( text ):
 
         #Add text arguments because we use the text render
         self.load_extra_args('text')
-
+        #Re-compute the title when color or size is changed
+        self.args_for_cache_id = ['color','size']
+        
         if self.width == None:
             self.width = document._width
         self.height = None
