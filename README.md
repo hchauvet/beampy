@@ -15,6 +15,12 @@ Beampy presentation output only one html file with every contents embedded.
 
 ## Curent version:
 
+### 0.4.3
+
+* Matplotlib figure can now be directly passed to *figure()* or a list of matplotlib figure can be animated with *animatesvg()*
+* Minor improvement in cache size (content is no more stored in cache file)
+* Update of scour version (svg-optimiser) 
+
 ### 0.4.2
 * Glyph paths from Latex are now unique (this reduce the number of svg lines in documents)
 * Add *svg* command ton include raw svg in slide
@@ -202,6 +208,40 @@ save('test.html')
 
 [Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#3)
 
+### Using Matplotlib 
+
+```python
+from beampy import *
+import pylab as p
+
+doc = document()
+
+with slide("Matplotlib figure"):
+    fig = p.figure()
+    x = p.linspace(0,2*p.pi)
+    
+    p.plot(x, p.sin(x), '--')
+    
+    figure(fig)
+
+
+with slide("Mpl animation"):
+
+    anim_figs = []
+    for i in range(20):
+        fig = p.figure()   
+        x =  p.linspace(0,2*p.pi)
+        p.plot(x, p.sin(x+i))
+        p.plot(x, p.sin(x+i+p.pi))
+        p.close(fig) 
+        anim_figs += [ fig ]
+        
+        
+    animatesvg( anim_figs )
+     
+
+save("test_figures.html")
+```
 ###Video
 
 ```python
