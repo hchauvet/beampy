@@ -242,6 +242,10 @@ with slide("Mpl animation"):
 
 save("test_figures.html")
 ```
+
+[Figure Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#4)
+[Animation Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#5)
+
 ###Video
 
 ```python
@@ -254,7 +258,7 @@ with slide('Video'):
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#4)
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#6)
 
 ###Group and columns
 
@@ -273,7 +277,7 @@ with slide('Group and columns'):
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#5)
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#7)
 
 ###Relative positioning
 
@@ -306,6 +310,7 @@ with slide("Using element's anchors 2"):
 
 save('test.html')
 ```
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#9)
 
 #### Relative to the previous element
 ```python
@@ -325,7 +330,7 @@ text(r"youpi x=+1.5cm,\\ y=-0", x="+1.5cm", y="-0")
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#6)
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#8)
 
 
 ###Tikz
@@ -344,7 +349,7 @@ save('test.html')
 ```
 
 Here is a more complex Tikz output on the result:
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#8)
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#10)
 
 ###Bokeh interactive plot
 
@@ -366,7 +371,7 @@ figure(p, y="+5px", x="center")
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#9)
+[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#11)
 
 ### Code highlight
 
