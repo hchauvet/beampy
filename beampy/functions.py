@@ -19,7 +19,7 @@ import hashlib #To create uniq id for elements (from content and args_dict)
 
 #Lib to check the source code
 import inspect
-
+from io import BytesIO
 #Create REGEX pattern 
 find_svg_tags = re.compile('id="(.*)"')
 
@@ -69,6 +69,11 @@ def convert_unit( value ):
         #old: 0.75 px to pt
         out = "%0.1f"%( float(value.replace('pt','')) * 1.333333 )
 
+    #inch to pt
+    elif "in" in value:
+        #1 inch = 72pt
+        out = "%0.1f"%( float(value.replace('in','')) * 72 )
+        
     else:
         out = "%0.1f"%(float(value))
 
@@ -283,7 +288,7 @@ def latex2svg(latexstring):
     tex.close()
     #Run dvi2svgm
     if 'error' in output:
-        print output
+        print(output)
     else:
         #dvisvgm to convert dvi to svg [old -e option not compatible with linkmark]
         res = os.popen( dvisvgmcmd+' -n -s -a --linkmark=none -v0 '+tmpnam+'.dvi' )
@@ -493,20 +498,22 @@ def create_element_id( bpmod, use_args=True, use_name=True, use_content=True, ad
         ct_to_hash += bpmod.name
 
     if use_content and bpmod.content != None:
-        ct_to_hash += str(bpmod.content)
-
+        ct_to_hash += str(bpmod.content)  
+            
     if slide_position:
         ct_to_hash += str(len(document._slides[gcs()].element_keys))
 
     outid = None
     if ct_to_hash != '':
+        #print(ct_to_hash)
         outid = hashlib.md5( ct_to_hash ).hexdigest()
 
         if outid in document._slides[gcs()].element_keys:
             print("Id for this element already exist!")
             sys.exit(0)
             outid = None
-        #print outid
+
+        #print(outid)
 
     return outid
 

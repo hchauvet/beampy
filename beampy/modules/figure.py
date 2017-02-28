@@ -12,7 +12,8 @@ from beampy.functions import (convert_unit, optimize_svg,
 from beampy.modules.core import beampy_module
 from bs4 import BeautifulSoup
 from PIL import Image
-from io import BytesIO
+from io import BytesIO, StringIO
+import hashlib
 import base64
 import tempfile
 import os
@@ -55,8 +56,10 @@ class figure(beampy_module):
         #Register the content
         self.content = content
 
-        #Check if the given filename is a string
+        #Special args for cache id
+        self.args_for_cache_id = ['width','ext']
         
+        #Check if the given filename is a string        
         if type( self.content ) == type(''):
             #Check extension
         
@@ -68,7 +71,10 @@ class figure(beampy_module):
             #Bokeh plot
             if "bokeh" in str(type(self.content)):
                 self.ext = 'bokeh'
-            
+
+            #Mathplotlib figure
+            if "matplotlib" in str(type(self.content)):
+                self.ext = "matplotlib"
 
         ######################################
 
@@ -91,14 +97,39 @@ class figure(beampy_module):
             #Do not cache this element if it's bokeh plot
             self.cache = False
 
+        #Mpl figure 
+        elif self.ext == 'matplotlib':
+               
+            #import close to force the closing of the input figure
+            from matplotlib.pyplot import close
+            close(self.content) #close the figure
+            
+            #Set figure default width when it was not given as arguement
+            if self.width == None:
+                width_inch, height_inch = self.content.get_size_inches()
+                self.width = convert_unit( "%fin"%(width_inch) )
+
+            #Create a special args to create a unique id for caching
+
+            #Generate the figure (in binary format as jpg) from the canvas 
+            with BytesIO() as tmpb:
+                self.content.canvas.print_jpg(tmpb)
+                tmpb.seek(0)
+                md5t = hashlib.md5( tmpb.read() ).hexdigest()
+                #print(md5t)
+
+            #Add this new arg
+            self.args['mpl_fig_hash'] = md5t
+            self.mpl_fig_hash = md5t
+            self.args_for_cache_id += ['mpl_fig_hash']
+            
         #Other filetype images
         else:
 
             if self.width == None:
                 self.width = document._width
 
-        #Special args for cache id
-        self.args_for_cache_id = ['width','ext']
+        
         #Add this module to the current slide + add positionner
         self.register()
 
@@ -109,10 +140,23 @@ class figure(beampy_module):
 
 
         #Svg // pdf render
-        if self.ext in ('svg', 'pdf') :
+        if self.ext in ('svg', 'pdf', 'matplotlib') :
             #Convert pdf to svg
             if self.ext == 'pdf' :
                 figurein = convert_pdf_to_svg( self.content )
+
+            #Convert matplotlib figure to svg 
+            elif self.ext == 'matplotlib':
+
+                #Store mpl svg to a stringIO object
+                with StringIO() as tmpf:
+                    self.content.savefig(tmpf, bbox_inches='tight', format='svg')
+                    tmpf.seek(0) #go to the biginig of the file
+
+                    #store tmpf content as string in figurein variable
+                    figurein = tmpf.read().encode('utf-8')
+                
+            #General case for svg format 
             else:
                 #Check if a filename is given for a svg file or directly read the content value
                 if os.path.isfile(self.content):

@@ -33,11 +33,11 @@ with slide('Figure'):
         """, langage="python", width=350, x="1cm")
 
 with slide('Svg animation'):
-    animatesvg("./svg_anims/", width="500")
+    animatesvg("./svg_anims/*.svg", width="500")
     with group(width=700, height=95, background=codeback):
         code(r"""
 slide('Svg animation')
-animatesvg("./svg_anims/", width="500")
+animatesvg("./svg_anims/*.svg", width="500")
         """, langage="python", width=300, x="1cm")
 
 with slide('Video'):

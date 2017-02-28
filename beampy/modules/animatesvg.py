@@ -9,8 +9,11 @@ Class to manage text for beampy
 from beampy import document
 from beampy.modules.figure import figure
 from beampy.modules.core import beampy_module
+from beampy.functions import convert_unit
+
 import glob
 import re
+import sys
 
 class animatesvg(beampy_module):
 
@@ -43,15 +46,32 @@ class animatesvg(beampy_module):
         #Check input args for this module
         self.check_args_from_theme(kwargs)
 
+        #Cache is useless because we call figure function which handle the cache for each figures
+        self.cache = False
+        
+        input_width = self.width #Save the input width for mpl figures
         if self.width == None:
             self.width = document._width
 
-        #Read all svg files
-        svg_files = glob.glob(files_folder+'*.svg')
+        #Read all files from a given wildcard 
+        if type(files_folder) == type(str()):
+            svg_files = glob.glob(files_folder)
 
-        #Need to sort using the first digits finded in the name
-        svg_files = sorted(svg_files, key=lambda x: int(''.join(re.findall(r'\d+', x))))
+            #Need to sort using the first digits finded in the name
+            svg_files = sorted(svg_files, key=lambda x: int(''.join(re.findall(r'\d+', x))))
 
+        #If the input is a list of names or mpl figures or other compatible with figure
+        elif type(files_folder) == type(list()):
+            svg_files = files_folder
+
+            if input_width == None:
+                width_inch, height_inch = files_folder[0].get_size_inches()
+                self.width = convert_unit( "%fin"%(width_inch) )
+                
+        else:
+            print('Unknow input type for files_folder')
+            sys.exit(0)
+                
         #check how many images we wants
         if self.end == 'end':
             self.end = len(svg_files)
@@ -96,7 +116,7 @@ class animatesvg(beampy_module):
                     img.delete()
 
 
-
+                
 
                 self.animout = output
 
@@ -111,6 +131,8 @@ class animatesvg(beampy_module):
 
 
             #return output
-
+            #Update the rendered state of the module
+            self.rendered = True
+            
         else:
             print('nothing found')

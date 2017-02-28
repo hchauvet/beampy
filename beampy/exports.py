@@ -14,6 +14,7 @@ import json
 import cStringIO as stringio
 import os
 import time
+import io 
 
 #Get the beampy folder
 curdir = os.path.dirname(__file__) + '/'
@@ -122,7 +123,7 @@ def svg_export(dir_name):
         #check_content_type_change( document._contents["slide_%i"%islide] )
         #tmp = render_slide( document._contents["slide_%i"%islide] )
 
-        with open(dir_name+'slide_%i.svg'%islide, 'w') as f:
+        with io.open(dir_name+'slide_%i.svg'%islide, 'w', encoding='utf8') as f:
             f.write(tmp)
 
     return "saved to "+dir_name

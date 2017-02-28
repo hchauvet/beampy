@@ -68,9 +68,14 @@ class cache_slides():
             if bp_module.rendered:
                 #Set the uniq id from the element['content'] value of the element
                 elemid = create_element_id(bp_module, use_args=False, add_slide=False, slide_position=False)
+                
                 if elemid != None:
                     self.data[elemid] = {}
-                    self.data[elemid]['content'] = bp_module.content
+                    
+                    #don't pickle matplotlib figure We don't need to store content in cache
+                    #if "matplotlib" not in str(type(bp_module)):
+                    #    self.data[elemid]['content'] = bp_module.content
+                        
                     self.data[elemid]['width'] = bp_module.positionner.width
                     self.data[elemid]['height'] = bp_module.positionner.height
                     self.data[elemid]['svgout'] = bp_module.svgout
@@ -96,12 +101,15 @@ class cache_slides():
         if bp_module.name not in ['group']:
             elemid = create_element_id(bp_module, use_args=False, add_slide=False, slide_position=False)
 
+            #print(bp_module.name,":",elemid)
             if elemid != None and elemid in self.data:
                 cacheelem = self.data[elemid]
+                out = True
 
-                #Content check
-                if bp_module.content == cacheelem['content']:
-                    out = True
+                #Content check OLD TO REMOVE if no bugs
+                #the content is now used to generate the elemid 
+                #if bp_module.content == cacheelem['content']:
+                #    out = True
 
                 #If it's from a file check if the file as changed
                 if 'file_id' in cacheelem:

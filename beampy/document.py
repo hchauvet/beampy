@@ -21,7 +21,7 @@ class document():
        Main function to define the document style etc...
     """
 
-    __version__ = '0.4.2'
+    __version__ = '0.4.3'
     #Global variables to sotre data
     _contents = {}
     _slides = {}
