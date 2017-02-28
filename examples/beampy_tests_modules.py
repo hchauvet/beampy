@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
-
+import pylab as p
 from beampy import *
 
 doc = document(cache=False, theme='ComplicatedBlue')
@@ -39,6 +39,31 @@ with slide('Svg animation'):
 slide('Svg animation')
 animatesvg("./svg_anims/*.svg", width="500")
         """, langage="python", width=300, x="1cm")
+
+
+with slide("Matplotlib figure"):
+    fig = p.figure()
+    x = p.linspace(0,2*p.pi)
+    
+    p.plot(x, p.sin(x), '--')
+    
+    figure(fig)
+
+
+with slide("Matplotlib animation"):
+
+    anim_figs = []
+    for i in range(20):
+        fig = p.figure()   
+        x =  p.linspace(0,2*p.pi)
+        p.plot(x, p.sin(x+i))
+        p.plot(x, p.sin(x+i+p.pi))
+        p.close(fig) 
+        anim_figs += [ fig ]
+        
+        
+    animatesvg( anim_figs )
+     
 
 with slide('Video'):
     video("./test.webm", width=500, height=294)
