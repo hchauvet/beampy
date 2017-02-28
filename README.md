@@ -17,7 +17,7 @@ Beampy presentation output only one html file with every contents embedded.
 
 ### 0.4.3
 
-* Matplotlib figure can now be directly passed to *figure()* or a list of matplotlib figure can be animated with *animatesvg()*
+* Matplotlib figures can now be directly passed to *figure()* or a list of matplotlib figures can be animated with *animatesvg()*
 * Minor improvement in cache size (content is no more stored in cache file)
 * Update of scour version (svg-optimiser) 
 
