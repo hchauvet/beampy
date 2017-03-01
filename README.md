@@ -8,7 +8,10 @@ The size of slides is fixed, like in a Latex Beamer document.
 
 Beampy presentation output only one html file with every contents embedded.
 
-[See a Beampy tests presentation](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html) (source is in *examples/beampy_tests_modules.py*)
+[See a Beampy tests presentation](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html) (source is in *examples/beampy_tests_modules.py*)
+
+
+<iframe src="https://cdn.rawgit.com/hchauvet/beampy/18fa0592/examples/beampy_tests.html"></iframe> 
 
 ## TODO:
 * A clear documentation
@@ -190,7 +193,7 @@ with slide():
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#2)
+[Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#2)
 
 ###Svg plot animation
 
@@ -206,7 +209,7 @@ with slide('Svg animation'):
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#3)
+[Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#3)
 
 ### Using Matplotlib 
 
@@ -243,8 +246,8 @@ with slide("Mpl animation"):
 save("test_figures.html")
 ```
 
-[Figure Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#4)
-[Animation Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#5)
+[Figure Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#4)
+[Animation Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#5)
 
 ###Video
 
@@ -258,7 +261,7 @@ with slide('Video'):
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#6)
+[Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#6)
 
 ###Group and columns
 
@@ -277,7 +280,7 @@ with slide('Group and columns'):
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#7)
+[Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#7)
 
 ###Relative positioning
 
@@ -310,7 +313,7 @@ with slide("Using element's anchors 2"):
 
 save('test.html')
 ```
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#9)
+[Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#9)
 
 #### Relative to the previous element
 ```python
@@ -330,7 +333,7 @@ text(r"youpi x=+1.5cm,\\ y=-0", x="+1.5cm", y="-0")
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#8)
+[Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#8)
 
 
 ###Tikz
@@ -349,7 +352,7 @@ save('test.html')
 ```
 
 Here is a more complex Tikz output on the result:
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#10)
+[Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#10)
 
 ###Bokeh interactive plot
 
@@ -371,7 +374,7 @@ figure(p, y="+5px", x="center")
 save('test.html')
 ```
 
-[Result](https://cdn.rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#11)
+[Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#11)
 
 ### Code highlight
 
