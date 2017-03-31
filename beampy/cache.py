@@ -11,36 +11,61 @@ import cPickle as pkl
 import gzip
 import copy
 import hashlib
-
+import tempfile
+import glob
 
 class cache_slides():
 
-    def __init__(self, cache_file, document):
+    def __init__(self, cache_dir, document):
         """
-            Create a cache_slides object to store cache in the given cache file
+            Create a cache_slides object to store cache in the given cache folder
         """
-        self.file = cache_file
+        self.folder = cache_dir
         self.version = document.__version__
         self.global_store = document._global_store
         self.data = {} #Cache data are stored in a dict
 
+        self.data_file = 'data.pklz'
+        
         #Try to read cache
-        if os.path.exists(self.file):
-            with gzip.open(self.file, 'rb') as f:
-                self.data = pkl.load(f)
+        if os.path.isdir(self.folder):
+            if os.path.exists(self.folder+'/'+self.data_file):
+                with gzip.open(self.folder+'/'+self.data_file, 'rb') as f:
+                    self.data = pkl.load(f)
+                
+        else:
+            os.mkdir(self.folder)
 
-        if 'version' not in self.data:
+        if 'version' not in self.data or self.data['version'] != self.version:
             print('Cache file from an other beampy version!')
             self.data = {}
-
-        #Restore glyphs definitions
-        if 'glyphs' in self.data:
-            document._global_store['glyphs'] = self.data['glyphs']
-
+            self.remove_files()
+            
+        #check if we the optimize svg option is enabled
+        elif 'optimize' not in self.data or self.data['optimize'] != document._optimize_svg:
+            print('Reset cache du to optimize')
+            self.data = {}
+            self.remove_files()
+            
+        else:
+            #Restore glyphs definitions
+            if 'glyphs' in self.data:
+                document._global_store['glyphs'] = self.data['glyphs']
+                
+            
+            
+        #Add beampy version in data
+        self.data['version'] = self.version
+        self.data['optimize'] = document._optimize_svg
+        
+    def remove_files(self):
+        for f in glob.glob(self.folder+'/*.pklz'):
+            os.remove(f)
+            
     def clear(self):
 
-        if os.path.exists(self.file):
-            os.remove(self.file)
+        if os.path.isdir(self.folder):
+            os.removedirs(self.folder)
 
         self.data = {}
 
@@ -55,21 +80,14 @@ class cache_slides():
 
         if bp_module.type not in ['group']:
 
-            #Add beampy version in data
-            if 'version' not in self.data:
-                self.data['version'] = self.version
-
-            #Add the slide
-            #if slide not in self.data:
-            #    self.data[slide] = {}
-
-
             #commands that include raw contents (like text, tikz, ...)
             if bp_module.rendered:
                 #Set the uniq id from the element['content'] value of the element
                 elemid = create_element_id(bp_module, use_args=False, add_slide=False, slide_position=False)
                 
                 if elemid != None:
+                    
+                    
                     self.data[elemid] = {}
                     
                     #don't pickle matplotlib figure We don't need to store content in cache
@@ -78,9 +96,23 @@ class cache_slides():
                         
                     self.data[elemid]['width'] = bp_module.positionner.width
                     self.data[elemid]['height'] = bp_module.positionner.height
-                    self.data[elemid]['svgout'] = bp_module.svgout
-                    self.data[elemid]['htmlout'] = bp_module.htmlout
-                    self.data[elemid]['jsout'] = bp_module.jsout
+                    
+                    if bp_module.svgout != None:
+                        #create a temp filename
+                        svgoutname = tempfile.mktemp(prefix='svgout_', dir='')
+                        self.data[elemid]['svgout'] = svgoutname
+                        #save the file 
+                        self.write_file_cache(svgoutname, bp_module.svgout)
+                        
+                    if bp_module.htmlout != None:
+                        htmloutname = tempfile.mktemp(prefix='htmlout_', dir='')
+                        self.data[elemid]['htmlout'] = htmloutname
+                        self.write_file_cache(htmloutname, bp_module.htmlout)
+                        
+                    if bp_module.jsout != None:
+                        jsoutname = tempfile.mktemp(prefix='jsout_', dir='')
+                        self.data[elemid]['jsout'] = jsoutname
+                        self.write_file_cache(jsoutname, bp_module.jsout)
 
                     #print(element['args'])
                     #print(element.keys())
@@ -126,7 +158,9 @@ class cache_slides():
                 #If It's in cache load items from the cache to the object
                 if out:
                     for key in ['svgout', 'jsout', 'htmlout']:
-                        setattr(bp_module, key, cacheelem[key])
+                        if key in cacheelem:
+                            content = self.read_file_cache(cacheelem[key])
+                            setattr(bp_module, key, content)
 
                     #Update the size
                     bp_module.update_size(cacheelem['width'], cacheelem['height'])
@@ -150,15 +184,30 @@ class cache_slides():
         if 'glyphs' in self.global_store:
             self.data['glyphs'] = self.global_store['glyphs']
             
-        with gzip.open(self.file, 'wb') as f:
+        with gzip.open(self.folder+'/'+self.data_file, 'wb') as f:
             pkl.dump(self.data, f, protocol=2)
+            
+            
+    def write_file_cache(self, filename, content):
+        
+        with gzip.open(self.folder+'/'+filename+'.pklz', 'wb') as f:
+            f.write(content)
 
+    def read_file_cache(self, filename):
+        output = None
+        
+        with gzip.open(self.folder+'/'+filename+'.pklz', 'rb') as f:
+            output = f.read()
+            
+        return output
+        
 #TODO: solve import bug when we try to import this function from beampy.functions...
 def create_element_id( bp_mod, use_args=True, use_render=True,
                        use_content=True, add_slide=True, slide_position=True,
                        use_size = False ):
     """
-        create a unique id for the element using element['content'] and element['args'].keys() and element['render'].__name__
+        create a unique id for the element using 
+        element['content'] and element['args'].keys() and element['render'].__name__
     """
     from beampy.functions import gcs
     from beampy.document import document

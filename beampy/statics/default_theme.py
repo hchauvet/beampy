@@ -127,3 +127,22 @@ THEME['itemize'] = {
     'text_color':THEME['text']['color'],
     'width':None
 }
+
+THEME['line'] = {
+    'x':'center',
+    'y':'auto',
+    'color': THEME['title']['color'],
+    'linewidth': '2px',
+    'opacity': 1
+}
+
+THEME['rectangle'] = {
+    'x':'center',
+    'y':'auto',
+    'color': THEME['title']['color'],
+    'linewidth': '2px',
+    'opacity': 1,
+    'edgecolor': THEME['text']['color'],
+    'height': '10px',
+    'width': '%spx'%(THEME['document']['width'])
+}

@@ -164,7 +164,8 @@ class slide():
             
         #Run render of each elements
         t = time.time()
-        for i, ct in self.contents.iteritems():
+        for i, key in enumerate(self.element_keys):
+            ct = self.contents[key]
             if not ct.rendered:
                 ct.run_render()
             #print ct.keys()
@@ -267,7 +268,7 @@ class beampy_module():
     content = None #Store the input content
     type = None #Define the type of the module
     name = None
-    args = None #Store the raw dict of passed args (see check_args_from_theme)
+    args = {} #Store the raw dict of passed args (see check_args_from_theme)
 
     #Storage of render outputs
     svgout = None #The output of the render
@@ -424,6 +425,9 @@ class beampy_module():
         for key, value in document._theme[theme_key].items():
             if not hasattr(self, key):
                 setattr(self, key, value)
+                
+                #Add args to the args dictionnary also
+                self.args[key] = value
 
     def load_args(self, kwargs_dict):
         """

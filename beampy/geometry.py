@@ -9,9 +9,23 @@ from beampy.document import document
 import operator
 import sys
 
+#Default dict for positioning alignement
 DEFAULT_X = {'align': 'left', 'reference': 'slide', 'shift': 0, 'unit': 'width'}
 DEFAULT_Y = {'align': 'top', 'reference': 'slide', 'shift': 0, 'unit': 'width'}
 
+#Define function for alignement shortcuts.
+def center(shift=0):
+    return {'align': 'center', 'shift': shift}
+    
+def top(shift=0):
+    return {'align': 'top', 'shift': shift}
+    
+def bottom(shift=0):
+    return {'align': 'bottom', 'shift': shift}
+    
+def right(shift=0):
+    return {'align': 'right', 'shift': shift}
+    
 class positionner():
 
     def __init__(self, x, y, width, height, elem_id):
@@ -46,10 +60,8 @@ class positionner():
             print('Element not found in document._content[gcs()]')
             self.id_index = -1 #Content not stored in slide contents (like group)
 
-        self.width = width
-        self.height = height
-
-
+        self.update_size(width, height)
+        
         #Make copy if x and y are dict input
         if type(x) == type(dict()):
             self.x = x.copy()
@@ -72,10 +84,23 @@ class positionner():
     def update_size(self, width, height):
         """
             Update width and height to computed ones by the element render.
+            
+            If width is less than 1px, use it as a percentage of the width
         """
 
-        self.width = float(width)
-        self.height = float(height)
+        try:
+            self.width = float(width)
+        except:
+            self.width = None
+            
+        try:    
+            self.height = float(height)
+        except:
+            self.height = None
+        
+        
+        if self.width != None and self.width < 1.0:
+            self.width *= document._width
 
     def compute_anchors(self):
         """

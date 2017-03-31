@@ -11,12 +11,26 @@ Beampy presentation output only one html file with every contents embedded.
 [See a Beampy tests presentation](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html) (source is in *examples/beampy_tests_modules.py*)
 
 
-<iframe src="https://cdn.rawgit.com/hchauvet/beampy/18fa0592/examples/beampy_tests.html"></iframe> 
 
 ## TODO:
 * A clear documentation
 
 ## Curent version:
+
+### 0.4.4
+
+* Improve cache: one file per element cached (don't write the cache twice!)
+* Svg: Add line and rectangle commands to easily draw lines and rectangles
+* Relative placement: add shortcut center(shift), right(shift) and bottom(shift) 
+  to change the anchor of the current element.
+  
+  ```python 
+    e1 = text('Somthing', x=0.2, y=0.4)
+    e2 = text('An other thing', 
+              x=e1.left + right(0.1), 
+              y=e1.center + center(0))
+  ```
+
 
 ### 0.4.3
 

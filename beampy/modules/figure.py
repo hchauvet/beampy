@@ -125,7 +125,13 @@ class figure(beampy_module):
             
         #Other filetype images
         else:
-
+            
+            #Add file timestamp to an arguments for caching 
+            fdate = str(os.path.getmtime( self.content ))
+            self.args['filedate'] = fdate
+            self.filedate = fdate
+            self.args_for_cache_id += ['filedate']
+            
             if self.width == None:
                 self.width = document._width
 
