@@ -7,8 +7,6 @@ Created on Sun Oct 25 19:05:18 2015
 
 from beampy import document
 from beampy.modules.figure import figure
-import cStringIO as StringIO
-
 import tempfile
 import os
 

@@ -10,7 +10,7 @@ with slide():
     ('Hugo Chauvet',),'Institut de python',date="now")
     
     svg("""
-    <rect width="800" height="10" style="fill:royalblue;"/>
+    <rect width="782" height="10" style="fill:royalblue;"/>
     """, x=0.01, y=0.6)
     
 with slide():

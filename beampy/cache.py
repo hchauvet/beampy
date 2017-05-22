@@ -7,7 +7,13 @@ Manage cache system for slides
 """
 
 import os, sys
-import cPickle as pkl
+
+try:
+    import cPickle as pkl
+except:
+    #compatibility with python 3.x
+    import pickle as pkl
+
 import gzip
 import copy
 import hashlib

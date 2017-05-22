@@ -10,7 +10,12 @@ from beampy import document
 from beampy.modules.core import beampy_module
 import base64
 import os
-import cStringIO
+try:
+    from cStringIO import StringIO
+except:
+    #Python 3.x
+    from io import StringIO
+
 from PIL import Image
 import sys
 
@@ -125,7 +130,7 @@ class video(beampy_module):
 
         img_out = os.popen(FFMPEG_CMD).read()
 
-        img = cStringIO.StringIO(img_out)
+        img = StringIO(img_out)
 
         out = Image.open(img)
 
@@ -134,7 +139,7 @@ class video(beampy_module):
         size = out.getbbox()
 
         #Save image to string
-        outimg = cStringIO.StringIO()
+        outimg = StringIO()
         out.save(outimg, 'JPEG')
         out.close()
 

@@ -506,7 +506,10 @@ def create_element_id( bpmod, use_args=True, use_name=True, use_content=True, ad
     outid = None
     if ct_to_hash != '':
         #print(ct_to_hash)
-        outid = hashlib.md5( ct_to_hash ).hexdigest()
+        try:
+            outid = hashlib.md5( ct_to_hash ).hexdigest()
+        except:
+            outid = hashlib.md5( ct_to_hash.encode('utf8') ).hexdigest()
 
         if outid in document._slides[gcs()].element_keys:
             print("Id for this element already exist!")
@@ -523,7 +526,8 @@ def get_command_line(func_name):
     #Function to print the line of the command in the source code file
     frame,filename,nline,function_name,lines,index = inspect.stack()[-1]
     if type(func_name) != type(''):
-        func_name = func_name.func_name
+        #func_name = func_name.func_name
+        func_name = func_name.__name__
 
     #print(frame,filename,nline,function_name,lines,index)
     start = None

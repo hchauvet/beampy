@@ -6,7 +6,7 @@ Created on Fri May 22 18:28:59 2015
 from beampy.statics.default_theme import THEME
 import sys
 from distutils.spawn import find_executable
-from cache import cache_slides
+from beampy.cache import cache_slides
 #Auto change path
 import os
 import sys
@@ -80,11 +80,11 @@ class document():
                 available_themes = glob.glob(bppath + 'themes/*_theme.py')
 
                 if theme in '|'.join(available_themes):
-                    print available_themes, theme
+                    print((available_themes, theme))
                     themename = 'beampy.themes.'+theme+'_theme'
                     themelist = [theme+'_theme']
 
-                    print themename
+                    print(themename)
                 else:
                     themename = None
             try :
@@ -171,7 +171,7 @@ class document():
         from http://stackoverflow.com/questions/38987/how-can-i-merge-two-python-dictionaries-in-a-single-expression/44512#44512
         """
 
-        for key, value in original.iteritems():
+        for key, value in original.items():
             if not key in update:
                 update[key] = value
             elif isinstance(value, dict):

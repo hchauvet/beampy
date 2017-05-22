@@ -6,12 +6,15 @@ Created on Fri May 15 16:48:01 2015
 """
 
 #from beampy.global_variables import _document, _width, _height, _global_counter
-from beampy.renders import *
 from beampy.commands import document
 from beampy.functions import *
 import beampy
 import json
-import cStringIO as stringio
+try:
+    from cStringIO import StringIO
+except:
+    from io import StringIO
+
 import os
 import time
 import io 
@@ -226,15 +229,15 @@ def html5_export():
             global_store += '<div id="html_store_slide_%i">%s</div>'%(islide, ''.join(slide.htmlout) )
 
         print("Done in %0.3f seconds"%(time.time()-tnow))
-        
+
         
     #Create a json file of all slides output (refs to store)
-    jsonfile = stringio.StringIO()
+    jsonfile = StringIO()
     json.dump(tmpout,jsonfile, indent=None)
     jsonfile.seek(0)
 
     #Create a json file for the store
-    #jsonstore = stringio.StringIO()
+    #jsonstore = StringIO()
     #json.dump(global_store, jsonstore, indent=None)
     #jsonstore.seek(0)
 

@@ -386,7 +386,14 @@ class beampy_module():
 
     def get_name(self):
         #Return the name of the module
-        return str(self.__init__.im_class).split('.')[-1]
+        #return str(self.__init__.im_class).split('.')[-1]
+        name = str(self.__init__.__self__.__class__).split('.')[-1]
+
+        #For python 3.x compatibility
+        if "'>" in name:
+            name = name.replace("'>",'')
+
+        return name
 
     def check_args_from_theme(self, arg_values_dict):
         """
@@ -498,10 +505,11 @@ class beampy_module():
 
             slide_number = int(self.slide_id.split('_')[-1])
             #out = "<defs id='pre_loaded_images_%i'></defs>"%(slide.cpt_anim)
-            out = '<g id="svganimate_s%i_%i" transform="translate(%s,%s)" onclick="Beampy.animatesvg(%i,%i,%i);">'%(slide_number,
+            out = '<g id="svganimate_s%i_%i" transform="translate(%s,%s)" onclick="Beampy.animatesvg(%i,%i,%i);" data-anim=%i data-fps=%i data-lenght=%i>'%(slide_number,
                     slide.cpt_anim,
                     self.positionner.x['final'],
                     self.positionner.y['final'],
+                    slide.cpt_anim, self.fps, len(self.animout),
                     slide.cpt_anim, self.fps, len(self.animout))
 
             #out += '%s'%(''.join(self.animout))

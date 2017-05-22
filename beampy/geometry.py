@@ -227,7 +227,7 @@ class positionner():
                     tmpy['unit'] = 'px'
                 except:
                     print('[Error] y position is incorect string format')
-                    print self.y
+                    print(self.y)
         else:
             print("[Error] y position need to be a float or an int or a dict")
 

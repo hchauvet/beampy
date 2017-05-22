@@ -194,7 +194,7 @@ class text(beampy_module):
             try:
                 uses = svgsoup.find_all('use')
             except:
-                print soup
+                print(soup)
 
             if len(uses) > 0:
                 #TODO: need to make a more fine definition of baseline
@@ -316,7 +316,10 @@ def parse_dvisvgm_svg( soup_data ):
         path_id = path['id']
         #store the bezier coordinates of the glyph
         path_d = path['d']
-        hash_id = hashlib.md5(path_d).hexdigest()
+        try:
+            hash_id = hashlib.md5(path_d).hexdigest()
+        except:
+            hash_id = hashlib.md5(path_d.encode('utf8')).hexdigest()
 
         #print(hash_id, path_id)
         
