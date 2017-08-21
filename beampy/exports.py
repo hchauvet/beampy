@@ -22,6 +22,11 @@ import io
 #Get the beampy folder
 curdir = os.path.dirname(__file__) + '/'
 
+def save_layout():
+    for islide in xrange(document._global_counter['slide']+1):
+        slide = document._slides["slide_%i"%islide]
+        slide.build_layout()
+
 def save(output_file=None, format=None):
     """
         Function to render the document to html
@@ -32,17 +37,28 @@ def save(output_file=None, format=None):
     bname = os.path.basename(output_file)
     bdir = output_file.replace(bname,'')
 
+
+
     if 'html' in output_file or format == 'html5':
         document._output_format = 'html5'
+        save_layout()
+        #Render glyphs
+        render_texts()
         output = html5_export()
 
     elif output_file != None and format == "svg":
         document._output_format = 'svg'
+        save_layout()
+        #Render glyphs
+        render_texts()
         output = svg_export(output_file)
         output_file = None
 
     elif 'pdf' in output_file or format == 'pdf':
         document._output_format = 'pdf'
+        save_layout()
+        #Render glyphs
+        render_texts()
         output = pdf_export(output_file)
 
         output_file = None
@@ -105,6 +121,12 @@ def svg_export(dir_name):
         print("Export slide %i"%islide)
 
         slide = document._slides["slide_%i"%islide]
+
+        #Render group in slide
+        for g in slide.groups:
+            if len(g.elementsid_ingroup) > 0:
+                g.render_ingroup( g.elementsid_ingroup )
+
         #Render the slide
         slide.render()
 
@@ -193,6 +215,11 @@ def html5_export():
         tmpout[slide_id] = {}
         #global_store[slide_id] = {}
         slide = document._slides[slide_id]
+
+        #Render group in slide
+        for g in slide.groups:
+            if len(g.elementsid_ingroup) > 0:
+                g.render_ingroup( g.elementsid_ingroup )
 
         #Render the slide
         slide.render()

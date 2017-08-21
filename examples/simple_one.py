@@ -3,6 +3,7 @@
 
 from beampy import *
 
+#
 doc = document(cache=False, theme='ComplicatedBlue')
 
 with slide():
@@ -21,4 +22,9 @@ with slide():
     title('A seconde title')
     text(r'\href{#0}{Go to Title}')
 
+
 save('./simple_one.html')
+
+
+
+                

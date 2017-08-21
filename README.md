@@ -13,9 +13,19 @@ Beampy presentation output only one html file with every contents embedded.
 
 
 ## TODO:
-* A clear documentation
+
+* A clear documentation (with examples)
+* Write tests 
+* Clean the javascript code
+* Add more themes
+* Allow external links for huge videos
 
 ## Curent version:
+
+### 0.4.5
+
+* All texts are preprocessed in a single latex file (Latex is called only once: improve compilation time)
+* Cache bug fix: Video and svg are now cached correctly
 
 ### 0.4.4
 
@@ -193,7 +203,7 @@ doc._theme['document']['external_app'] = {
 
 To see all these examples download the output **beampy_tests.html** and source **beampy_tests_modules.py** files in the example folder
 
-###Figure
+### Figure
 
 
 ```python
@@ -209,7 +219,7 @@ save('test.html')
 
 [Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#2)
 
-###Svg plot animation
+### Svg plot animation
 
 Click on figure to start the animation
 
@@ -263,7 +273,7 @@ save("test_figures.html")
 [Figure Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#4)
 [Animation Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#5)
 
-###Video
+### Video
 
 ```python
 from beampy import *
@@ -277,7 +287,7 @@ save('test.html')
 
 [Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#6)
 
-###Group and columns
+### Group and columns
 
 ```python
 from beampy import *
@@ -296,7 +306,7 @@ save('test.html')
 
 [Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#7)
 
-###Relative positioning
+### Relative positioning
 
 #### Relative to a given element in the presentation
 ```python
@@ -310,8 +320,9 @@ with slide("Using element's anchors"):
     e4 = text('anchors available: top, bottom, center, right, left',
               y=e0.bottom+'1cm', x=e0.center+{'shift':0, 'align':'middle'})
 
-#You can create shortcuts for relative centering or relative right
-#you also have the "top" and "bottom" for the "align" key of the new element
+#You can create shortcuts for relative centering or relative right you also have 
+#the "top" and "bottom" for the "align" key of the new element
+
 def ecenter( shift = 0 ):
     return {"shift":shift, "align": 'middle'}
 
@@ -350,7 +361,7 @@ save('test.html')
 [Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#8)
 
 
-###Tikz
+### Tikz
 
 
 ```python
@@ -368,7 +379,7 @@ save('test.html')
 Here is a more complex Tikz output on the result:
 [Result](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html#10)
 
-###Bokeh interactive plot
+### Bokeh interactive plot
 
 ```python
 from beampy import *

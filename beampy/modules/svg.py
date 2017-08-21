@@ -76,7 +76,8 @@ class svg( beampy_module ):
         #Add the final svg output of the figure
         self.svgout = self.content
  
-        
+        #Set rendered flag to true (needed for the cache)
+        self.rendered = True
         
 class rectangle(svg):
     

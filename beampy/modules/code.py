@@ -51,7 +51,8 @@ class code(figure):
         self.langage = langage
         self.font_size = size
 
-
+        #TODO: Move this function to pre-render to be managed by cache
+        #and not run at each beampy run
         self.code2svg()
 
         if is_pigment:
@@ -79,7 +80,7 @@ class code(figure):
         svgcode = highlight(codein, lexer, SvgFormatter(fontsize=self.font_size, style='tango'))
 
         #Create a tmpfile
-        tmpfile, tmpname = tempfile.mkstemp(prefix='beampytmp')
+        tmpfile, tmpname = tempfile.mkstemp(prefix='beampytmp_CODE')
         #tmppath = tmpname.replace(os.path.basename(tmpname),'')
 
         with open( tmpname+'.svg', 'w' ) as f:
@@ -98,6 +99,7 @@ class code(figure):
         #remove files
         os.remove(tmpname+'.svg')
         os.remove(tmpname+'_good.svg')
+        os.remove(tmpname)
 
         #Add the figure extension
         self.ext = 'svg'

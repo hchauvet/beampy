@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 """
 Created on Fri May 15 16:45:51 2015
 
@@ -576,3 +576,117 @@ def guess_file_type( file_name, file_type = None ) :
             print('Unknown file type for file name: ' + file_name + '.' )
 
     return file_type
+
+
+#Function to render texts in document
+def render_texts():
+    """
+        Function to merge all text in the document to run latex only once
+
+        This function build the .tex file and then call two external programs
+
+        .tex -> latex -> .dvi -> dvisvgm -> svgfile
+    """
+
+    print('Render texts of slides with latex')
+    latex_header = r"""
+    \documentclass[crop=true, multi=true]{standalone}
+    \usepackage[utf8x]{inputenc}
+    \usepackage{fix-cm}
+    \usepackage[hypertex]{hyperref}
+    \usepackage[svgnames]{xcolor}
+    \renewcommand{\familydefault}{\sfdefault}
+    \usepackage{varwidth}
+    \usepackage{amsmath}
+    \usepackage{amsfonts}
+    \usepackage{amssymb}
+    \begin{document}
+    """
+    latex_pages = []
+    latex_footer = r"\end{document}"
+
+    #Loop over slide
+    t = time.time()
+    cpt_page = 1
+    elements_pages = []
+
+    for sid in document._slides:
+        #Loop over content in the slide
+        for cid in document._slides[sid].element_keys:
+            e = document._slides[sid].contents[cid]
+            #Check if it's a text element, is it cached?, render it to latex syntax
+            if e.type == 'text' and e.usetex:
+                if e.cache and document._cache != None:
+                    ct_cache = document._cache.is_cached(sid, e)
+                    if ct_cache == False:
+
+                        #Run the pre_rendering
+                        e.pre_render()
+
+                        try:
+                            latex_pages += [ e.latex_tmp ]
+                            elements_pages += [ {"element": e, "page":cpt_page} ]
+                            cpt_page += 1
+                        except Exception as e:
+                            print(e)
+                else:
+
+                    e.pre_render()
+
+                    try:
+                        latex_pages += [ e.latex_tmp ]
+                        elements_pages += [ {"element": e, "page":cpt_page} ]
+                        cpt_page += 1
+                    except Exception as e:
+                        print(e)
+
+    if len(latex_pages) > 0:
+        #Write the file to latex
+
+        tmpfile, tmpname = tempfile.mkstemp(prefix='beampytmp')
+        tmppath = tmpname.replace(os.path.basename(tmpname), '')
+
+        with open( tmpname + '.tex','w') as f:
+            f.write(latex_header)
+            f.write(r'\newpage'.join(latex_pages))
+            f.write(latex_footer)
+
+        print('Latex file writen in %f'%(time.time()-t))
+
+        #Run Latex
+        #t = time.time()
+        tex = os.popen( "cd "+tmppath+" && latex -interaction=nonstopmode "+tmpname+".tex" )
+        #print('Latex run in %f'%(time.time()-t))
+        tex.close()
+
+        #Upload svg to each elements
+        dvisvgmcmd = document._external_cmd['dvisvgm']
+
+        t = time.time()
+        res = os.popen(  dvisvgmcmd+' -n -s -p1- --linkmark=none -v0 '+tmpname+'.dvi' )
+        allsvgs = res.readlines()
+        res.close()
+
+        #To split the data get the first line which define the <? xml ....?> command
+        schema = allsvgs[0]
+
+        #Join all svg lines and split them each time you find the schema
+        svg_list = ''.join(allsvgs[1:]).split(schema)
+
+        #Process all pages to svg
+        for i, ep in enumerate(elements_pages):
+            #Loop over content in the slide
+            cpt_page = ep['page']
+            #tmpcmd = dvisvgmcmd+' -n -s -p '+str(cpt_page)+' --linkmark=none -v0 '+tmpname+'.dvi'
+            #res = os.popen( tmpcmd )
+            #tmpres = res.read()
+            #res.close()
+            #print(document._slides[ep['slide']].contents[ep['element']])
+            #document._slides[ep['slide']].contents[ep['element']].svgtext = tmpres
+            ep['element'].svgtext = schema + svg_list[i]
+
+        print('DVI -> SVG in %f'%(time.time()-t))
+        #Remove temp files
+        for f in glob.glob(tmpname+'*'):
+            os.remove(f)
+        

@@ -124,6 +124,27 @@ class slide():
         from beampy.exports import display_matplotlib
         display_matplotlib(self.id)
 
+
+    def build_layout(self):
+        """
+            Function to build the layout of the slide,
+            elements defined in bacground inside the theme file
+        """
+
+        #Check if we have a background layout to render
+        if self.render_layout:
+            if self.args['layout'] != None and 'function' in str(type(self.args['layout'])):
+
+                #We need to restor the id of the slide for each module produced in the layout
+
+                save_global_ct = document._global_counter['slide'] #backup the total number of slides
+                document._global_counter['slide'] = self.slide_num #put the slide number in the counter
+
+                #Run the layout function (which contains beampy modules)
+                self.args['layout']( )
+
+                document._global_counter['slide'] = save_global_ct #restor the slide counter
+
     def render(self):
         """
             Function to render a slide to an svg figure
@@ -148,20 +169,6 @@ class slide():
         self.svgheader = out
         #self.add_rendered( svg=out )
 
-        #Check if we have a background layout to render    
-        if self.render_layout:    
-            if self.args['layout'] != None and 'function' in str(type(self.args['layout'])):
-                
-                #We need to restor the id of the slide for each module produced in the layout
-                
-                save_global_ct = document._global_counter['slide'] #backup the total number of slides
-                document._global_counter['slide'] = self.slide_num #put the slide number in the counter 
-                
-                #Run the layout function (which contains beampy modules)
-                self.args['layout']( )
-                
-                document._global_counter['slide'] = save_global_ct #restor the slide counter
-            
         #Run render of each elements
         t = time.time()
         for i, key in enumerate(self.element_keys):
@@ -357,6 +364,7 @@ class beampy_module():
             Run the function self.render if the module is not in cache
         """
 
+        #t = time.time()
         #Get the current slide object
         slide = document._slides[gcs()]
 
@@ -383,6 +391,8 @@ class beampy_module():
                 print("Elem [%s ...] rendered"%self.call_cmd.strip()[:20])
             except:
                 print("Elem %s rendered"%self.name)
+
+        #print('Done in %f'%(time.time()-t))
 
     def get_name(self):
         #Return the name of the module
@@ -505,12 +515,12 @@ class beampy_module():
 
             slide_number = int(self.slide_id.split('_')[-1])
             #out = "<defs id='pre_loaded_images_%i'></defs>"%(slide.cpt_anim)
-            out = '<g id="svganimate_s%i_%i" transform="translate(%s,%s)" onclick="Beampy.animatesvg(%i,%i,%i);" data-anim=%i data-fps=%i data-lenght=%i>'%(slide_number,
+            out = '<g id="svganimate_s%i_%i" transform="translate(%s,%s)" onclick="Beampy.animatesvg(%i,%i,%i);" data-slide=%i data-anim=%i data-fps=%i data-lenght=%i>'%(slide_number,
                     slide.cpt_anim,
                     self.positionner.x['final'],
                     self.positionner.y['final'],
                     slide.cpt_anim, self.fps, len(self.animout),
-                    slide.cpt_anim, self.fps, len(self.animout))
+                    slide_number, slide.cpt_anim, self.fps, len(self.animout))
 
             #out += '%s'%(''.join(self.animout))
             out += self.animout[0]
@@ -551,13 +561,17 @@ class group(beampy_module):
         document._slides[gcs()].groups += [ self ]
         document._global_counter['group'] += 1
 
+        #To store elements id to group
+        self.elementsid_ingroup = []
+
         #Add classic register to the slide
         self.register()
 
         if elements_to_group != None:
             eids = [e.id for e in elements_to_group]
-            print("[Beampy][%s] render %i elements in group %i"%(self.slide_id, len(eids), self.idg))
-            self.render_ingroup( eids )
+            #print("[Beampy][%s] render %i elements in group %i"%(self.slide_id, len(eids), self.idg))
+            self.elementsid_ingroup = eids
+            #self.render_ingroup( eids )
 
 
     def __enter__(self):
@@ -576,11 +590,12 @@ class group(beampy_module):
             elementids = slide.element_keys[self.content_start:self.content_stop]
 
             if len(elementids) > 0:
-                print("[Beampy][%s] render %i elements in group %i"%(gcs(),
-                       len(elementids), self.idg))
+                #print("[Beampy][%s] render %i elements in group %i"%(gcs(),
+                #       len(elementids), self.idg))
 
                 #render the content of a given group
-                self.render_ingroup( elementids )
+                #self.render_ingroup( elementids )
+                self.elementsid_ingroup = elementids
 
         else:
             print('The begining of the group as not been defined')

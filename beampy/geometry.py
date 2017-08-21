@@ -15,7 +15,7 @@ DEFAULT_Y = {'align': 'top', 'reference': 'slide', 'shift': 0, 'unit': 'width'}
 
 #Define function for alignement shortcuts.
 def center(shift=0):
-    return {'align': 'center', 'shift': shift}
+    return {'align': 'middle', 'shift': shift}
     
 def top(shift=0):
     return {'align': 'top', 'shift': shift}

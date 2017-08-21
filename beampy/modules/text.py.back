@@ -131,31 +131,109 @@ class text(beampy_module):
 
         if self.usetex:
 
-            #print(self.svgtext)
-            if self.svgtext == '':
+            #Check if a color is defined in args
+            if hasattr(self, 'color'):
+                textin = color_text( self.content, self.color )
+            else:
+                textin = self.content
+
+            if 'center' in self.align:
+                texalign = r'\centering'
+            elif 'right' in self.align:
+                texalign = r'\flushright'
+            else:
+                texalign = ''
+
+            #fontsize{size}{interlinear_size}
+            pretex = r"""
+            \documentclass[crop=True]{standalone}
+            \usepackage[utf8x]{inputenc}
+            \usepackage{fix-cm}
+            \usepackage[hypertex]{hyperref}
+            \usepackage[svgnames]{xcolor}
+            \renewcommand{\familydefault}{\sfdefault}
+            \usepackage{varwidth}
+            \usepackage{amsmath}
+            \usepackage{amsfonts}
+            \usepackage{amssymb}
+            \begin{document}
+            \begin{varwidth}{%ipt}
+            %s
+            \fontsize{%i}{%i}\selectfont %s
+
+            \end{varwidth}
+            \end{document}
+            """%( self.width*(72.27/96.), texalign,
+                self.size, (self.size+self.size*0.1),
+                textin )
+            #96/72.27 pt_to_px for latex
+
+            self.latex_tmp = r"""
+            \begin{varwidth}{%ipt}
+            %s
+            \fontsize{%i}{%i}\selectfont %s
+
+            \end{varwidth}
+            """%( self.width*(72.27/96.), texalign,
+                self.size, (self.size+self.size*0.1),
+                textin )
+
+            #latex2svg
+            testsvg = latex2svg( pretex )
+
+            if testsvg == '':
                 print("Latex Compilation Error")
-                print("Beampy Input:")
-                print(self.content)
+                print("Beampy Input")
+                print(pretex)
                 sys.exit(0)
 
             #Parse the ouput with beautifullsoup
-            soup = BeautifulSoup(self.svgtext, 'xml')
+            soup = BeautifulSoup(testsvg, 'xml')
             svgsoup = soup.find('svg')
             #print(soup)
-
+            
             #Find the width and height
             xinit, yinit, text_width, text_height = svgsoup.get('viewBox').split()
             text_width = float(text_width)
             text_height = float(text_height)
-
-
+            
+            #TODO: REPLACE BeautifulSoup by lxml (which is faster)
+            #from lxml import etree
+            #doc = etree.fromstring(testsvg)
+            #dtest = doc.xpath('//path/id')
+            #print(dtest)
+                
             #Get id of paths element to make a global counter over the entire document
             if 'path' not in document._global_counter:
                 document._global_counter['path'] = 0
 
+            #Create unique_id_ with time 
+            #text_id =  ("%0.2f"%time.time()).split('.')[-1]
+            """
+            for path in soup.find_all('path'):
+                pid = path.get('id')
+                new_pid = '%s_%i'%(text_id, document._global_counter['path'])
+
+                #Check genereta an hash of the glyphs svg path and check if it's
+                #already define in the global store
+                md5print = hashlib.md5(path.get('d')).hexdigest()
+
+                new_svg_path = "<path d='%s', id='%s'> "%(path.get('d'), new_pid)
+                print(new_svg_path)
+               
+                print(md5print, 'for ', pid, 'nid', new_pid)
+
+                #Old way on the global svg
+                testsvg = re.sub(pid, new_pid, testsvg)
+                document._global_counter['path'] += 1
+
+            #Reparse the svg
+            soup = BeautifulSoup(testsvg, 'xml')
+            """
+
             #New method with a global glyph store
             svgsoup = parse_dvisvgm_svg( svgsoup )
-
+            
             #Change id in svg defs to use the global id system
             #soup = make_global_svg_defs(soup)
 

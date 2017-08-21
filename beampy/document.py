@@ -11,6 +11,7 @@ from beampy.cache import cache_slides
 import os
 import sys
 import glob
+import time
 bppath = os.path.dirname(__file__) + '/'
 basename = os.path.basename(__file__)
 script_file_name = os.path.basename(sys.argv[0]).split('.')[0]
@@ -80,11 +81,11 @@ class document():
                 available_themes = glob.glob(bppath + 'themes/*_theme.py')
 
                 if theme in '|'.join(available_themes):
-                    print((available_themes, theme))
+                    #print((available_themes, theme))
                     themename = 'beampy.themes.'+theme+'_theme'
                     themelist = [theme+'_theme']
 
-                    print(themename)
+                    #print(themename)
                 else:
                     themename = None
             try :
@@ -224,3 +225,6 @@ class document():
         fo = open(in_file, 'r')
         document._source_code = fo.readlines()
         fo.close()
+
+
+    

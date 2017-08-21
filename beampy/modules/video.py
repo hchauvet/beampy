@@ -67,6 +67,12 @@ class video(beampy_module):
 
         #Special args for cache id
         self.args_for_cache_id = ['width','still_image_time']
+        #Add the time stamp of the video file
+        fdate = str(os.path.getmtime( self.content ))
+        self.args['filedate'] = fdate
+        self.filedate = fdate
+        self.args_for_cache_id += ['filedate']
+
         #Register the module
         self.register()
 
@@ -116,6 +122,9 @@ class video(beampy_module):
             self.update_size(width, height)
             self.svgout = output
 
+
+        #Needed to be used by cache (we need to set the rendered flag to true)
+        self.rendered = True
 
     def video_image(self):
         """
