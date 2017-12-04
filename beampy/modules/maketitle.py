@@ -13,30 +13,36 @@ from beampy.functions import (get_command_line, gcs)
 import datetime
 
 
-def default_maketitle(titlein, author = None, subtitle=None, date=None ):
+def default_maketitle(titlein, author = None, subtitle=None, date=None, title_width = None, vert_space = None ):
         
         args = document._theme['maketitle']
         
         if date in ('Today', 'today', 'now'):
             date = datetime.datetime.now().strftime("%d/%m/%Y")
-     
+            
+        if title_width == None :
+            title_width = document._theme['document']['width']*0.75
+        
+        if vert_space == None :
+            vert_space = document._theme['document']['height']*0.05
+        
         with group(y="center"):
 
-            text(titlein, width=750, y=0, color=args['title_color'], size=args['title_size'], align='center')
+            text(titlein, width=title_width, y=0, color=args['title_color'], size=args['title_size'], align='center')
 
             if author != None :
                 
                 if type(author) == type('') :
-                    text(author, width=750, y="+1.5cm", color=args['author_color'], size=args['author_size'], align='center')
+                    text(author, width=title_width, y= "+" + str( 2*vert_space ), color=args['author_color'], size=args['author_size'], align='center')
                 
                 elif type(author) == type([]) :
-                    text( ', '.join(author), width=750, y="+1.5cm", color=args['author_color'], size=args['author_size'], align='center')
+                    text( ', '.join(author), width=title_width, y= "+" + str( vert_space ), color=args['author_color'], size=args['author_size'], align='center')
 
             if subtitle != None:
-                text(subtitle, width=750, y="+1cm", color=args['subtitle_color'], size=args['subtitle_size'])
+                text(subtitle, width=title_width, y= "+" + str( vert_space ), color=args['subtitle_color'], size=args['subtitle_size'])
 
             if date != None:
-                text(date, width=750, y="+20", color=args['date_color'], size=args['date_size'])
+                text(date, width=title_width, y= "+" + str( vert_space ), color=args['date_color'], size=args['date_size'])
 
 
 def maketitle( *args, **kwargs ):
@@ -55,5 +61,3 @@ def maketitle( *args, **kwargs ):
     
     except :
         default_maketitle( *args, **kwargs )
-
-
