@@ -6,7 +6,7 @@ Created on Sun Oct 25 19:05:18 2015
 """
 
 from beampy import document
-from beampy.functions import (convert_unit, optimize_svg,
+from beampy.functions import (convert_unit, optimize_svg, gcs,
  make_global_svg_defs, getsvgwidth, getsvgheight, convert_pdf_to_svg, guess_file_type)
 
 from beampy.modules.core import beampy_module
@@ -58,13 +58,13 @@ class figure(beampy_module):
 
         #Special args for cache id
         self.args_for_cache_id = ['width','ext']
-        
-        #Check if the given filename is a string        
+
+        #Check if the given filename is a string
         if type( self.content ) == type(''):
             #Check extension
-        
+
             self.ext = guess_file_type( self.content, self.ext )
-        
+
         else:
         #Check kind of objects that are passed to filename
 
@@ -97,13 +97,13 @@ class figure(beampy_module):
             #Do not cache this element if it's bokeh plot
             self.cache = False
 
-        #Mpl figure 
+        #Mpl figure
         elif self.ext == 'matplotlib':
-               
+
             #import close to force the closing of the input figure
             from matplotlib.pyplot import close
             close(self.content) #close the figure
-            
+
             #Set figure default width when it was not given as arguement
             if self.width == None:
                 width_inch, height_inch = self.content.get_size_inches()
@@ -111,7 +111,7 @@ class figure(beampy_module):
 
             #Create a special args to create a unique id for caching
 
-            #Generate the figure (in binary format as jpg) from the canvas 
+            #Generate the figure (in binary format as jpg) from the canvas
             with BytesIO() as tmpb:
                 self.content.canvas.print_jpg(tmpb)
                 tmpb.seek(0)
@@ -122,20 +122,20 @@ class figure(beampy_module):
             self.args['mpl_fig_hash'] = md5t
             self.mpl_fig_hash = md5t
             self.args_for_cache_id += ['mpl_fig_hash']
-            
+
         #Other filetype images
         else:
-            
-            #Add file timestamp to an arguments for caching 
+
+            #Add file timestamp to an arguments for caching
             fdate = str(os.path.getmtime( self.content ))
             self.args['filedate'] = fdate
             self.filedate = fdate
             self.args_for_cache_id += ['filedate']
-            
-            if self.width == None:
-                self.width = document._width
 
-        
+            if self.width is None:
+                self.width = document._slides[gcs()].curwidth
+
+
         #Add this module to the current slide + add positionner
         self.register()
 
@@ -151,7 +151,7 @@ class figure(beampy_module):
             if self.ext == 'pdf' :
                 figurein = convert_pdf_to_svg( self.content )
 
-            #Convert matplotlib figure to svg 
+            #Convert matplotlib figure to svg
             elif self.ext == 'matplotlib':
 
                 #Store mpl svg to a stringIO object
@@ -161,8 +161,8 @@ class figure(beampy_module):
 
                     #store tmpf content as string in figurein variable
                     figurein = tmpf.read().encode('utf-8')
-                
-            #General case for svg format 
+
+            #General case for svg format
             else:
                 #Check if a filename is given for a svg file or directly read the content value
                 if os.path.isfile(self.content):

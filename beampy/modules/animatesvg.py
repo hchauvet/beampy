@@ -15,6 +15,7 @@ import glob
 import re
 import sys
 
+
 class animatesvg(beampy_module):
 
     def __init__(self, files_folder, **kwargs):
@@ -50,7 +51,7 @@ class animatesvg(beampy_module):
         self.cache = False
         
         input_width = self.width #Save the input width for mpl figures
-        if self.width == None:
+        if self.width is None:
             self.width = document._width
 
         #Read all files from a given wildcard 
@@ -82,8 +83,6 @@ class animatesvg(beampy_module):
         #Register the module
         self.register()
 
-
-
     def render( self ):
         """
             Render several images as an animation in html
@@ -114,9 +113,6 @@ class animatesvg(beampy_module):
 
                     output += [tmpout]
                     img.delete()
-
-
-                
 
                 self.animout = output
 

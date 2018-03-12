@@ -37,7 +37,8 @@ class document():
     _cache = None
     _pdf_animations = False
     _resize_raster = True
-    _source_code = [] #Store the source code of the input script
+    _source_code = [] # Store the source code of the input script
+    _rendered = False # Store the state of the entire document (allow multiformat output)
 
     #Store data that need to be globally loaded in html like raster contents
     #images, video, etc...
@@ -133,7 +134,10 @@ class document():
 
         #Set size etc...
         document._width = good_values['width']
+        document._curwidth = float(document._width)
         document._height = good_values['height']
+        document._curheight = float(document._height)
+        
         document._guide = good_values['guide']
         document._text_box = good_values['text_box']
         document._cache = good_values['cache']

@@ -7,7 +7,7 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.modules.core import beampy_module
+from beampy.modules.core import beampy_module, gcs
 import base64
 import os
 try:
@@ -43,14 +43,15 @@ class video(beampy_module):
         """
 
         self.type = 'html'
-        #Check function args
+
+        # Check function args
         self.check_args_from_theme(kwargs)
 
-        #if no width is given get the default width
-        if self.width== None:
-            self.width = document._width
+        # if no width is given get the default width
+        if self.width is None:
+            self.width = document._slides[gcs()].curwidth
 
-        #check extension
+        # check extension
         self.ext = None
         if '.webm' in videofile.lower():
             self.ext = 'webm'
@@ -62,12 +63,12 @@ class video(beampy_module):
             print('Video need to be in webm/ogg/mp4(h.264) format!')
             sys.exit(0)
 
-        if self.ext != None:
+        if self.ext is not None:
             self.content = videofile
 
-        #Special args for cache id
+        # Special args for cache id
         self.args_for_cache_id = ['width','still_image_time']
-        #Add the time stamp of the video file
+        # Add the time stamp of the video file
         fdate = str(os.path.getmtime( self.content ))
         self.args['filedate'] = fdate
         self.filedate = fdate
@@ -76,15 +77,15 @@ class video(beampy_module):
         #Register the module
         self.register()
 
-
     def render( self ):
         """
         Render video (webm) encoded in base64 in svg command
         """
 
-        #Read file and convert data to base64
-        with open(self.content, 'rb') as fin:
-            videob64 = base64.b64encode( fin.read() )
+        # Read file and convert data to base64 if embedded option is True (default)
+        if self.embedded:
+            with open(self.content, 'rb') as fin:
+                videob64 = base64.b64encode( fin.read() )
 
         #Get video image
         size, imgframe = self.video_image()
@@ -92,12 +93,21 @@ class video(beampy_module):
         _, _, vidw, vidh = size
         scale_x = self.width/float(vidw)
         width = self.width
-        height = vidh * scale_x
 
+        if self.height is None:
+            height = vidh * scale_x
+            print('Video size might be buggy, estimated height %ipx'%height)
+        else:
+            height = self.height
 
-        if document._output_format=='html5':
+        if document._output_format == 'html5':
             #HTML tag for video
-            output = """<video id='video' width="%spx" %s><source type="video/%s" src="data:video/%s;base64, %s"></video>"""
+            if self.embedded:
+                videosrc = 'data:video/{ext};base64, {b64data}'.format(ext=self.ext, b64data=videob64)
+            else:
+                videosrc = self.content
+
+            output = """<video id='video' width="{width}px" {otherargs}><source type="video/{ext}" src="{src}"></video>"""
 
             #Check if we need autoplay
             otherargs = ''
@@ -110,19 +120,15 @@ class video(beampy_module):
                 #Add click event to run video
                 otherargs += ' onclick="this.paused?this.play():this.pause();"'
 
-            output = output%(width, otherargs, self.ext, self.ext, videob64)
-
-            self.update_size(width, height)
+            output = output.format(width=width, otherargs=otherargs, ext=self.ext, src=videosrc)
             self.htmlout = output
+
         else:
             imgframe = base64.b64encode( imgframe )
             output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(str(width), str(height), imgframe)
-            #ct['type'] = ct['type_nohtml']
-
-            self.update_size(width, height)
             self.svgout = output
 
-
+        self.update_size(width, height)
         #Needed to be used by cache (we need to set the rendered flag to true)
         self.rendered = True
 
@@ -136,15 +142,13 @@ class video(beampy_module):
         FFMPEG_CMD = document._external_cmd['video_encoder']
         FFMPEG_CMD += ' -loglevel 8 -i %s -f image2 -ss %0.3f -vframes 1 -'%(self.content, self.still_image_time)
 
-
         img_out = os.popen(FFMPEG_CMD).read()
 
         img = StringIO(img_out)
 
         out = Image.open(img)
 
-
-        #Get image size
+        # Get image size
         size = out.getbbox()
 
         #Save image to string

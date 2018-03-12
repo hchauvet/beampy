@@ -219,11 +219,15 @@
   }
 
   Beampy.onhashchange = function() {
-    var cursor = window.location.hash.split("#"),
+
+	var cursor = window.location.hash.split("#"),
         newidx = 0,
-        newstep = 0;
+	newstep = 0;
+	// console.log(cursor);
+			  
     if (cursor.length == 2) {
-      newidx = ~~cursor[1]
+	newidx = ~~cursor[1];
+	// console.log(newidx, newstep);
     }
 
     if (newidx != this.id_slide) {

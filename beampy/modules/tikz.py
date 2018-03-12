@@ -7,11 +7,10 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.functions import (gcs, convert_unit, latex2svg)
+from beampy.functions import (gcs,  latex2svg)
 from beampy.modules.core import beampy_module
-import glob
-import os
 from bs4 import BeautifulSoup
+
 
 class tikz(beampy_module):
 
@@ -64,7 +63,8 @@ class tikz(beampy_module):
         tex_pt_to_px = 96/72.27
 
         #replace '\slidewidth'
-        tiktikzcommands = tikzcommands.replace( r'\slidewidth','%ipt'%0.75*document._width)
+
+        tiktikzcommands = tikzcommands.replace( r'\slidewidth','%ipt'%(0.75*document._slides[gcs()].curwidth))
 
         #Include extrac packages for tex
         if getattr(self, 'tex_packages', False):
@@ -82,7 +82,7 @@ class tikz(beampy_module):
         else:
             tikz_fig_opts = ''
 
-        #Render to a dvi file
+        # Render to a dvi file
         pretex = """
         \\documentclass[tikz,svgnames]{standalone}
         \\usepackage[utf8x]{inputenc}
@@ -104,18 +104,17 @@ class tikz(beampy_module):
             #Parse the svg
             soup = BeautifulSoup(svgout, 'xml')
 
-            #Change svg id with global ids
-            #soup = make_global_svg_defs(soup)
-
             #Find the width and height
             svgsoup = soup.find('svg')
             g = soup.find('g')
 
             xinit, yinit, tikz_width, tikz_height = svgsoup.get('viewBox').split()
-            tikz_width = float(tikz_width)
-            tikz_height = float(tikz_height)
+            tikz_width = float(tikz_width) * tex_pt_to_px
+            tikz_height = float(tikz_height) * tex_pt_to_px
 
-            #Default is args['figure_anchor'] == top_left
+            print(tikz_width, tikz_height)
+
+            # Default is args['figure_anchor'] == top_left
             dx = -float(xinit)
             dy = -float(yinit)
 
@@ -131,7 +130,6 @@ class tikz(beampy_module):
             output = svgsoup.renderContents()
 
         else:
-            #print(tex_msg)
             output = ''
             tikz_height = 0
             tikz_width = 0

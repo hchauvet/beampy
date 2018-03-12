@@ -7,6 +7,7 @@ Created on Sun Oct 25 19:05:18 2015
 
 from beampy import document
 from beampy.modules.figure import figure
+from beampy.modules.core import beampy_module
 import tempfile
 import os
 
@@ -18,7 +19,7 @@ try:
 except:
     is_pigment = False
 
-class code(figure):
+class code(beampy_module):
     #Transform the code to svg using pigment and then use the classic render for figure
 
     def __init__(self, codetext, x='center', y='auto', width=None, height=None, langage=None, size="14px" ):
@@ -53,7 +54,7 @@ class code(figure):
 
         #TODO: Move this function to pre-render to be managed by cache
         #and not run at each beampy run
-        self.code2svg()
+        # self.code2svg()
 
         if is_pigment:
             self.register()
@@ -93,15 +94,25 @@ class code(figure):
         req.close()
 
         #Read the good svg
-        with open(tmpname+'_good.svg','r') as f:
-            goodsvg = f.read()
+        # with open(tmpname+'_good.svg','r') as f:
+        #    goodsvg = f.read()
+
+        f = figure(tmpname+'_good.svg', width=self.width, height=self.height)
+        f.positionner = self.positionner
+        f.render()
+        self.svgout = f.svgout
+        self.positionner = f.positionner
+        self.width = f.width
+        self.height = f.height
+
+        f.delete()
 
         #remove files
         os.remove(tmpname+'.svg')
         os.remove(tmpname+'_good.svg')
         os.remove(tmpname)
 
-        #Add the figure extension
-        self.ext = 'svg'
-        self.args['ext'] = 'svg'
-        self.content = goodsvg
+
+    def render(self):
+        self.code2svg()
+        self.rendered = True

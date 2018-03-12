@@ -8,7 +8,8 @@ Test of figure module
 from beampy import *
 import pylab as p
 
-doc = document()
+test_name = 'test_figures'
+doc = document(cache=False)
 
 with slide("Matplotlib figure"):
     fig = p.figure()
@@ -35,4 +36,5 @@ with slide("Mpl animation"):
      
 
 
-save("test_figures.html")
+save('./html_out/%s.html'%test_name)
+save('./pdf_out/%s.pdf'%test_name)

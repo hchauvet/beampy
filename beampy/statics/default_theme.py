@@ -75,32 +75,33 @@ THEME['maketitle'] = {
 }
 
 THEME['video'] = {
-    'width':None,
-    'height':None,
-    'x':'center',
-    'y':'auto',
-    'autoplay':False,
-    'control':True,
-    'still_image_time':0.0
+    'width': None,
+    'height': None,
+    'x': 'center',
+    'y': 'auto',
+    'autoplay': False,
+    'control': True,
+    'still_image_time': 0.0,
+    'embedded': True
 }
 
 THEME['animatesvg'] = {
-    'start':0,
-    'end':'end',
-    'x':'center',
-    'y':'auto',
-    'width':None,
-    'fps':25,
-    'autoplay':False
+    'start': 0,
+    'end': 'end',
+    'x': 'center',
+    'y': 'auto',
+    'width': None,
+    'fps': 25,
+    'autoplay': False
 }
 
 THEME['tikz'] = {
-    'x':0,
-    'y':0,
-    'tikz_header':None,
-    'tex_packages':None,
-    'figure_options':None,
-    'figure_anchor':'top_left'
+    'x': 0,
+    'y': 0,
+    'tikz_header': None,
+    'tex_packages': None,
+    'figure_options': None,
+    'figure_anchor': 'top_left'
 }
 
 THEME['figure'] = {

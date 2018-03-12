@@ -19,13 +19,24 @@ import os
 import time
 import io 
 
-#Get the beampy folder
+# Get the beampy folder
 curdir = os.path.dirname(__file__) + '/'
+
 
 def save_layout():
     for islide in xrange(document._global_counter['slide']+1):
         slide = document._slides["slide_%i"%islide]
         slide.build_layout()
+
+def reset_module_rendered_flag():
+    if document._rendered:
+        for slide in document._slides:
+            document._slides[slide].svgout = []
+
+            for ct in document._slides[slide].contents:
+                document._slides[slide].contents[ct].rendered = False
+                document._slides[slide].contents[ct].svgout = None
+                document._slides[slide].contents[ct].htmlout = None
 
 def save(output_file=None, format=None):
     """
@@ -37,7 +48,7 @@ def save(output_file=None, format=None):
     bname = os.path.basename(output_file)
     bdir = output_file.replace(bname,'')
 
-
+    reset_module_rendered_flag()
 
     if 'html' in output_file or format == 'html5':
         document._output_format = 'html5'
@@ -63,13 +74,16 @@ def save(output_file=None, format=None):
 
         output_file = None
 
-    if output_file != None:
+    if output_file is not None:
         with open(output_file,'w') as f:
             f.write( output.encode('utf8') )
 
     #write cache file
-    if document._cache != None:
+    if document._cache is not None:
         document._cache.write_cache()
+
+    # Set rendered flag to true for the whole document
+    document._rendered = True
 
     print("="*20 + " BEAMPY END (%0.3f seconds) "%(time.time()-texp)+"="*20)
 
@@ -106,6 +120,7 @@ def pdf_export(name_out):
 
     return msg
 
+
 def svg_export(dir_name):
     #Export evry slides in svg inside a given folder
 
@@ -122,36 +137,30 @@ def svg_export(dir_name):
 
         slide = document._slides["slide_%i"%islide]
 
-        #Render group in slide
-        for g in slide.groups:
-            if len(g.elementsid_ingroup) > 0:
-                g.render_ingroup( g.elementsid_ingroup )
+        # Render the slide
+        slide.newrender()
 
-        #Render the slide
-        slide.render()
-
-        #save the list of rendered svg to a new dict as a string
+        # save the list of rendered svg to a new dict as a string
         tmp = slide.svgheader
 
-        #The global svg glyphs need also to be added to the html5 page
+        # The global svg glyphs need also to be added to the html5 page
         if 'glyphs' in document._global_store:
             glyphs_svg='<defs>%s</defs>'%( ''.join( [ glyph['svg'] for glyph in document._global_store['glyphs'].itervalues() ] ).decode('utf-8', errors='replace') )
             tmp += glyphs_svg
 
-        #Join all the svg contents 
+        # join all svg defs
+        #tmp += ''.join(slide.svgdefout).decode('utf-8', errors='replace')
+        # Join all the svg contents
         tmp += ''.join(slide.svgout).decode('utf-8', errors='replace')
 
-        #Add the svgfooter
+        # Add the svgfooter
         tmp += slide.svgfooter
-
-        #check if content type need to be changed
-        #check_content_type_change( document._contents["slide_%i"%islide] )
-        #tmp = render_slide( document._contents["slide_%i"%islide] )
 
         with io.open(dir_name+'slide_%i.svg'%islide, 'w', encoding='utf8') as f:
             f.write(tmp)
 
     return "saved to "+dir_name
+
 
 def html5_export():
 
@@ -161,7 +170,7 @@ def html5_export():
     with open(curdir+'statics/header_V2.html','r') as f:
         output = f.read()%jquery
 
-    #Add the style 
+    # Add the style
     htmltheme = document._theme['document']['html']
     output += """
     <!-- Default Style -->
@@ -202,38 +211,31 @@ def html5_export():
     </style>
 
     """
-    #Loop over slides in the document
-    #If we directly want to charge the content in pure html
+    # Loop over slides in the document
+    # If we directly want to charge the content in pure html
     tmpout = {}
     tmpscript = {}
     global_store = []
     for islide in xrange(document._global_counter['slide']+1):
-        #print("[Beampy] export slide %i"%islide)
+
         tnow = time.time()
 
         slide_id = "slide_%i"%islide
         tmpout[slide_id] = {}
-        #global_store[slide_id] = {}
         slide = document._slides[slide_id]
 
-        #Render group in slide
-        for g in slide.groups:
-            if len(g.elementsid_ingroup) > 0:
-                g.render_ingroup( g.elementsid_ingroup )
+        # Render the slide
+        slide.newrender()
 
-        #Render the slide
-        slide.render()
-
-        #Add a small peace of svg that will be used to get the data from the global store
+        # Add a small peace of svg that will be used to get the data from the global store
         tmpout[slide_id]['svg'] = '%s\n<use xlink:href="#%s" x="0" y="0"/>\n%s\n'%(slide.svgheader, slide_id, slide.svgfooter)
 
-        #save the list of rendered svg to a new dict as a string that is loaded globally in the html
-        #global_store[slide_id]['svg'] = ''.join(slide.svgout)
+        # save the list of rendered svg to a new dict as a string that is loaded globally in the html
         tmp = ''.join(slide.svgout).decode('utf-8', errors='replace')
+        #modulessvgdefs = ''.join(slide.svgdefout).decode('utf-8', errors='replace')
         global_store += "<svg><defs><g id='slide_"+str(islide)+"'>"+tmp+"</g></defs></svg>"
         
-        if slide.animout != None:
-            #print [f['frames'] for f in slide.animout]
+        if slide.animout is not None:
             tmpout[slide_id]['svganimates'] = []
             headers = []
             for ianim, data in enumerate(slide.animout):
@@ -241,52 +243,41 @@ def html5_export():
                 data.pop('header')
                 tmpout[slide_id]['svganimates'] += [data]
 
-            #pass
-
-            #Add cached images to global_store
-            if headers != []:
+            # Add cached images to global_store
+            # old comparision headers != []
+            if headers:
                 tmp = ''.join(headers).decode('utf-8', errors='replace')
                 global_store += "<svg>%s</svg>"%(tmp)
 
-        if slide.scriptout != None:
+        if slide.scriptout is not None:
             tmpscript['slide_%i'%islide] = ''.join(slide.scriptout)
             
-        if slide.htmlout != None:
-            #global_store["slide_%i"%islide]['html'] = ''.join(slide.htmlout)
+        if slide.htmlout is not None:
             global_store += '<div id="html_store_slide_%i">%s</div>'%(islide, ''.join(slide.htmlout) )
 
         print("Done in %0.3f seconds"%(time.time()-tnow))
 
         
-    #Create a json file of all slides output (refs to store)
+    # Create a json file of all slides output (refs to store)
     jsonfile = StringIO()
     json.dump(tmpout,jsonfile, indent=None)
     jsonfile.seek(0)
 
-    #Create a json file for the store
-    #jsonstore = StringIO()
-    #json.dump(global_store, jsonstore, indent=None)
-    #jsonstore.seek(0)
-
-
-    
-    #The global svg glyphs need also to be added to the html5 page
+    # The global svg glyphs need also to be added to the html5 page
     if 'glyphs' in document._global_store:
         glyphs_svg='<svg id="glyph_store"><defs>%s</defs></svg>'%( ''.join( [ glyph['svg'] for glyph in document._global_store['glyphs'].itervalues() ] ) )
         output += glyphs_svg
-    #Add the svg content
-    
+
+    # Add the svg content
     output += u"".join( global_store )    
     
     
-    #Create store divs for each slides
-    #output += ''.join(['<div id="store_slide_%s"></div>'%s for s in xrange(document._global_counter['slide']+1)])
+    # Create store divs for each slides
     output += '<script> slides = eval( ( %s ) );</script>'%jsonfile.read()
-    #output += '<script> store = eval( ( %s ) );</script>'%jsonstore.read()
 
 
-    #Javascript output
-    #format: scripts_slide[slide_i]['function_name'] = function() { ... }
+    # Javascript output
+    # format: scripts_slide[slide_i]['function_name'] = function() { ... }
     if tmpscript != {}:
         bokeh_required = False
         output += '\n <script> scripts_slide = {}; //dict with scrip function for slides \n'
@@ -298,7 +289,7 @@ def html5_export():
         output += '</script>\n'
 
         if bokeh_required:
-            #TODO: download the goodversion of bokeh from CDN Need to download bokeh
+            # TODO: download the good version of bokeh from CDN Need to download bokeh
             with open(curdir+'statics/bokeh/bokeh.min.js','r') as f:
                 bokjs = f.read()
 
@@ -309,7 +300,6 @@ def html5_export():
             <style>%s</style>
             <script>%s</script>
             """%(bokcss, bokjs)
-
 
     with open(curdir+'statics/footer_V2.html','r') as f:
         output += f.read()

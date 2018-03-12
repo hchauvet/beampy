@@ -13,19 +13,24 @@ import sys
 DEFAULT_X = {'align': 'left', 'reference': 'slide', 'shift': 0, 'unit': 'width'}
 DEFAULT_Y = {'align': 'top', 'reference': 'slide', 'shift': 0, 'unit': 'width'}
 
+
 #Define function for alignement shortcuts.
 def center(shift=0):
     return {'align': 'middle', 'shift': shift}
-    
+
+
 def top(shift=0):
     return {'align': 'top', 'shift': shift}
-    
+
+
 def bottom(shift=0):
     return {'align': 'bottom', 'shift': shift}
-    
+
+
 def right(shift=0):
     return {'align': 'right', 'shift': shift}
-    
+
+
 class positionner():
 
     def __init__(self, x, y, width, height, elem_id):
@@ -61,7 +66,7 @@ class positionner():
             self.id_index = -1 #Content not stored in slide contents (like group)
 
         self.update_size(width, height)
-        
+
         #Make copy if x and y are dict input
         if type(x) == type(dict()):
             self.x = x.copy()
@@ -84,7 +89,7 @@ class positionner():
     def update_size(self, width, height):
         """
             Update width and height to computed ones by the element render.
-            
+
             If width is less than 1px, use it as a percentage of the width
         """
 
@@ -92,13 +97,12 @@ class positionner():
             self.width = float(width)
         except:
             self.width = None
-            
-        try:    
+
+        try:
             self.height = float(height)
         except:
             self.height = None
-        
-        
+
         if self.width != None and self.width < 1.0:
             self.width *= document._width
 
@@ -332,7 +336,7 @@ class positionner():
             if self.y['align'] == 'middle':
                 self.y['final'] -= self.height/2.
 
-        #reduce number of floating values
+        #reduce number of floating values and set align and unit to top-left in pixel
         self.x['final'] = round( self.x['final'], 1 )
         self.y['final'] = round( self.y['final'], 1 )
 
@@ -471,3 +475,92 @@ def align(positionner_list, alignement):
     """
 
     print('TODO')
+
+def distribute(element_list, mode, available_size, offset=0, curslide=None):
+    '''
+        Distribute the given elements list along the slide using the given
+        mode
+
+        element_list:
+            A list of beampy module (if curslide is none)
+            A list of beampy module keys, in this case curslide must be the
+            curent slide where module are stored
+
+
+        mode:
+            'hspace': horizontal spacing from the center of each elements
+            'vspace': vertical spacing from the center of each elements
+
+        offset:
+            gives the first offset of the slide (due to the title for instance)
+
+        curslide [None]:
+            If curslide is not None the element_list must refers to elements keys
+            surch that
+
+            curslide.content[elemnt_list[0]] is a beampy module
+
+    '''
+
+    if mode == 'vspace':
+
+        if curslide is None:
+            all_height = [elem.positionner.height for elem in element_list]
+        else:
+            all_height = [curslide.contents[elemk].positionner.height for elemk in element_list]
+
+        # print(all_height)
+        sumheight = sum(all_height)
+
+        if sumheight > available_size:
+            print('Warning alignement elements overflow given height %s'%(available_size))
+
+        available_space = (available_size - offset) - sumheight
+        dy = available_space/float(len(all_height)+1)
+
+        curpos = dy + offset
+        for elemt in element_list:
+
+            if curslide is None:
+                elem = elemt
+            else:
+                elem = curslide.contents[elemt]
+
+            H = elem.positionner.height
+
+            elem.positionner.y['shift'] = curpos
+            elem.positionner.y['unit'] = 'px'
+            elem.positionner.y['align'] = 'top'
+
+            curpos += dy + H
+
+    elif mode == 'hspace':
+
+        if curslide is None:
+            all_width = [elem.positionner.width for elem in element_list]
+        else:
+            all_width = [curslide.contents[elemk].positionner.width for elemk in element_list]
+
+        sumwidth = sum(all_width)
+
+        if sumwidth > available_size:
+            print('Warning alignement elements overflow given width %s'%(available_size))
+
+        available_space = available_size - sumwidth
+        dx = available_space/float(len(all_width)+1)
+
+        curpos = dx
+        for elemt in element_list:
+
+            if curslide is None:
+                elem = elemt
+            else:
+                elem = curslide.contents[elemt]
+
+            W = elem.positionner.width
+
+            elem.positionner.x['shift'] = curpos
+            elem.positionner.x['unit'] = 'px'
+            elem.positionner.x['align'] = 'left'
+
+            curpos += dx + W

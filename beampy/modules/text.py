@@ -64,8 +64,8 @@ class text(beampy_module):
         #Height of text is None (it need to be computed)
         self.height = None
         #Check width
-        if self.width == None:
-            self.width = float(document._width)
+        if self.width is None:
+            self.width = document._slides[gcs()].curwidth
 
         #Add special args for cache id
         #Text need to be re-rendered from latex if with, color or size are changed

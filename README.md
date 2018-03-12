@@ -18,9 +18,34 @@ Beampy presentation output only one html file with every contents embedded.
 * Write tests 
 * Clean the javascript code
 * Add more themes
-* Allow external links for huge videos
+* -Allow external links for huge videos-
 
-## Curent version:
+## Current version:
+
+### 0.4.5
+
+* The core of Beampy slide processor has been rewritten and now allows recursive group of elements.
+
+  ```python
+  with group():
+    text('toto')
+    with group(width=300):
+        text('tata')
+
+        with group(width=200):
+            figure('./niceplot.pdf')
+            text('nice legend')
+  ```
+
+* Relative placement now could be done on auto positioned elements
+
+  ```python
+  t0 = text('toto')
+  text('tata', x=t0.center + center(0), t0.bottom + 0.1)
+  ```
+
+* Video now could use external links (with *embedded=True*) rather than be included in the html file.
+  The video is loaded from disk (be careful with file path) when the slide is displayed on screen.
 
 ### 0.4.5
 
