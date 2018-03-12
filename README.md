@@ -37,6 +37,15 @@ Beampy presentation output only one html file with every contents embedded.
             text('nice legend')
   ```
 
+* If a group width is given all elements in groups without specified width take the width of the group
+
+  ```python
+  with group(width=200):
+    figure('./niceplot.pdf')
+    text('nice legend')
+    # Figure and text width will be automatically set to 200 px
+  ```
+  
 * Relative placement now could be done on auto positioned elements
 
   ```python
