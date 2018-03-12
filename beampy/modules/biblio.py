@@ -11,6 +11,10 @@ def cite( list_authors, **kwargs):
 
     list_authors : python list of authors
     """
+    
+    # in case there is only one citation
+    if type(list_authors) == type( 'this_is_a_string' ) :
+        list_authors = [ list_authors ]
 
     citestr = '[' + ', '.join(list_authors) + ']'
 
