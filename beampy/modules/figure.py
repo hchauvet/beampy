@@ -85,13 +85,12 @@ class figure(beampy_module):
 
         #Bokeh image
         elif self.ext == 'bokeh':
-            #print('I got a bokeh figure')
-            figscript, figdiv = components(self.content, wrap_script=False)
+            self.type = 'html'
 
             #Todo get width and height from a bokeh figure
-            if self.width == None:
+            if self.width is None:
                 self.width = int(self.content.plot_width)
-            if self.height == None:
+            if self.height is None:
                 self.height = int(self.content.plot_height)
 
             #Do not cache this element if it's bokeh plot
@@ -252,10 +251,10 @@ class figure(beampy_module):
         #Bokeh images
         if self.ext == 'bokeh':
 
-            #Run the bokeh components function to separate figure html div and js script
+            # Run the bokeh components function to separate figure html div and js script
             figscript, figdiv = components(self.content, wrap_script=False)
 
-            #Transform figscript to givea function name load_bokehjs
+            # Transform figscript to givea function name load_bokehjs
             tmp = figscript.splitlines()
             goodscript = '\n'.join( ['["load_bokeh"] = function() {'] + tmp[1:-1] + ['};\n'] )
 

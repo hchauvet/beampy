@@ -57,7 +57,7 @@ def save(output_file=None, format=None):
         render_texts()
         output = html5_export()
 
-    elif output_file != None and format == "svg":
+    elif output_file is not None and format == "svg":
         document._output_format = 'svg'
         save_layout()
         #Render glyphs
@@ -87,6 +87,7 @@ def save(output_file=None, format=None):
 
     print("="*20 + " BEAMPY END (%0.3f seconds) "%(time.time()-texp)+"="*20)
 
+
 def pdf_export(name_out):
 
     #External tools cmd
@@ -101,17 +102,21 @@ def pdf_export(name_out):
     aa = svg_export(bdir+'/tmp')
 
     print('Convert svg to pdf with inkscape')
+    output_svg_names = []
     for islide in xrange(document._global_counter['slide']+1):
         print('slide %i'%islide)
-        #check if content type need to be changed
-        #check_content_type_change( document._contents["slide_%i"%islide] )
+        for layer in range(max(document._slides['slide_%i'%islide].svglayers) + 1):
+            print('layer %i'%layer)
+            #Use inkscape to render svg to pdf
+            res = os.popen(svgcmd%(bdir+'/tmp/slide_%i-%i.svg'%(islide, layer),
+                                   bdir+'/tmp/slide_%i-%i.pdf'%(islide, layer))
+                          )
+            res.close()
 
-        #Use inkscape to render svg to pdf
-        res = os.popen(svgcmd%(bdir+'/tmp/slide_%i.svg'%islide, bdir+'/tmp/slide_%i.pdf'%islide) )
-        res.close()
+            output_svg_names += ['slide_%i-%i'%(islide, layer)]
 
     #join all pdf
-    res = os.popen(pdfjoincmd+' %s -o %s'%(' '.join(['"'+bdir+'/tmp/slide_%i.pdf"'%i for i in xrange(document._global_counter['slide']+1)]), name_out))
+    res = os.popen(pdfjoincmd+' %s -o %s'%(' '.join(['"'+bdir+'/tmp/%s.pdf"'%sname for sname in output_svg_names]), name_out))
     output = res.read()
 
     res.close()
@@ -140,24 +145,29 @@ def svg_export(dir_name):
         # Render the slide
         slide.newrender()
 
-        # save the list of rendered svg to a new dict as a string
-        tmp = slide.svgheader
-
         # The global svg glyphs need also to be added to the html5 page
         if 'glyphs' in document._global_store:
-            glyphs_svg='<defs>%s</defs>'%( ''.join( [ glyph['svg'] for glyph in document._global_store['glyphs'].itervalues() ] ).decode('utf-8', errors='replace') )
-            tmp += glyphs_svg
+            glyphs_svg = '<defs>%s</defs>' % (
+                ''.join([glyph['svg'] for glyph in document._global_store['glyphs'].itervalues()]).decode('utf-8',
+                                                                                                          errors='replace'))
+        else:
+            glyphs_svg = ''
 
         # join all svg defs
-        #tmp += ''.join(slide.svgdefout).decode('utf-8', errors='replace')
-        # Join all the svg contents
-        tmp += ''.join(slide.svgout).decode('utf-8', errors='replace')
+        def_svg = '<defs>%s</defs>'%(''.join(slide.svgdefout).decode('utf-8', errors='replace'))
+        for layer in range(max(slide.svglayers) + 1):
 
-        # Add the svgfooter
-        tmp += slide.svgfooter
+            # save the list of rendered svg to a new dict as a string
+            tmp = slide.svgheader + glyphs_svg + def_svg
 
-        with io.open(dir_name+'slide_%i.svg'%islide, 'w', encoding='utf8') as f:
-            f.write(tmp)
+            # Join all the svg contents
+            tmp += slide.svglayers[layer].decode('utf-8', errors='replace')
+
+            # Add the svgfooter
+            tmp += slide.svgfooter
+
+            with io.open(dir_name+'slide_%i-%i.svg'%(islide, layer), 'w', encoding='utf8') as f:
+                f.write(tmp)
 
     return "saved to "+dir_name
 
@@ -215,7 +225,7 @@ def html5_export():
     # If we directly want to charge the content in pure html
     tmpout = {}
     tmpscript = {}
-    global_store = []
+    global_store = ''
     for islide in xrange(document._global_counter['slide']+1):
 
         tnow = time.time()
@@ -228,20 +238,33 @@ def html5_export():
         slide.newrender()
 
         # Add a small peace of svg that will be used to get the data from the global store
-        tmpout[slide_id]['svg'] = '%s\n<use xlink:href="#%s" x="0" y="0"/>\n%s\n'%(slide.svgheader, slide_id, slide.svgfooter)
+        tmpout[slide_id]['svg'] = [] # Init the store for the differents layers
+        tmpout[slide_id]['layers_nums'] = max(slide.svglayers)
+        tmpout[slide_id]['svg_header'] = slide.svgheader
+        tmpout[slide_id]['svg_footer'] = slide.svgfooter
 
         # save the list of rendered svg to a new dict as a string that is loaded globally in the html
-        tmp = ''.join(slide.svgout).decode('utf-8', errors='replace')
-        #modulessvgdefs = ''.join(slide.svgdefout).decode('utf-8', errors='replace')
-        global_store += "<svg><defs><g id='slide_"+str(islide)+"'>"+tmp+"</g></defs></svg>"
+        #tmp = ''.join(slide.svgout).decode('utf-8', errors='replace')
+        modulessvgdefs = ''.join(slide.svgdefout).decode('utf-8', errors='replace')
+        global_store += "<svg><defs>" + modulessvgdefs
+
+        for layer in range(max(slide.svglayers)+1):
+            print('write layer %i'%layer)
+            # Export svg defs to the global store
+            layer_content = slide.svglayers[layer].decode('utf-8', errors='replace')
+            global_store += "<g id='slide_{i}-{layer}'>{content}</g>".format(i=islide, layer=layer, content=layer_content)
+            # Create an svg use for the given layer
+            tmpout[slide_id]['svg'] += ['<use xlink:href="#slide_{i}-{layer}"/>'.format(i=islide, layer=layer)]
+
+        global_store += '</defs></svg>'
         
         if slide.animout is not None:
-            tmpout[slide_id]['svganimates'] = []
+            tmpout[slide_id]['svganimates'] = {}
             headers = []
             for ianim, data in enumerate(slide.animout):
                 headers += [data['header']]
                 data.pop('header')
-                tmpout[slide_id]['svganimates'] += [data]
+                tmpout[slide_id]['svganimates'][data['anim_num']] = data
 
             # Add cached images to global_store
             # old comparision headers != []
@@ -253,7 +276,9 @@ def html5_export():
             tmpscript['slide_%i'%islide] = ''.join(slide.scriptout)
             
         if slide.htmlout is not None:
-            global_store += '<div id="html_store_slide_%i">%s</div>'%(islide, ''.join(slide.htmlout) )
+            for layer in slide.htmlout:
+                global_store += '<div id="html_store_slide_%i-%i">%s</div>'%(islide, layer,
+                                                                             ''.join(slide.htmlout[layer]))
 
         print("Done in %0.3f seconds"%(time.time()-tnow))
 
@@ -289,17 +314,28 @@ def html5_export():
         output += '</script>\n'
 
         if bokeh_required:
-            # TODO: download the good version of bokeh from CDN Need to download bokeh
-            with open(curdir+'statics/bokeh/bokeh.min.js','r') as f:
-                bokjs = f.read()
+            # TODO: Cache downloaded files !
+            from bokeh.resources import CDN
+            import urllib2
 
-            with open(curdir+'statics/bokeh/bokeh.min.css','r') as f:
-                bokcss = f.read()
+            css_out = u'<style>'
+            for cssurl in CDN.css_files:
+                print('Download %s'%cssurl)
+                response = urllib2.urlopen(cssurl)
+                csst = response.read()
+                css_out += csst.decode('utf-8', errors='replace')
+            css_out += u'</style>'
 
-            output += """
-            <style>%s</style>
-            <script>%s</script>
-            """%(bokcss, bokjs)
+            js_out = u'<script>'
+            for jsurl in CDN.js_files:
+                print('Download %s'%jsurl)
+                response = urllib2.urlopen(jsurl)
+                jst = response.read()
+                js_out += jst.decode('utf-8', errors='replace')
+            js_out += u'</script>'
+
+
+            output += css_out + js_out
 
     with open(curdir+'statics/footer_V2.html','r') as f:
         output += f.read()
@@ -336,40 +372,40 @@ def display_matplotlib(slide_id):
 
     slide.render()
         
-    #save the list of rendered svg to a new dict as a string
+    # save the list of rendered svg to a new dict as a string
     tmp = slide.svgheader
 
-    #The global svg glyphs need also to be added to the html5 page
+    # The global svg glyphs need also to be added to the html5 page
     if 'glyphs' in document._global_store:
         glyphs_svg='<defs>%s</defs>'%( ''.join( [ glyph['svg'] for glyph in document._global_store['glyphs'].itervalues() ] ).decode('utf-8', errors='replace') )
         tmp += glyphs_svg
 
-    #Join all the svg contents 
+    # Join all the svg contents
     tmp += ''.join(slide.svgout).decode('utf-8', errors='replace')
 
-    #Add the svgfooter
+    # Add the svgfooter
     tmp += slide.svgfooter
     
-    #Write it to a file
+    # Write it to a file
     tmpname = './.%s'%slide_id
     with open(tmpname+'.svg', 'w') as f:
         f.write( tmp )
 
-    #Change it a png
+    # Change it a png
     inkscapecmd = document._external_cmd['inkscape']
-    #use inkscape to translate svg to pdf
+    # use inkscape to translate svg to pdf
     svgcmd = inkscapecmd+" --without-gui  --file='%s' --export-png='%s' -b='white'"
     os.popen(svgcmd%(tmpname+'.svg', tmpname+'.png'))
 
 
     img = asarray( Image.open(tmpname+'.png') )
 
-    #Remove files
+    # Remove files
     os.unlink(tmpname+'.svg')
     os.unlink(tmpname+'.png')
 
     pyplot.imshow(img)
-    #pyplot.axis('off')
+    # pyplot.axis('off')
     pyplot.xticks([])
     pyplot.yticks([])
     pyplot.tight_layout()

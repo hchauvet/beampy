@@ -9,10 +9,10 @@ with slide():
     animatesvg("../examples/svg_anims/*.svg", width="500", x='center', y='center')
     animatesvg("../examples/svg_anims/*.svg", width="100", x='0.1', y='0.1')
 
-with slide():
-    with group():
+with slide('Animate with layers'):
+    with group()[:]:
         animatesvg("../examples/svg_anims/*.svg", width="500")
-        with group():
+        with group()[1]:
             animatesvg("../examples/svg_anims/*.svg", width="100")
 
-save('test_animatesvg.html')
+save('./html_out/test_animatesvg.html')

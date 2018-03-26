@@ -10,17 +10,62 @@ Beampy presentation output only one html file with every contents embedded.
 
 [See a Beampy tests presentation](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html) (source is in *examples/beampy_tests_modules.py*)
 
+## A quick example :
+
+```python
+from beampy import *
+
+doc = document()
+
+with slide():
+    maketitle('Beampy a tool to make simple presentation', ['H. Chauvet'])
+
+with slide('Beampy test'):
+    text(r'\href{#0}{Go to Title}')
+    text(r'Use LaTeX to render text and $$\sqrt{10}$$', align='center')
+
+with slide('Beampy test with animated layers'):
+    text(r'\href{#0}{Go to Title}')[:]
+    text(r'Use LaTeX to render text and $$\sqrt{10}$$', align='center')[1]
+
+save('./simple_one.html')
+
+#To save in pdf just change the above command to the following
+#save('./simple_one.pdf')
+```
+
+[beampy_presentation.html](https://cdn.rawgit.com/hchauvet/beampy/master/examples/simple_one.html)
+
 
 
 ## TODO:
 
-* A clear documentation (with examples)
-* Write tests 
-* Clean the javascript code
-* Add more themes
-* -Allow external links for huge videos-
+- [] A clear documentation (with examples)
+- [] Write tests 
+- [] Clean the javascript code
+- [] Add more themes
+- [x] Allow external links for huge videos
 
-## Current version:
+## Change log:
+
+### 0.4.6
+
+* Introduce layer mechanism. Slide elements can be animated by layers allowing mechanism like beamer "\only".
+  The layer are managed as python slicing on Beampy modules.
+
+  ```python 
+  with slide('Test layers'):
+    text('First printed on layer 0')
+    text('Secondly printed on layer 1')[1]
+    text('Printed from layer 2 to 3')[2,3]
+    text('Printed on all layers')[:]
+    text('Printed on layer 4')[4]
+    
+    with group(width=300)[2:]:
+        text('Printed inside group')
+        text('for layers 2 to end')
+  ```
+  
 
 ### 0.4.5
 
@@ -45,7 +90,7 @@ Beampy presentation output only one html file with every contents embedded.
     text('nice legend')
     # Figure and text width will be automatically set to 200 px
   ```
-  
+
 * Relative placement now could be done on auto positioned elements
 
   ```python
@@ -120,27 +165,6 @@ Svg slides are exported in html5 with every raster elements embed in one file.
 The slides can also be exported to svg and pdf (videos and animations are rendered as first frame image in pdf/Svg)
 
 Beampy uses a simple cache system to compile slide only when it's needed!
-## A quick example :
-
-```python
-from beampy import *
-
-doc = document()
-
-with slide():
-   maketitle('Beampy a tool to make simple presentation', ['Hugo Chauvet'] )
-
-with slide():
-   title("Beampy test")
-   text("""Use LaTeX to render text and $$\\sqrt{10}$$""", align='center')
-
-save('./beampy_presentation.html')
-
-#To save in pdf just change the above command to the following
-#save('./beampy_presentation.pdf')
-```
-
-[beampy_presentation.html](https://cdn.rawgit.com/hchauvet/beampy/master/examples/simple_one.html)
 
 ## Installation
 

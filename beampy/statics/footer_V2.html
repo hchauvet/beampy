@@ -64,14 +64,12 @@
     }
     if (aEvent.keyCode == 32) { // space
       aEvent.preventDefault();
-      $("#html_store_slide_"+this.id_slide+" video").each(function(){
+      $("#html_store_slide_"+this.id_slide+"-"+this.layer+" video").each(function(){
 	    if (this.paused || this.ended){
   	        this.play();
   	    } else {
   	        this.pause();
   	    }
-
-
       });
     }
     if (aEvent.keyCode == 70) { // f
@@ -151,7 +149,7 @@
 
   Beampy.toggleContent = function() {
     //get the video in the store for the current id_slide
-    var videos = $("#html_store_slide_"+this.id_slide+" video");
+    var videos = $("#html_store_slide_"+this.id_slide+"-"+this.layer+" video");
 
     //if they are visible hidde them and reset their content to 0
     if (videos.css('visibility') == 'visible'){
@@ -167,15 +165,12 @@
     }
 
     //get the div in html_store_slide to set their visibility
-    var divs = $("#html_store_slide_"+this.id_slide+" div");
+    var divs = $("#html_store_slide_"+this.id_slide+"-"+this.layer+" div");
     if (divs.css('visibility') == 'visible'){
         divs.css('visibility', 'hidden');
     } else {
         divs.css('visibility', 'visible');
     }
-
-   //For the svganimate case
-   anims = $('#slide_'+this.id_slide+' #svganimate');
   }
 
  Beampy.animatesvg = function(anim_number, fps, number_of_frames){
@@ -183,121 +178,135 @@
     var frameCount = number_of_frames;
     var anim_number = anim_number;
     //Reset frame view NO JQUERY FOR SVG !!!
-    var maingroup = document.getElementById('svganimate_s'+this.id_slide+'_'+anim_number);
+    var maingroup = document.getElementById('svganimate_slide_'+this.id_slide+'-'+this.layer+'_'+anim_number);
     var curslide = slides['slide_'+this.id_slide];
     var i = 1;
     var frames = maingroup.childNodes;
 
-
     var display_frames = function(){
-        //console.log(i)
-
         if( curslide.hasOwnProperty('svganimates') ){
       	    maingroup.innerHTML = curslide['svganimates'][anim_number]['frames'][i] ;
       	}
-
-        //maingroup.innerHTML = '<use xlink:href="#frame_'+i+'" x="0" y="0"/>'
-        //maingroup.setAttributeNS('http://www.w3.org/2000/svg', 'xlink:href','#frame_'+i)
         i++;
-        
         if (i == frameCount){
             //console.log("test stop");
             clearInterval(intervalometer);        
         }
     }
-    
-    
+
     var intervalometer = setInterval(function () { 
         display_frames();
     }, 1000*1/fps);
   }
   
-  Beampy.setCursor = function(aIdx) {
+  Beampy.setCursor = function(aIdx, layer) {
     // If the user change the slide number in the URL bar, jump
     // to this slide.
-    window.location.hash = "#" + aIdx ;
+    window.location.hash = "#" + aIdx + "-" + layer ;
   }
 
   Beampy.onhashchange = function() {
 
 	var cursor = window.location.hash.split("#"),
-        newidx = 0,
+    newidx = 0,
 	newstep = 0;
-	// console.log(cursor);
 			  
     if (cursor.length == 2) {
-	newidx = ~~cursor[1];
-	// console.log(newidx, newstep);
+        tmpcursor = cursor[1].split('-');
+	    newidx = ~~tmpcursor[0];
+	    newstep = ~~tmpcursor[1];
     }
 
-    if (newidx != this.id_slide) {
-      this.setSlide(newidx);
+    if (newidx != this.id_slide || newstep != this.layer) {
+      this.setSlide(newidx, newstep);
     }
   }
 
   Beampy.back = function() {
     if (this.id_slide == 0) {
-      return;
-    }else {
-      this.setCursor(this.id_slide-1);
+        if (this.layer == 0 ){
+            return;
+        } else {
+            this.setCursor(this.id_slide, this.layer-1);
+         }
+        } else {
+            if (this.layer == 0) {
+                last_layer = ~~slides['slide_'+(this.id_slide-1)]['svg'].length - 1;
+                this.setCursor(this.id_slide-1, last_layer);
+            } else {
+                this.setCursor(this.id_slide, this.layer-1);
+            }
+
+
     }
   }
 
   Beampy.forward = function() {
     if (this.id_slide >= this.slides.length-1 ) {
-        return;
-    }
-    else {
-      this.setCursor(this.id_slide + 1);
+        if (this.layer <= this.maxlayer - 1){
+            this.setCursor(this.id_slide, this.layer + 1);
+        } else {
+           return;
+        }
+    } else {
+      if (this.layer <= this.maxlayer - 1){
+            this.setCursor(this.id_slide, this.layer + 1);
+        } else {
+            this.setCursor(this.id_slide + 1, 0);
+      }
     }
   }
 
   Beampy.goStart = function() {
-    this.setCursor(0);
+    this.setCursor(0,0);
   }
 
   Beampy.goEnd = function() {
     var lastIdx = this.slides.length - 1;
-    this.setCursor(lastIdx);
+    this.setCursor(lastIdx, this.maxlayer-1);
   }
 
 
-  Beampy.setSlide = function(aIdx) {
+  Beampy.setSlide = function(aIdx, layer) {
 
     //Deselect the previous store
     Beampy.toggleContent();
     this.id_slide = aIdx;
+    this.layer = layer;
+    this.maxlayer = 0;
 
-    if (aIdx <= this.slides.length - 1) {
+
+    if (this.id_slide <= this.slides.length - 1 ) {
     
       var curslide = slides['slide_'+aIdx];
-      
-      
+      this.maxlayer = curslide['svg'].length - 1;
 
-    $("section").html( curslide.svg );
-    Beampy.toggleContent();
+      if (this.layer <= this.maxlayer){
 
+        $("section").html( curslide.svg_header + curslide.svg[layer] + curslide.svg_footer );
+        Beampy.toggleContent();
 
+        //Pour bokeh
+        var bokeh = $('#html_store_slide_'+this.id_slide+'-'+this.layer+' .bk-plotdiv');
+        console.log(bokeh);
+        if (bokeh.length) {
+            scripts_slide['slide_'+this.id_slide].load_bokeh();
+        }
 
-
-
-
-    //Pour bokeh
-    var bokeh = $('#html_store_slide_'+Beampy.id_slide+' .plotdiv');
-    if (bokeh.length) {
-        scripts_slide['slide_'+Beampy.id_slide].load_bokeh();
-    }
-
-    //Test si des residus de bokeh
-    var bokeh_trash = $('.bk-bs-modal');
-    if (bokeh_trash.length) {
-        bokeh_trash.remove(); //Remove these remainings divs
-    }
+        //Test si des residus de bokeh
+        var bokeh_trash = $('.bk-bs-modal');
+        if (bokeh_trash.length) {
+            bokeh_trash.remove(); //Remove these remainings divs
+        }
+      } else {
+        this.layer = -1;
+        console.warn("Layer doesn't exist.");
+      }
 
     } else {
       // That should not happen
       this.id_slide = -1;
-      // console.warn("Slide doesn't exist.");
+      console.warn("Slide doesn't exist.");
     }
   }
 
