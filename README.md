@@ -40,15 +40,15 @@ save('./simple_one.html')
 
 ## TODO:
 
-- [] A clear documentation (with examples)
-- [] Write tests 
-- [] Clean the javascript code
-- [] Add more themes
+- [ ] A clear documentation (with examples)
+- [ ] Write tests 
+- [ ] Clean the javascript code
+- [ ] Add more themes
 - [x] Allow external links for huge videos
 
 ## Change log:
 
-### 0.4.6
+### 0.4.7
 
 * Introduce layer mechanism. Slide elements can be animated by layers allowing mechanism like beamer "\only".
   The layer are managed as python slicing on Beampy modules.
@@ -67,7 +67,7 @@ save('./simple_one.html')
   ```
   
 
-### 0.4.5
+### 0.4.6
 
 * The core of Beampy slide processor has been rewritten and now allows recursive group of elements.
 

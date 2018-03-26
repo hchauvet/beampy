@@ -39,5 +39,16 @@ with slide('Test s3'):
         with group()[1]:
             text('Second group should have layer 1')
 
+with slide('Test layers example'):
+    text('First printed on layer 0')
+    text('Secondly printed on layer 1')[1]
+    text('Printed from layer 2 to 3')[2, 3]
+    text('Printed on all layers')[:]
+    text('Printed on layer 4')[4]
+
+    with group(width=300)[2:]:
+        text('Printed inside group')
+        text('for layers 2 to end')
+
 save('./html_out/%s.html'%test_name)
 # save('./pdf_out/%s.pdf'%test_name)
