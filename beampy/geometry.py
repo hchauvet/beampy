@@ -57,17 +57,18 @@ class positionner():
                       'cm', 'pt', 'px': shift value unit
         """
 
-        #Create and id (positition in the dict of this element)
+        # Create and id (positition in the dict of this element)
         self.id = elem_id
+        self.slideid = gcs()
         try:
-            self.id_index = document._slides[gcs()].element_keys.index(self.id)
-        except:
-            print('Element not found in document._content[gcs()]')
-            self.id_index = -1 #Content not stored in slide contents (like group)
+            self.id_index = document._slides[self.slideid].element_keys.index(self.id)
+        except IndexError:
+            print('Element not found in document._content[gcs()].element_keys')
+            self.id_index = -1
 
         self.update_size(width, height)
 
-        #Make copy if x and y are dict input
+        # Make copy if x and y are dict input
         if type(x) == type(dict()):
             self.x = x.copy()
         else:
@@ -78,12 +79,12 @@ class positionner():
         else:
             self.y = y
 
-        #print({"id":self.id,'y':self.y})
-        #print(self.x)
-        #Need to convert x, y to a standart dict
+        # print({"id":self.id,'y':self.y})
+        # print(self.x)
+        # Need to convert x, y to a standart dict
         self.convert_position()
 
-        #Compute elements anchors
+        # Compute elements anchors
         self.compute_anchors()
 
     def update_size(self, width, height):
@@ -111,32 +112,32 @@ class positionner():
             Compute the anchors for the element self.left self.right self.top and self.bottom
         """
 
-        #Bottom
+        # Bottom
         self.bottom = anchor('bottom', self.id)
-        #top
+        # top
         self.top = anchor('top', self.id)
-        #left
+        # left
         self.left = anchor('left', self.id)
-        #right
+        # right
         self.right = anchor('right', self.id)
-        #center
+        # center
         self.center = anchor('center', self.id)
 
 
     def convert_position(self):
 
-        #Function to convert position of an element
+        # Function to convert position of an element
         tmpx = DEFAULT_X.copy()
         tmpy = DEFAULT_Y.copy()
-        slidects = document._slides[gcs()].contents
+        slidects = document._slides[self.slideid].contents
 
-        #Get the previous content if it exist (to us "+xx" or "-yy" in x, y coords)
+        # Get the previous content if it exist (to us "+xx" or "-yy" in x, y coords)
         if self.id_index > 0:
-            prev_ct = slidects[document._slides[gcs()].element_keys[self.id_index - 1]]
+            prev_ct = slidects[document._slides[self.slideid].element_keys[self.id_index - 1]]
         else:
             prev_ct = None
 
-        #Check if x or y are only floats
+        # Check if x or y are only floats
         if type(self.x) == type(float()) or type(self.x) == type(int()):
             tmpx['shift'] = self.x
 
@@ -236,11 +237,11 @@ class positionner():
             print("[Error] y position need to be a float or an int or a dict")
 
 
-        #Store the dict for positions
+        # Store the dict for positions
         self.x = tmpx
         self.y = tmpy
 
-        #Convert position unit to pt
+        # Convert position unit to pt
         if self.x['unit'] in ['cm', 'pt', 'mm']:
             self.x['shift'] = float( convert_unit( '%f%s'%(self.x['shift'], self.x['unit']) ) )
 
@@ -252,7 +253,6 @@ class positionner():
 
         if type(self.height) == type(str()):
             self.height = float( convert_unit(self.height) )
-
 
     def place(self, available_size, ytop=0):
         """
@@ -266,19 +266,19 @@ class positionner():
 
         """
 
-        #Container size
+        # Container size
         available_width, available_height = available_size
 
 
-        #Check if we need to compute the shift as a % of the container
-        if available_width != None:
+        # Check if we need to compute the shift as a % of the container
+        if available_width is not None:
             if self.x['unit'] == 'width':
                 self.x['shift'] *= available_width
 
             if self.y['unit'] == 'width':
                 self.y['shift'] *= available_width
 
-        if available_height != None:
+        if available_height is not None:
             if self.x['unit'] == 'height':
                 self.x['shift'] *= available_height
 
@@ -337,8 +337,41 @@ class positionner():
                 self.y['final'] -= self.height/2.
 
         #reduce number of floating values and set align and unit to top-left in pixel
-        self.x['final'] = round( self.x['final'], 1 )
-        self.y['final'] = round( self.y['final'], 1 )
+        self.x['final'] = round(self.x['final'], 1)
+        self.y['final'] = round(self.y['final'], 1)
+
+    def guess_size_for_group(self):
+        """Function to guess parent group final position to place elements relatively
+        to this group.
+        """
+
+        if 'final' not in self.x:
+            if self.width is None:
+                cur_width = document._slides[self.slideid].curwidth
+
+                print('''Warning: Relative "x" placement to parent group without
+                width could gives unexpected results. Width: %i is used.''' %
+                      cur_width)
+
+                self.width = cur_width
+
+            if self.x == 'auto':
+                print('''Warning: Relative "x" placement to a parent group with
+                auto-positioning! This will lead to unexpected results!''')
+
+        if 'final' not in self.y:
+            if self.height is None:
+                cur_height = document._height
+
+                print('''Warning: Relative "y" placement to parent group without
+                width could gives unexpected results. Width: %i is used.''' %
+                      cur_height)
+
+                self.height = cur_height
+
+            if self.y == 'auto':
+                print('''Warning: Relative "y" placement to a parent group with
+                auto-positioning! This will lead to unexpected results!''')
 
 
 class anchor:
@@ -354,9 +387,9 @@ class anchor:
         self.element_id = elem_id
         self.slide_id = document._global_counter['slide']
         #Create a new position dictionnary
-        self.position = { "reference": "relative",
-                      "ref_id": (self.element_id, self.slide_id),
-                      "ref_anchor": self.type }
+        self.position = {"reference": "relative",
+                         "ref_id": (self.element_id, self.slide_id),
+                         "ref_anchor": self.type}
 
     def __add__(self, new_value):
         self.position['math'] = "+"
@@ -366,7 +399,7 @@ class anchor:
 
     def __sub__(self, new_value):
         self.position['math'] = "-"
-        self.parse_newvalue( new_value )
+        self.parse_newvalue(new_value)
 
         return self.position.copy()
 
@@ -376,14 +409,14 @@ class anchor:
             like {"shift": 0, "align": 'left'}
         """
         #print(type(new_value))
-        if type(new_value) == type(str()):
-            self.position['shift'] = float( convert_unit(new_value) )
+        if isinstance(new_value, str):
+            self.position['shift'] = float(convert_unit(new_value))
             self.position['unit'] = 'px'
 
-        elif type(new_value) == type(float()) or type(new_value) == type(int()):
+        elif isinstance(new_value, float) or isinstance(new_value, int):
             self.position['shift'] = new_value
 
-        elif type(new_value) == type(dict()):
+        elif isinstance(new_value, dict):
             self.position = dict_deep_update(new_value.copy(), self.position)
 
         else:
@@ -424,36 +457,48 @@ def relative_placement(prev_element_id, curpos, axis):
     else:
         op = operator.add
 
-    #get the relative element dict for the given axis
+
+    # get the relative element dict for the given axis
     if axis == 'x':
         oldpos = document._slides['slide_%i'%prev_slide].contents[prev_elem].positionner.x
 
     if axis == 'y':
         oldpos = document._slides['slide_%i'%prev_slide].contents[prev_elem].positionner.y
 
-        #print("oldpos y", oldpos)
+    if 'final' not in oldpos:
+        # Special case for group, try to guess the parent group width and height
+        if document._slides['slide_%i'%prev_slide].contents[prev_elem].type == 'group':
+            oldpos_final = 0
+            document._slides['slide_%i'%prev_slide].contents[prev_elem].positionner.guess_size_for_group()
+        else:
+            raise ValueError('Relative placement error: \nReference element:\n%s\nThis element have no final position' %
+                             str(document._slides['slide_%i' % prev_slide].contents[prev_elem])
+                             )
+
+    else:
+        oldpos_final = oldpos['final']
 
     oldwidth = document._slides['slide_%i'%prev_slide].contents[prev_elem].positionner.width
     oldheight = document._slides['slide_%i'%prev_slide].contents[prev_elem].positionner.height
 
     if curpos['ref_anchor'] == 'left' and axis == 'x':
-        newpos = op(oldpos['final'], curpos['shift'])
+        newpos = op(oldpos_final, curpos['shift'])
 
     if curpos['ref_anchor'] == 'right' and axis == 'x':
-        newpos = op( (oldpos['final'] + oldwidth), curpos['shift'] )
+        newpos = op((oldpos_final + oldwidth), curpos['shift'])
 
     if curpos['ref_anchor'] == 'center':
         if axis == "x":
-            newpos = op( (oldpos['final'] + oldwidth/2.), curpos['shift'] )
+            newpos = op((oldpos_final + oldwidth/2.), curpos['shift'])
 
         if axis == "y":
-            newpos = op( (oldpos['final'] + oldheight/2.), curpos['shift'] )
+            newpos = op((oldpos_final + oldheight/2.), curpos['shift'])
 
     if curpos['ref_anchor'] == 'top' and axis == 'y':
-        newpos = op(oldpos['final'], curpos['shift'])
+        newpos = op(oldpos_final, curpos['shift'])
 
     if curpos['ref_anchor'] == 'bottom' and axis == 'y':
-        newpos = op( (oldpos['final'] + oldheight), curpos['shift'] )
+        newpos = op((oldpos_final + oldheight), curpos['shift'])
 
     return newpos
 

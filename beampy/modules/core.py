@@ -5,9 +5,10 @@ Created on Sun Oct 25 20:33:18 2015
 @author: hugo
 """
 from beampy import document
-from beampy.functions import (gcs, create_element_id,
- check_function_args, get_command_line, convert_unit,
- pre_cache_svg_image, print_function_args)
+from beampy.functions import (gcs, create_element_id, check_function_args,
+                              get_command_line, convert_unit,
+                              pre_cache_svg_image, print_function_args,
+                              render_texts)
 
 from beampy.geometry import positionner, distribute
 import sys
@@ -19,7 +20,7 @@ class slide():
         Function to add a slide to the presentation
     """
 
-    def __init__(self, title= None, **kwargs):
+    def __init__(self, title=None, **kwargs):
 
         # Add a slide to the global counter
         if 'slide' in document._global_counter:
@@ -201,7 +202,7 @@ class slide():
 
     def show(self):
         from beampy.exports import display_matplotlib
-        display_matplotlib(self.id)
+        display_matplotlib(self.id, True)
 
     def build_layout(self):
         """
@@ -282,11 +283,11 @@ class slide():
 
                 if len(curgroup.autoyid) > 0:
                     distribute(curgroup.autoyid, 'vspace', auto_height,
-                                offset=curgroup.yoffset, curslide=self)
+                               offset=curgroup.yoffset, curslide=self)
 
                 # Place the module with these distributed postions
                 for elem in curgroup.autoxid + curgroup.autoyid + curgroup.manualid:
-                    #Check if the element have already be placed (html could be part of serveral groups level)
+                    # Check if the element have already be placed (html could be part of serveral groups level)
                     if 'final' not in self.contents[elem].positionner.x:
                         self.contents[elem].positionner.place( (auto_width, auto_height),
                                                                 curgroup.yoffset )
@@ -366,11 +367,12 @@ class slide():
         <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
         "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
         <svg width='{width}px' height='{height}px' style='background-color: "{bgcolor}";'
-        xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny"
+        xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="full"
         xmlns:xlink="http://www.w3.org/1999/xlink"
         xmlns:dc="http://purl.org/dc/elements/1.1/"
         xmlns:cc="http://creativecommons.org/ns#"
         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        shape-rendering="geometricPrecision"
         >"""\
 
         header_template = svg_template.format(width=document._width,
@@ -799,14 +801,53 @@ class beampy_module():
         return 0
 
 class group(beampy_module):
-    """
-        Group objects and place the group to a given position on the slide
+    """Group Beampy modules together and manipulate them as a group
+
+    Parameters
+    ----------
+
+    elements_to_group : None or list of Beampy.base_module, optional
+        Give elements id to put inside the group (the default is None). This
+        argument allows to group Beampy modules, when `group` is not used with
+        the "with" expression.
+
+    x : int or float or {'center', 'auto'}, optional
+        Horizontal position for the group (the default is 'center')
+
+    y : int or float or {'center', 'auto'}, optional
+        Vertical position for the group (the default is 'auto')
+
+    width : int or float or None, optional
+       Width of the group (the default is None). When width is None the width
+       is computed to fit the group contents width.
+
+    height : int or float or None, optional
+       Height of the group (the default is None). When height is None the
+       height is computed to fit the group contents height.
+
+    background : str or None, optional
+       Svg color name of the background color for the group (the default is None).
+
+    perentid : str or None, optional
+        Beampy id of the parent group (the default is None). This parentid is
+        given automatically by Beampy render.
+
+
+    .. note::
+
+       When the position of a group (`x`, `y`) are relative to a parent group
+       and that the parent group has `width`=None or `height`=None and
+       positions `x` or `y` equal to 'auto' or 'center', the render will use
+       the `slide.curwidth` as `width` and the `document._height` as height.
+       This will produce unexpected positioning of child group.
+
+
     """
 
-    def __init__(self, elements_to_group=None, x='center', y='auto', width = None,
-                 height = None, background=None, parendid=None):
+    def __init__(self, elements_to_group=None, x='center', y='auto',
+                 width=None, height=None, background=None, parendid=None):
 
-        #Store the input of the module
+        # Store the input of the module
         self.width = width
         self.height = height
         self.x = x

@@ -7,11 +7,11 @@ from beampy.statics.default_theme import THEME
 import sys
 from distutils.spawn import find_executable
 from beampy.cache import cache_slides
-#Auto change path
+from beampy import __version__ as bpversion
+# Auto change path
 import os
 import sys
 import glob
-import time
 bppath = os.path.dirname(__file__) + '/'
 basename = os.path.basename(__file__)
 script_file_name = os.path.basename(sys.argv[0]).split('.')[0]
@@ -22,8 +22,8 @@ class document():
        Main function to define the document style etc...
     """
 
-    __version__ = '0.4.4'
-    #Global variables to sotre data
+    __version__ = bpversion
+    # Global variables to sotre data
     _contents = {}
     _slides = {}
     _global_counter = {}
@@ -37,18 +37,18 @@ class document():
     _cache = None
     _pdf_animations = False
     _resize_raster = True
-    _source_code = [] # Store the source code of the input script
-    _rendered = False # Store the state of the entire document (allow multiformat output)
+    _source_code = []  # Store the source code of the input script
+    _rendered = False  # Store the state of the entire document (allow multiformat output)
 
-    #Store data that need to be globally loaded in html like raster contents
-    #images, video, etc...
-    #Format of an entry in the list: {'type': 'svg (or html)', 'content': the data to be loaded}
+    # Store data that need to be globally loaded in html like raster contents
+    # images, video, etc...
+    # Format of an entry in the list: {'type': 'svg (or html)', 'content': the data to be loaded}
     _global_store = {}
-    
-    #Define path to external commands (see default THEME file)
+
+    # Define path to external commands (see default THEME file)
     _external_cmd = {}
 
-    def __init__(self, **kwargs):
+    def __init__(self, quiet=False, **kwargs):
         """
             Create document to store slides
             options (see THEME)
@@ -62,6 +62,9 @@ class document():
             - resize_raster[True]: Resize raster images (inside svg and for jpeg/png figures)
             - theme: Define the path to your personal THEME dictionnary
         """
+
+        if quiet:
+            sys.stdout = open(os.devnull, 'w')
 
 		#reset if their is old variables
         self.reset()

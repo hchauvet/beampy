@@ -38,11 +38,19 @@ with slide('TEST'):
 
     text('youpi', x=g3.center + center(0), y=g3.top - bottom(0.1))
 
-with slide('test'):
-    v0 = video(os.path.abspath('../examples/test.webm'),
-          width=300, embedded=False)
+
+with slide('test group relative position'):
+
+    with group(x='center', y='center') as g1:
+        text('inside first group')
+
+        with group(x=g1.left+0, y=g1.bottom+0):
+            text('inside second group')
+
+
+    g1.add_border()
 
 # TODO: solve the bug for video when pdf is exported after html....
-save('./pdf_out/%s.pdf'%test_name)
+# save('./pdf_out/%s.pdf'%test_name)
 save('./html_out/%s.html'%test_name)
 

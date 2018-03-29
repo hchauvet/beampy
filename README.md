@@ -48,6 +48,11 @@ save('./simple_one.html')
 
 ## Change log:
 
+### 0.4.8
+
+* Partially fix issue #12.
+* Clean code syntaxe. 
+
 ### 0.4.7
 
 * Introduce layer mechanism. Slide elements can be animated by layers allowing mechanism like beamer "\only".
