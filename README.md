@@ -48,6 +48,16 @@ save('./simple_one.html')
 
 ## Change log:
 
+### 0.4.8.1
+
+* Add documentation in Beampy module
+* Add 'anchor' key to position dictionary to define anchor along the
+  bounding-box of module to place them.
+* Add utils.py to store functions that call beampy modules. 
+* Add function **bounding_box(module)** to utils.py to draw bounding box with
+  anchors around Beampy modules. Add also a function to draw axes on slide,
+  **draw_axes()**
+
 ### 0.4.8
 
 * Partially fix issue #12.
