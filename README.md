@@ -48,7 +48,7 @@ save('./simple_one.html')
 
 ## Change log:
 
-### 0.4.8.1
+### 0.4.9
 
 * Add documentation in Beampy module
 * Add 'anchor' key to position dictionary to define anchor along the
