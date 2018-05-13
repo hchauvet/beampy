@@ -15,6 +15,7 @@ try:
 except:
     from io import StringIO
 
+import sys
 import os
 import time
 import io
@@ -30,14 +31,19 @@ def save_layout():
 
 
 def reset_module_rendered_flag():
-    if document._rendered:
-        for slide in document._slides:
-            document._slides[slide].svgout = []
+    for slide in document._slides:
+        # document._slides[slide].svgout = []
+        # document._slides[slide].svglayers = {}
+        # document._slides[slide].htmlout = {}
+        document._slides[slide].reset_rendered()
 
-            for ct in document._slides[slide].contents:
-                document._slides[slide].contents[ct].rendered = False
-                document._slides[slide].contents[ct].svgout = None
-                document._slides[slide].contents[ct].htmlout = None
+        for ct in document._slides[slide].contents:
+            document._slides[slide].contents[ct].reset_outputs()
+            # document._slides[slide].contents[ct].rendered = False
+            # document._slides[slide].contents[ct].exported = False
+            # document._slides[slide].contents[ct].svgout = None
+            # document._slides[slide].contents[ct].htmlout = None
+
 
 
 def save(output_file=None, format=None):
@@ -46,13 +52,20 @@ def save(output_file=None, format=None):
 
     """
 
+    if document._quiet:
+        sys.stdout = open(os.devnull, 'w')
+
     texp = time.time()
     bname = os.path.basename(output_file)
     bdir = output_file.replace(bname,'')
 
-    reset_module_rendered_flag()
+    if document._rendered:
+        document._rendered = False
+        reset_module_rendered_flag()
 
-    if 'html' in output_file or format == 'html5':
+    file_ext = os.path.splitext(output_file)[-1]
+
+    if 'html' in file_ext or format == 'html5':
         document._output_format = 'html5'
         save_layout()
         # Render glyphs
@@ -67,7 +80,7 @@ def save(output_file=None, format=None):
         output = svg_export(output_file)
         output_file = None
 
-    elif 'pdf' in output_file or format == 'pdf':
+    elif 'pdf' in file_ext or format == 'pdf':
         document._output_format = 'pdf'
         save_layout()
         # Render glyphs
@@ -123,13 +136,16 @@ def pdf_export(name_out):
 
     res.close()
     msg = "Saved to %s"%name_out
-    os.system('rm -rf %s'%(bdir+'/tmp/slide_*'))
+    #os.system('rm -rf %s'%(bdir+'/tmp/slide_*'))
 
     return msg
 
 
-def svg_export(dir_name):
-    #Export evry slides in svg inside a given folder
+def svg_export(dir_name, quiet=False):
+    # Export evry slides in svg inside a given folder
+
+    if quiet:
+        sys.stdout = open(os.devnull, 'w')
 
     try:
         os.mkdir(dir_name)
@@ -369,6 +385,13 @@ def display_matplotlib(slide_id, show=False):
     from PIL import Image
     from numpy import asarray
 
+    if document._quiet:
+        sys.stdout = open(os.devnull, 'w')
+
+    # Set document format to svg
+    oldformat = document._output_format
+    document._output_format = 'svg'
+
     # Render all text in slides
     render_texts()
     slide = document._slides[slide_id]
@@ -399,6 +422,10 @@ def display_matplotlib(slide_id, show=False):
     with io.open(tmpname+'.svg', 'w', encoding='utf8') as f:
         f.write(svgout)
 
+    # Reset document format to oldformat
+    reset_module_rendered_flag()
+    document._output_format = oldformat
+
     # Change it a png
     inkscapecmd = document._external_cmd['inkscape']
     # use inkscape to translate svg to pdf
@@ -418,5 +445,6 @@ def display_matplotlib(slide_id, show=False):
     pyplot.yticks([])
     pyplot.tight_layout()
 
+    
     if show:
         pyplot.show()

@@ -10,25 +10,55 @@ import operator
 import sys
 
 #Default dict for positioning alignement
-DEFAULT_X = {'align': 'left', 'reference': 'slide', 'shift': 0, 'unit': 'width'}
-DEFAULT_Y = {'align': 'top', 'reference': 'slide', 'shift': 0, 'unit': 'width'}
+DEFAULT_X = {'align': 'left', 'reference': 'slide', 'shift': 0,
+             'unit': 'width', 'anchor': 'left'}
+DEFAULT_Y = {'align': 'top', 'reference': 'slide', 'shift': 0,
+             'unit': 'width', 'anchor': 'top'}
 
 
 #Define function for alignement shortcuts.
 def center(shift=0):
-    return {'align': 'middle', 'shift': shift}
+
+    out = {'anchor': 'middle', 'shift': shift}
+
+    if isinstance(shift, str):
+        out['shift'] = float(convert_unit(shift))
+        out['unit'] = 'px'
+
+    return out
 
 
 def top(shift=0):
-    return {'align': 'top', 'shift': shift}
+
+    out = {'anchor': 'top', 'shift': shift}
+
+    if isinstance(shift, str):
+        out['shift'] = float(convert_unit(shift))
+        out['unit'] = 'px'
+
+    return out
 
 
 def bottom(shift=0):
-    return {'align': 'bottom', 'shift': shift}
+
+    out = {'anchor': 'bottom', 'shift': shift}
+
+    if isinstance(shift, str):
+        out['shift'] = float(convert_unit(shift))
+        out['unit'] = 'px'
+
+    return out
 
 
 def right(shift=0):
-    return {'align': 'right', 'shift': shift}
+
+    out = {'anchor': 'right', 'shift': shift}
+
+    if isinstance(shift, str):
+        out['shift'] = float(convert_unit(shift))
+        out['unit'] = 'px'
+
+    return out
 
 
 class positionner():
@@ -50,11 +80,13 @@ class positionner():
                 align: define the alignement for the coordinate
                        ('center' (page centering),'left','right','middle',
                        'top','bottom')
-                reference: relative element for placement or 'slide' relative to slide
+                reference: 'relative' element for placement or 'slide' relative to slide
+                           'slide' for placement refenreced on slide
                 shift: the value of the shift
                 unit: 'width': relative to page (or group) width
                       'height': relative to page (or group) height
                       'cm', 'pt', 'px': shift value unit
+                anchor: 'left', 'right', 'middle', 'top', 'bottom', define the anchor on the object bounding-box
         """
 
         # Create and id (positition in the dict of this element)
@@ -104,7 +136,7 @@ class positionner():
         except:
             self.height = None
 
-        if self.width != None and self.width < 1.0:
+        if self.width is not None and self.width < 1.0:
             self.width *= document._width
 
     def compute_anchors(self):
@@ -123,7 +155,6 @@ class positionner():
         # center
         self.center = anchor('center', self.id)
 
-
     def convert_position(self):
 
         # Function to convert position of an element
@@ -138,36 +169,36 @@ class positionner():
             prev_ct = None
 
         # Check if x or y are only floats
-        if type(self.x) == type(float()) or type(self.x) == type(int()):
+        if isinstance(self.x, float) or isinstance(self.x, int):
             tmpx['shift'] = self.x
 
-        elif type(self.x) == type(dict()):
+        elif isinstance(self.x, dict):
             tmpx = dict_deep_update(tmpx, self.x)
 
-        elif type(self.x) == type(str()):
+        elif isinstance(self.x, str):
 
             converted = False
 
             if '+' in self.x:
-                self.x = convert_unit( self.x.replace('+','') )
-                #Make relative placement
-                if prev_ct != None:
-                    dict_old = prev_ct['positionner'].right + float( self.x )
+                self.x = convert_unit(self.x.replace('+', ''))
+                # Make relative placement
+                if prev_ct is not None:
+                    dict_old = prev_ct.positionner.right + float(self.x)
                     tmpx = dict_deep_update(tmpx, dict_old)
                 else:
-                    tmpx['shift'] = float( self.x )
+                    tmpx['shift'] = float(self.x)
 
                 tmpx['unit'] = 'px'
                 converted = True
 
             if '-' in self.x:
-                self.x = convert_unit( self.x.replace('-','') )
-                #Make relative placement
-                if prev_ct != None:
-                    dict_old = prev_ct.positionner.left - float( self.x )
+                self.x = convert_unit(self.x.replace('-', ''))
+                # Make relative placement
+                if prev_ct is not None:
+                    dict_old = prev_ct.positionner.left - float(self.x)
                     tmpx = dict_deep_update(tmpx, dict_old)
                 else:
-                    tmpx['shift'] = float( self.x )
+                    tmpx['shift'] = float(self.x)
                 tmpx['unit'] = 'px'
                 converted = True
 
@@ -179,7 +210,7 @@ class positionner():
 
             if not converted:
                 try:
-                    tmpx['shift'] = float( convert_unit(self.x) )
+                    tmpx['shift'] = float(convert_unit(self.x))
                     tmpx['unit'] = 'px'
                 except:
                     print('[Error] x position is incorect string format')
@@ -188,36 +219,35 @@ class positionner():
         else:
             print("[Error] x position need to be a float or a dict")
 
-
-        if type(self.y) == type(float()) or type(self.y) == type(int()):
+        if isinstance(self.y, float) or isinstance(self.y, int):
             tmpy['shift'] = self.y
 
-        elif type(self.y) == type(dict()):
+        elif isinstance(self.y, dict):
             tmpy = dict_deep_update(tmpy, self.y)
 
-        elif type(self.y) == type(str()):
+        elif isinstance(self.y, str):
 
             converted = False
             if '+' in self.y:
-                self.y = convert_unit( self.y.replace('+','') )
-                #Make relative placement
-                if prev_ct != None:
+                self.y = convert_unit(self.y.replace('+', ''))
+                # Make relative placement
+                if prev_ct is not None:
                     dict_old = prev_ct.positionner.bottom + float(self.y)
                     tmpy = dict_deep_update(tmpy, dict_old)
                 else:
-                    tmpy['shift'] = float( self.y )
+                    tmpy['shift'] = float(self.y)
 
                 tmpy['unit'] = 'px'
                 converted = True
 
             if '-' in self.y:
-                self.y = convert_unit( self.y.replace('-','') )
-                #Make relative placement
-                if prev_ct != None :
+                self.y = convert_unit(self.y.replace('-', ''))
+                # Make relative placement
+                if prev_ct is not None:
                     dict_old = prev_ct.positionner.top - float(self.y)
                     tmpy = dict_deep_update(tmpy, dict_old)
                 else:
-                    tmpy['shift'] = float( self.y )
+                    tmpy['shift'] = float(self.y)
                 tmpy['unit'] = 'px'
                 converted = True
 
@@ -228,11 +258,12 @@ class positionner():
 
             if not converted:
                 try:
-                    tmpy['shift'] = float( convert_unit(self.y) )
+                    tmpy['shift'] = float(convert_unit(self.y))
                     tmpy['unit'] = 'px'
                 except:
                     print('[Error] y position is incorect string format')
                     print(self.y)
+
         else:
             print("[Error] y position need to be a float or an int or a dict")
 
@@ -240,6 +271,14 @@ class positionner():
         # Store the dict for positions
         self.x = tmpx
         self.y = tmpy
+
+        # Force unit to be pixel for x > 1
+        if self.x['shift'] > 1.0 and self.x['unit'] in ('width', 'height'):
+            self.x['unit'] = 'px'
+
+        # Force unit to be pixel for y > 1
+        if self.y['shift'] > 1.0 and self.y['unit'] in ('width', 'height'):
+            self.y['unit'] = 'px'
 
         # Convert position unit to pt
         if self.x['unit'] in ['cm', 'pt', 'mm']:
@@ -294,13 +333,14 @@ class positionner():
                                                 available_height - ytop,
                                                 pos_init=ytop) + self.y['shift']
 
-        #Place element that are aligned left
+        #Place element that are aligned left 
         if self.x['reference'] == 'slide':
             if self.x['align'] == 'left':
                 self.x['final'] = self.x['shift']
 
             if self.x['align'] == 'right':
-                self.x['final'] = (available_width - self.width) - self.x['shift']
+                # self.x['final'] = (available_width - self.width) - self.x['shift']
+                self.x['final'] = (available_width) - self.x['shift']
 
             if self.x['align'] == 'middle':
                 self.x['final'] = self.x['shift'] + self.width/2.
@@ -315,30 +355,33 @@ class positionner():
             if self.y['align'] == 'middle':
                 self.y['final'] = self.y['shift'] + self.height/2.
 
-
-        #Relative positionning
+        # Relative positioning
         if self.x['reference'] == 'relative':
             self.x['final'] = relative_placement(self.x['ref_id'], self.x, 'x')
-
-            #add shift to match alignement of the object
-            if self.x['align'] == 'right':
-                self.x['final'] -= self.width
-
-            if self.x['align'] == 'middle':
-                self.x['final'] -= self.width/2.
 
         if self.y['reference'] == 'relative':
             self.y['final'] = relative_placement(self.y['ref_id'], self.y, 'y')
 
-            if self.y['align'] == 'bottom':
-                self.y['final'] -= self.height
-
-            if self.y['align'] == 'middle':
-                self.y['final'] -= self.height/2.
-
         #reduce number of floating values and set align and unit to top-left in pixel
         self.x['final'] = round(self.x['final'], 1)
         self.y['final'] = round(self.y['final'], 1)
+
+        # Compute the shift due to object anchors
+        if self.x['anchor'] == 'right':
+            # print('right', self.width)
+            self.x['final'] -= self.width
+
+        if self.x['anchor'] == 'middle':
+            # print('x middle', self.width)
+            self.x['final'] -= self.width/2.0
+
+        if self.y['anchor'] == 'bottom':
+            # print('bottom', self.height)
+            self.y['final'] -= self.height
+
+        if self.y['anchor'] == 'middle':
+            # print('y middle', self.height)
+            self.y['final'] -= self.height/2.0
 
     def guess_size_for_group(self):
         """Function to guess parent group final position to place elements relatively

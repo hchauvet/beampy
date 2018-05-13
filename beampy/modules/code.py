@@ -10,6 +10,7 @@ from beampy.modules.figure import figure
 from beampy.modules.core import beampy_module
 import tempfile
 import os
+from textwrap import dedent
 
 try:
     from pygments import highlight
@@ -20,36 +21,57 @@ except:
     is_pigment = False
 
 class code(beampy_module):
-    #Transform the code to svg using pigment and then use the classic render for figure
+    """
+    Add highlighted code syntax to your presentation. This module require pygments.
 
-    def __init__(self, codetext, x='center', y='auto', width=None, height=None, langage=None, size="14px" ):
-        """
-            Color a given code using python pygment
+    Parameters
+    ----------
 
-            option
-            ------
+    codetext : string
+        Text of the code source to include.
 
-            langage[None]: try to infer the lexer from codetext
+    x : int or float or {'center', 'auto'} or str, optional
+        Horizontal position for the code (the default is 'center'). See
+        positioning system of Beampy.
 
-            size['9px']: size of the text
+    y : int or float or {'center', 'auto'} or str, optional
+        Vertical position for the code (the default is 'auto'). See positioning
+        system of Beampy.
 
-        """
+    width : string, optional
+        Width of the code (the default is :py:mod:`document._width`). The value
+        is given as string with a unit accepted by svg syntax.
+
+    language : string or None, optional
+        Language of the source code (the default value is None, which implies
+        that the language is guessed by pygments). See pygments language for
+        available ones.
+
+    size : string, optional
+        Font size used to render the source code (the default is '14px').
+
+
+    .. note::
+       This module is in very draft stage !!!
+
+    """
+
+    def __init__(self, codetext, x='center', y='auto', width=None, language=None, size="14px"):
+        #Transform the code to svg using pigment and then use the classic render for figure
 
         self.type = 'svg'
-        self.content = codetext
+        self.content = dedent(codetext)
 
-        if width == None:
+        self.x = x
+        self.y = y
+
+        if width is None:
             self.width = document._width
         else:
             self.width = width
 
-        if height == None:
-            self.height = document._height
-        else:
-            self.height = height
-
-        self.args = {"langage": langage, 'font_size': size }
-        self.langage = langage
+        self.args = {"language": language, 'font_size': size }
+        self.language = language
         self.font_size = size
 
         #TODO: Move this function to pre-render to be managed by cache
@@ -61,21 +83,20 @@ class code(beampy_module):
         else:
             print("Python pygment is not installed, I can't translate code into svg...")
 
-
     def code2svg(self):
         """
             function to render code to svg
         """
 
-        inkscapecmd=document._external_cmd['inkscape']
+        inkscapecmd = document._external_cmd['inkscape']
         codein = self.content
 
 
         #Try to infer the lexer
-        if self.langage == None:
+        if self.language is None:
             lexer = guess_lexer(codein)
         else:
-            lexer = get_lexer_by_name(self.langage, stripall=True)
+            lexer = get_lexer_by_name(self.language, stripall=True)
 
         #Convert code to svgfile
         svgcode = highlight(codein, lexer, SvgFormatter(fontsize=self.font_size, style='tango'))
@@ -93,10 +114,6 @@ class code(beampy_module):
         req = os.popen(cmd)
         req.close()
 
-        #Read the good svg
-        # with open(tmpname+'_good.svg','r') as f:
-        #    goodsvg = f.read()
-
         f = figure(tmpname+'_good.svg', width=self.width, height=self.height)
         f.positionner = self.positionner
         f.render()
@@ -105,13 +122,13 @@ class code(beampy_module):
         self.width = f.width
         self.height = f.height
 
+        self.update_size(self.width, self.height)
         f.delete()
 
         #remove files
         os.remove(tmpname+'.svg')
         os.remove(tmpname+'_good.svg')
         os.remove(tmpname)
-
 
     def render(self):
         self.code2svg()

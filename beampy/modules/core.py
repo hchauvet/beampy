@@ -17,7 +17,22 @@ import time
 
 class slide():
     """
-        Function to add a slide to the presentation
+    Add a slide to the presentation.
+
+    Parameters
+    ----------
+
+    title : str or None, optional
+        Set the title of the slide (the default value is None)
+
+    background : str, optional
+        Background color of the slide (the default value is "white"). Accept svg color name or HTML hex value.
+
+    layout: function or None, optional
+        Function containing beampy modules that will be displayed as slide background.
+
+        >>> slide(layout=my_function)
+
     """
 
     def __init__(self, title=None, **kwargs):
@@ -50,12 +65,12 @@ class slide():
         # Store all outputs
         self.svgout = []
         self.svgdefout = []  # Store module definition for slide
-        self.htmlout = {} # Html is a dict, each key dict is a layer htmlout[0] = [html, html, html] etc...
+        self.htmlout = {}  # Html is a dict, each key dict is a layer htmlout[0] = [html, html, html] etc...
         self.scriptout = []
         self.animout = []
         self.svgheader = ''
         self.svgfooter = '\n</svg>\n'
-        self.svglayers = {} # Store slide final svg (without svg defs stored in self.svgdefout) for the given layer
+        self.svglayers = {}  # Store slide final svg (without svg defs stored in self.svgdefout) for the given layer
 
         # Do we need to render the THEME layout on this slide
         self.render_layout = True
@@ -140,7 +155,8 @@ class slide():
     def reset_rendered(self):
         self.svgout = []
         self.svgdefout = []  # Store module definition for slide
-        self.htmlout = []
+        self.htmlout = {}
+        self.svglayers = {}
         self.scriptout = []
         self.animout = []
 
@@ -482,10 +498,12 @@ class beampy_module():
         del self
 
     def reset_outputs(self):
-        svgout = None  # The output of the render
-        htmlout = None  # We can store also html peace of code
-        jsout = None  # Store javascript if needed
-        animout = None  # Store multiple rasters for animation
+        self.svgout = None  # The output of the render
+        self.htmlout = None  # We can store also html peace of code
+        self.jsout = None  # Store javascript if needed
+        self.animout = None  # Store multiple rasters for animation
+        self.rendered = False
+        self.exported = False
 
     def render(self):
         # Define the render for this module (how it is translated to an svg (or html element))
@@ -806,20 +824,22 @@ class group(beampy_module):
     Parameters
     ----------
 
-    elements_to_group : None or list of Beampy.base_module, optional
-        Give elements id to put inside the group (the default is None). This
-        argument allows to group Beampy modules, when `group` is not used with
-        the "with" expression.
+    elements_to_group : None or list of beampy.base_module, optional
+        List of Beampy module to put inside the group (the default is None).
+        This argument allows to group Beampy modules, when `group` is not used
+        with the python :py:mod:`with` expression.
 
-    x : int or float or {'center', 'auto'}, optional
-        Horizontal position for the group (the default is 'center')
+    x : int or float or {'center', 'auto'} or str, optional
+        Horizontal position for the group (the default is 'center'). See
+        positioning system of Beampy.
 
-    y : int or float or {'center', 'auto'}, optional
-        Vertical position for the group (the default is 'auto')
+    y : int or float or {'center', 'auto'} or str, optional
+        Vertical position for the group (the default is 'auto'). See
+        positioning system of Beampy.
 
     width : int or float or None, optional
-       Width of the group (the default is None). When width is None the width
-       is computed to fit the group contents width.
+       Width of the group (the default is None, which implies that the width
+       is computed to fit the group contents width).
 
     height : int or float or None, optional
        Height of the group (the default is None). When height is None the
@@ -1003,16 +1023,26 @@ class group(beampy_module):
             else:
                 if elem.svgout is not None:
                     if not elem.exported:
-                        slide.add_rendered(svgdefs=elem.export_svg_def())
-                        elem.exported = True
+                        if elem.type == 'html':
+                            if document._output_format != 'html5':
+                                slide.add_rendered(svgdefs=elem.export_svg_def())
+                                elem.exported = True
+                        else:
+                            slide.add_rendered(svgdefs=elem.export_svg_def())
+                            elem.exported = True
 
                     for layer in elem.layers:
-                        self.add_svg_content(layer, '<use xlink:href="#{id}"></use>'.format(id=elem.id))
+                        # Check if it's an html element, we need to only output svg for svg format not html
+                        if elem.type == 'html':
+                            if document._output_format != 'html5':
+                                self.add_svg_content(layer, '<use xlink:href="#{id}"></use>'.format(id=elem.id))
+                        else:
+                            self.add_svg_content(layer, '<use xlink:href="#{id}"></use>'.format(id=elem.id))
 
             if elem.jsout is not None:
                 slide.add_rendered(js=elem.jsout)
 
-            if elem.animout is not None:
+            if elem.animout is not None and document._output_format == 'html5':
                 if not elem.exported:
                     tmpanim = elem.export_animation()
                     slide.add_rendered(animate_svg=tmpanim)
@@ -1055,7 +1085,8 @@ class group(beampy_module):
     def export_svg_layer(self, layer):
 
         out = '<g transform="translate(%s,%s)" class="%s" data-layer="%i">' % (self.positionner.x['final'],
-                                                               self.positionner.y['final'], self.name, layer)
+                                                                               self.positionner.y['final'],
+                                                                               self.name, layer)
 
         out += self.export_svg_content_layer(layer)
 

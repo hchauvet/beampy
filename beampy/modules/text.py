@@ -19,74 +19,94 @@ import sys
 import hashlib
 
 class text(beampy_module):
+    """
+    Add text to the current slide. Input text is by default processed using
+    Latex and could use Latex syntax.
+
+    Parameters
+    ----------
+
+    textin : str
+        Text to add. Could contain latex syntax with protected slash either by
+        using double slash or by using the python **r** before string.
+
+        >>> text(r'\sqrt{x}')
+
+    x : int or float or {'center', 'auto'} or str, optional
+        Horizontal position for the text container (the default is 'center').
+        See positioning system of Beampy.
+
+    y : int or float or {'center', 'auto'} or str, optional
+        Vertical position for the text container (the default is 'auto'). See
+        positioning system of Beampy.
+
+    width : int or float or None, optional
+       Width of the text container (the default is None, which implies that the
+       width is the parent group with).
+
+    size : int, optional
+        The font size (the default theme sets this value to 20).
+
+    font : str, optional
+        The Tex font (the default theme sets this value to 'CMR'). **THIS IS NOT
+        YET IMPLEMENTED!**
+
+    color : str, optional
+        The text color (the default theme set this value to '#000000'). Color
+        could be html hex values or SVG-COLOR-NAMES.
+
+    usetex : bool, optional
+        Use latex to render text (the default value is true). Latex render
+        could be turned off using `usetex`=False, then the text is rendered as
+        svg.
+
+    va : {'','baseline'}, optional
+       Vertical text alignment (the default value is '', which implies that the
+       alignment reference is the top-left corner of text). When
+       `va`='baseline', the base-line of the first text row is computed and
+       used as alignment reference (baseline-left).
+
+
+    Example
+    -------
+
+    >>> text('this is my text', x='20', y='20')
+
+    """
 
     def __init__(self, textin, **kwargs):
-        """
-            Function to add a text to the current slide
-
-            Options
-            -------
-
-            - x['center']: x coordinate of the image
-                           'center': center image relative to document._width
-                           '+1cm": place image relative to previous element
-
-            - y['auto']: y coordinate of the image
-                         'auto': distribute all slide element on document._height
-                         'center': center image relative to document._height (ignore other slide elements)
-                         '+3cm': place image relative to previous element
-                         
-             
-             - size[20]: the font size  
-             
-             - font['CMR']: the Tex font
-             
-             - color['#000000']: the text color 
-             
-             - usetex[True]: Could be turned to False to use raw svg to render text,
-             
-             - va['']: How to align the text vertically, could be '*baseline*' to align
-                       to the first line baseline and not the top of the text 
-                       
-
-            Exemples
-            --------
-
-            text('this is my text', '20', '20')
-        """
 
         self.type = 'text'
         self.check_args_from_theme(kwargs)
         self.content = textin
 
-        self.svgtext = '' #To store the svg produced by latex
+        self.svgtext = ''  # To store the svg produced by latex
 
-        #Height of text is None (it need to be computed)
+        # Height of text is None (it need to be computed)
         self.height = None
-        #Check width
+        # Check width
         if self.width is None:
             self.width = document._slides[gcs()].curwidth
 
-        #Add special args for cache id
-        #Text need to be re-rendered from latex if with, color or size are changed
+        # Add special args for cache id
+        # Text need to be re-rendered from latex if with, color or size are changed
         self.initial_width = self.width
-        self.args_for_cache_id = ['initial_width','color','size','align']
+        self.args_for_cache_id = ['initial_width', 'color', 'size', 'align']
 
-        #Initialise the global store on document._content to store letter
+        # Initialise the global store on document._content to store letter
         if 'svg_glyphs' not in document._contents:
             document._contents['svg_glyphs'] = {}
 
-        #Register the function to the current slide
+        # Register the function to the current slide
         self.register()
-
-
 
     def pre_render(self):
         """
-            The pre render will be run at the biginig to create a unique latex file
-            This reducde the number of calls to latex
+            The pre render will be run at the biginig to create a unique latex
+            file This reducde the number of calls to latex
 
-            self.latex_tmp will be stack using "newpage" latex command to separate each text
+            self.latex_tmp will be stack using "newpage" latex command to
+            separate each text
 
             the svg produced from the dvi will be load in
 
@@ -95,12 +115,11 @@ class text(beampy_module):
             If their is no output from latex
 
             self.svgtext = ''
-
         """
         if self.usetex:
-            #Check if a color is defined in args
+            # Check if a color is defined in args
             if hasattr(self, 'color'):
-                textin = color_text( self.content, self.color )
+                textin = color_text(self.content, self.color)
             else:
                 textin = self.content
 

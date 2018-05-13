@@ -17,29 +17,50 @@ import sys
 
 
 class animatesvg(beampy_module):
+    """
+    Create svg animation from a folder containing svg files (or any files that
+    figure function can handle) or a list of matplotlib figures.
 
-    def __init__(self, files_folder, **kwargs):
-        """
-            Function to create svg animation from a folder containing svg files
+    Parameters
+    ----------
 
-            - files_folder: Folder containing svg like "./my_folder/"
+    files_in : str or list of matplotlib figures or list of file names
+        List of figures to animate. List could be generated using a string
+        containing UNIX willcard like '/my/folder/*.svg', or using a list of
+        file names or matplotlib figure object.
 
-            - x['center']: x coordinate of the image
-                           'center': center image relative to document._width
-                           '+1cm": place image relative to previous element
+    x : int or float or {'center', 'auto'} or str, optional
+        Horizontal position for the animation (the default theme sets this to
+        'center'). See positioning system of Beampy.
 
-            - y['auto']: y coordinate of the image
-                         'auto': distribute all slide element on document._height
-                         'center': center image relative to document._height (ignore other slide elements)
-                         '+3cm': place image relative to previous element
+    y : int or float or {'center', 'auto'} or str, optional
+        Vertical position for the animation (the default theme sets this to
+        'auto'). See positioning system of Beampy.
 
-            - start[0]: svg image number to start the sequence
-            - end['end']: svg image number to stop the sequence
-            - width[None]: Width of the figure (None = slide width)
-            - fps[25]: animation framerate
-            - autoplay[False]: autoplay animation when slide is displayed
+    start : integer, optional
+        Start position of the image sequence (the default theme sets this to
+        0).
 
-        """
+    end : int or 'end', optional
+        End position of the image sequence (the default theme sets this to
+        'end', which implies that the animation end at the last item of the
+        files_in ).
+
+    width : int or float or None, optional
+        Width of the figure (the default is None, which implies that the width
+        is width of the image).
+
+    fps : int, optional
+        Animation frame-rate (the default theme sets this to 25).
+
+    autoplay : boolean, optional
+        Automatically start the animation when the slide is shown on screen
+        (the default theme sets this to False).
+
+    """
+
+    def __init__(self, files_in, **kwargs):
+
 
         # Add type
         self.type = 'animatesvg'
@@ -61,24 +82,23 @@ class animatesvg(beampy_module):
             self.width = slide.curwidth
 
         # Read all files from a given wildcard
-        if isinstance(files_folder, str):
-            svg_files = glob.glob(files_folder)
+        if isinstance(files_in, str):
+            svg_files = glob.glob(files_in)
 
             # Need to sort using the first digits finded in the name
             svg_files = sorted(svg_files, key=lambda x: int(''.join(re.findall(r'\d+', x))))
 
         # If the input is a list of names or mpl figures or other compatible with figure
-        elif isinstance(files_folder, list):
-            svg_files = files_folder
+        elif isinstance(files_in, list):
+            svg_files = files_in
 
             if input_width is None:
-                width_inch, height_inch = files_folder[0].get_size_inches()
+                width_inch, height_inch = files_in[0].get_size_inches()
                 self.width = convert_unit("%fin"%(width_inch))
-                
         else:
             print('Unknown input type for files_folder')
             sys.exit(0)
-                
+
         # check how many images we wants
         if self.end == 'end':
             self.end = len(svg_files)
@@ -89,7 +109,7 @@ class animatesvg(beampy_module):
         # Register the module
         self.register()
 
-    def render( self ):
+    def render(self):
         """
             Render several images as an animation in html
         """
@@ -98,7 +118,6 @@ class animatesvg(beampy_module):
         # Render each figure in a group
         output = []
         fig_args = {"width": self.width, "height": self.height, "x": 0, "y": 0}
-
 
         if len(self.content)>0:
             #Test if output format support video
@@ -133,6 +152,6 @@ class animatesvg(beampy_module):
             # return output
             # Update the rendered state of the module
             self.rendered = True
-            
+
         else:
             print('nothing found')

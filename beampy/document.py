@@ -48,6 +48,9 @@ class document():
     # Define path to external commands (see default THEME file)
     _external_cmd = {}
 
+    # Define quiet state for docuement
+    _quiet = False
+
     def __init__(self, quiet=False, **kwargs):
         """
             Create document to store slides
@@ -64,6 +67,7 @@ class document():
         """
 
         if quiet:
+            document._quiet = True
             sys.stdout = open(os.devnull, 'w')
 
 		#reset if their is old variables

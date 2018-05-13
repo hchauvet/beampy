@@ -15,7 +15,7 @@ with slide('Test s1'):
     y = np.sin(x)
     p.circle(x, y, legend="sin(x)")
 
-    text('test')
+    text('test')[:]
     figure(p)[1]
 
 with slide('Test 2'):

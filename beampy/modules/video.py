@@ -21,6 +21,34 @@ import sys
 
 
 class video(beampy_module):
+    """
+    Include a figure to the current slide. Figure formats could be (**svg**,
+    **pdf**, **png**, **jpeg**, **matplotib figure**, and **bokeh figure**)
+
+    Parameters
+    ----------
+
+    content : str or matplotlib.figure or bokeh.figure
+        Figure input source. To load file, `content` is the path to the file.
+        For matplotlib and bokeh, `content` is the python object figure of
+        either matplotlib or bokeh.
+
+    ext : {'svg','jpeg','png','pdf','bokeh','matplotlib'} or None, optional
+       Image format defined as string (the default value is None, which implies
+       that the image format is guessed from file or python object name.
+
+    x : int or float or {'center', 'auto'} or str, optional
+        Horizontal position for the figure (the default is 'center').
+
+    y : int or float or {'center', 'auto'} or str, optional
+        Vertical position for the figure (the default is 'auto', which implies
+        equal blank width between 'auto' positioned elements)
+
+    width : int or float or None, optional
+        Width of the figure (the default is None, which implies that the width
+        is width of the image).
+
+    """
 
     def __init__(self, videofile, **kwargs):
         """
@@ -67,7 +95,7 @@ class video(beampy_module):
             self.content = videofile
 
         # Special args for cache id
-        self.args_for_cache_id = ['width','still_image_time']
+        self.args_for_cache_id = ['width', 'still_image_time']
         # Add the time stamp of the video file
         fdate = str(os.path.getmtime( self.content ))
         self.args['filedate'] = fdate
@@ -80,6 +108,8 @@ class video(beampy_module):
     def render( self ):
         """
         Render video (webm) encoded in base64 in svg command
+
+        Render Need to produce an html and an svg
         """
 
         # Read file and convert data to base64 if embedded option is True (default)
@@ -100,33 +130,31 @@ class video(beampy_module):
         else:
             height = self.height
 
-        if document._output_format == 'html5':
-            #HTML tag for video
-            if self.embedded:
-                videosrc = 'data:video/{ext};base64, {b64data}'.format(ext=self.ext, b64data=videob64)
-            else:
-                videosrc = self.content
-
-            output = """<video id='video' width="{width}px" {otherargs}><source type="video/{ext}" src="{src}"></video>"""
-
-            #Check if we need autoplay
-            otherargs = ''
-            if self.autoplay == True:
-                otherargs += ' autoplay'
-
-            if self.control == True:
-                otherargs += ' controls="controls"'
-            else:
-                #Add click event to run video
-                otherargs += ' onclick="this.paused?this.play():this.pause();"'
-
-            output = output.format(width=width, otherargs=otherargs, ext=self.ext, src=videosrc)
-            self.htmlout = output
-
+        #HTML tag for video
+        if self.embedded:
+            videosrc = 'data:video/{ext};base64, {b64data}'.format(ext=self.ext, b64data=videob64)
         else:
-            imgframe = base64.b64encode( imgframe )
-            output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(str(width), str(height), imgframe)
-            self.svgout = output
+            videosrc = self.content
+
+        output = """<video id='video' width="{width}px" {otherargs}><source type="video/{ext}" src="{src}"></video>"""
+            
+        #Check if we need autoplay
+        otherargs = ''
+        if self.autoplay == True:
+            otherargs += ' autoplay'
+
+        if self.control == True:
+            otherargs += ' controls="controls"'
+        else:
+            #Add click event to run video
+            otherargs += ' onclick="this.paused?this.play():this.pause();"'
+
+        output = output.format(width=width, otherargs=otherargs, ext=self.ext, src=videosrc)
+        self.htmlout = output
+
+        imgframe = base64.b64encode(imgframe)
+        output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(str(width), str(height), imgframe)
+        self.svgout = output
 
         self.update_size(width, height)
         #Needed to be used by cache (we need to set the rendered flag to true)

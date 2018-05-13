@@ -6,6 +6,7 @@ doc = document(cache=False)
 
 test_name = 'test_text'
 
+
 with slide():
     maketitle(test_name.replace('_','\_'))
 
@@ -20,4 +21,4 @@ with slide('Title: text with equation'):
     t4.add_border()
 
 save('./html_out/%s.html'%test_name)
-save('./pdf_out/%s.pdf'%test_name)
+#save('./pdf_out/%s.pdf'%test_name)

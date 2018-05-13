@@ -4,7 +4,7 @@ Created on Sun Oct 25 19:05:18 2015
 
 @author: hugo
 
-Class to manage text for beampy
+Class to manage tikz image for beampy
 """
 from beampy import document
 from beampy.functions import (gcs,  latex2svg)
@@ -13,44 +13,54 @@ from bs4 import BeautifulSoup
 
 
 class tikz(beampy_module):
+    """
+    Add Tikz/pgf graphic to the slide. 
+
+    Parameters
+    ----------
+
+    tikzcmd : string
+        String containing the main Tikz commands contained between
+        \\begin{tikzpicture} and \\end{}tikzpicture}.
+
+    x : int or float or {'center', 'auto'} or str, optional
+        Horizontal position for the Tikz graphic (the default theme set this to
+        0). See positioning system of Beampy.
+
+    y : int or float or {'center', 'auto'} or str, optional
+        Vertical position for the Tikz graphic (the default theme sets this to 0).
+        See positioning system of Beampy.
+
+    tikz_header : str or None, optional
+        Add extra Tiks/pgf libraries and style (Tiks commands \\usetikzlibrary
+        and \\tickstyle), everything that is included befor \begin{document}
+        (the default theme sets this to None).
+
+    tex_packages : list of string or None, optional
+        Add extra Tex packages that are included using the \\usepackages (the
+        default theme set this to None). The list should only contains the name
+        of tex packages as strings.
+
+        >>> tex_packages = ['xolors','tikz-3dplot']
+
+    figure_options : string or None,
+        Tikz options added just after: \begin{tikzpicture}[options] (the default
+        theme sets this to None).
+
+    figure_anchor : {'top_left' or 'top_right' or 'bottom_left' or 'bottom_right' }, optional
+        Anchor of the svg produced by Tikz.
+
+    """
 
     def __init__(self, tikzcmd, **kwargs):
-        """
-        Function to render tikz commands to svg
-
-        options:
-        --------
-        - tikz_header: allow to add extra tikslibraries and style, everything that
-                       is included befor \begin{document}
-
-                       exp:
-                       tikz_header = "\\usetikzlibrary{shapes.geometric}
-                                     % Vector Styles
-                                     \tikzstyle{load}   = [ultra thick,-latex]
-                                     \tikzstyle{stress} = [-latex]
-                                     \tikzstyle{dim}    = [latex-latex]
-                                     \tikzstyle{axis}   = [-latex,black!55]
-                                     "
-        - tex_packages: Add extra \\usepackages in tex document.
-                        Need to be a list of string
-
-                        expl:
-                        tex_packages = ['xolors','tikz-3dplot']
-
-        - figure_options: options for \begin{tikzfigure}[options]
-
-        - figure_anchor ['top_left']: set the anchor of tikz output svg 'top_left', 'bottom_left', 'top_right', bottom_right'
-        """
-
         self.type = 'svg'
         self.content = tikzcmd
         self.check_args_from_theme(kwargs)
 
-        #Special args for cache id (when do we need to re-run latex render)
-        self.args_for_cache_id = ['figure_options','tex_packages','tikz_header']
+        # Special args for cache id (when do we need to re-run latex render)
+        self.args_for_cache_id = ['figure_options', 'tex_packages', 'tikz_header']
 
         self.register()
-
 
     def render(self):
         """
@@ -94,7 +104,7 @@ class tikz(beampy_module):
             %s
             \\end{tikzpicture}
         \\end{document}
-        """%(extra_tex_packages,tikz_fig_opts,tikzcommands)
+        """%(extra_tex_packages, tikz_fig_opts, tikzcommands)
 
         #latex2svg
         svgout = latex2svg(pretex)
@@ -118,11 +128,13 @@ class tikz(beampy_module):
             dx = -float(xinit)
             dy = -float(yinit)
 
+            print(self.positionner.x, self.positionner.y)
+
             if 'bottom' in self.figure_anchor:
-                dy = -float(yinit) - tikz_height
+                self.positionner.y['anchor'] = 'bottom'
 
             if 'right' in self.figure_anchor:
-                dx = -float(xinit)-tikz_width
+                self.positionner.x['anchor'] = 'right'
 
             newmatrix = 'scale(%0.3f) translate(%0.1f,%0.1f)'%(tex_pt_to_px, dx, dy)
             g['transform'] = newmatrix
@@ -134,8 +146,6 @@ class tikz(beampy_module):
             tikz_height = 0
             tikz_width = 0
 
-
         self.update_size(tikz_width, tikz_height)
         self.svgout = output
         self.rendered = True
-

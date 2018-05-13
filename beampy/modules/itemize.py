@@ -4,24 +4,72 @@
 
 Class to manage item lists for beampy
 """
+# TODO: Implement itemize with beampy module class
 
 from beampy import document
 from beampy.modules.text import text
 from beampy.modules.core import group
 from beampy.functions import convert_unit, color_text, check_function_args
 
-# TODO: Implement itemize with beampy module class
 
-
-def itemize( items_list, **kwargs):
-
+def itemize(items_list, **kwargs):
     '''
-
     Generates a list or an enumeration.
 
-    See THEME['itemize'] for option
+    Parameters
+    ----------
 
-    TODO: ADD doc for function arguments
+    items_list : list of str
+        List of item sentences.
+
+    x : int or float or {'center', 'auto'} or str, optional
+        Horizontal position for the item list (the default is 'center'). See
+        positioning system of Beampy.
+
+    y : int or float or {'center', 'auto'} or str, optional
+        Vertical position for the item list (the default is 'auto'). See
+        positioning system of Beampy.
+
+    width : int or float or None, optional
+       Width of the group containing items (the default is None, which implies
+       that the width is computed to fit the longest item width).
+
+    item_style : {'bullet','number'} or str, optional
+        Style of the item markers (the default theme sets this value to
+        'bullet', which implies that item marker decorator is a bullet). The
+        bullet could be replaced by any string, including latex symbols. When
+        `item_style`='number', the item makers is an increasing number to
+        create an enumeration.
+
+    item_spacing : int or float or str, optional
+        Vertical spacing between items (the default theme sets this value to
+        '+1cm'). `item_spacing` accepts the same values as Beampy `x` or `y`.
+
+    item_indent : int or float or str, optional
+        Horizontal item indent (the default theme sets this value to '0cm').
+        `item_indent` accepts the same values as Beampy `x` or `y`.
+
+    item_color : str, optional
+        Color of item marker (the default theme sets this value to
+        doc._theme['title']['color']). Color could be given as svg-color-names
+        or HTML color hex values (expl: #fffff for white).
+
+    text_color : str, optional
+        Color of the item texts (the default theme sets this value to
+        doc._theme['text']['color']). Color could be given as svg-color-names
+        or HTML color hex values (expl: #fffff for white).
+
+    item_layers : (list of int or string) or None, optional
+        Place items into layers to animate them (the default theme sets this
+        value to None, which implies that all items are displayed on the same
+        layer). The list should have the same length as the `items_list`. The
+        item in `item_layers` list could refers to a given layer number, given
+        as int, or use python list index syntax (like ':', ':-1', '3:') given
+        as string.
+
+        >>> itemize(['item1 on all layers', 'item2 on layer 1'],
+                    item_layers=[':',1])
+
     '''
 
     args = check_function_args(itemize, kwargs)

@@ -25,27 +25,36 @@ except:
     pass
 
 class figure(beampy_module):
+    """
+    Include a figure to the current slide. Figure formats could be (**svg**,
+    **pdf**, **png**, **jpeg**, **matplotib figure**, and **bokeh figure**)
+
+    Parameters
+    ----------
+
+    content : str or matplotlib.figure or bokeh.figure
+        Figure input source. To load file, `content` is the path to the file.
+        For matplotlib and bokeh, `content` is the python object figure of
+        either matplotlib or bokeh.
+
+    ext : {'svg','jpeg','png','pdf','bokeh','matplotlib'} or None, optional
+       Image format defined as string (the default value is None, which implies
+       that the image format is guessed from file or python object name.
+
+    x : int or float or {'center', 'auto'} or str, optional
+        Horizontal position for the figure (the default is 'center').
+
+    y : int or float or {'center', 'auto'} or str, optional
+        Vertical position for the figure (the default is 'auto', which implies
+        equal blank width between 'auto' positioned elements)
+
+    width : int or float or None, optional
+        Width of the figure (the default is None, which implies that the width
+        is width of the image).
+
+    """
 
     def __init__(self, content, ext=None, **kwargs):
-        """
-            Add figure to current slide
-            Accepted format: [svg, png, jpeg, bokeh figure]
-
-            - x['center']: x coordinate of the image
-                           'center': center image relative to document._width
-                           '+1cm": place image relative to previous element
-
-            - y['auto']: y coordinate of the image
-                         'auto': distribute all slide element on document._height
-                         'center': center image relative to document._height (ignore other slide elements)
-                         '+3cm': place image relative to previous element
-
-            - width[None]: Image width (None is the size of the image)
-
-            - ext[None]: Image format, if None, format is guessed from filename.
-
-        """
-
         #The type of the module
         self.type = 'svg'
 
