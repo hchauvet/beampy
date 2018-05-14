@@ -67,8 +67,8 @@ Contributions
 * You can fill bugs, rise issues and suggest features on the issue tracker of `github <https://github.com/hchauvet/beampy/issues>`_
 * Check the API autodoc (:ref:`API`)
 * Check the change-log (:ref:`changelog`) to see new features and source codes updates.
-* Guide to create new Beampy modules.
-* Guide to create new Beampy theme.
+* Guide to create :ref:`tutorial_new_module`.
+* Guide to create new :ref:`tutorial_theme`.
 
 .. warning::
 
@@ -83,7 +83,7 @@ Contributions
    install
    tutorials
    auto_examples/index
-   themes
+   auto_themes/index
    API
    changelog
    todo
