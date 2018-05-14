@@ -240,8 +240,9 @@ def hline(y, **kwargs):
 
     """
 
-    y = convert_unit(y)
-    y = '%spx'%y
+    if isinstance(y, str):
+        y = convert_unit(y)
+        y = '%spx'%y
 
     return line(x=0, y=y, x2='%spx'%document._width, y2=0, **kwargs)
 
@@ -265,8 +266,9 @@ def vline(x, **kwargs):
 
     """
 
-    x = convert_unit(x)
-    x = '%spx'%x
+    if isinstance(x, str):
+        x = convert_unit(x)
+        x = '%spx'%x
 
     return line(x=x, y=0, y2='%spx'%document._height, x2=0, **kwargs)
 

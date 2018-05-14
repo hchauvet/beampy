@@ -50,9 +50,9 @@ autosummary_generate = True
 # Sphin_gallery options
 sphinx_gallery_conf = {
     # path to your examples scripts
-    'examples_dirs': ['./examples', './tutorials'],
+    'examples_dirs': ['./examples', './tutorials','./theme_gallery'],
     # path where to save gallery generated examples
-    'gallery_dirs': ['auto_examples', 'auto_tutorials'],
+    'gallery_dirs': ['auto_examples', 'auto_tutorials', 'auto_themes'],
     'filename_pattern': '/*.py',
     'backreferences_dir': False,
     'min_reported_time': 600,

@@ -186,8 +186,8 @@ class document():
         for key, value in original.items():
             if not key in update:
                 update[key] = value
-            elif isinstance(value, dict):
-                self.dict_deep_update( value, update[key] )
+            elif isinstance(value, dict) and isinstance(update[key], dict):
+                self.dict_deep_update(value, update[key])
         return update
 
     def link_external_programs(self):

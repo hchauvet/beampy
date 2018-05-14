@@ -83,17 +83,16 @@ def theme_maketitle(titlein, author = [], affiliation = None, meeting = None, le
     """
         Function to create the presentation title slide
     """
-    
-    #get_command_line(maketitle)
-    #Check function arguments from THEME
+
+    # get_command_line(maketitle)
+    # Check function arguments from THEME
     args = THEME['maketitle']
 
     try:
         author[lead_author] = r'\underline{' + str(author[lead_author]) + '}'
-        
     except:
         pass
-    
+
     author_string = ', '.join(author)
 
     if date in ('Today', 'today', 'now'):
@@ -103,16 +102,16 @@ def theme_maketitle(titlein, author = [], affiliation = None, meeting = None, le
 
         text(titlein, width=750, y=0, color=args['title_color'], size=args['title_size'], align='center')
 
-        if author != [] :
+        if author != []:
             text( author_string, width=750, y="+1.5cm", color=args['author_color'], size=args['author_size'], align='center')
 
-        if affiliation != None:
+        if affiliation is not None:
             text(affiliation, width=750, y="+1cm", color=args['subtitle_color'], size=args['subtitle_size'])
             
-        if meeting != None:
-            text( meeting, width=750, y="+1cm", color=args['subtitle_color'], size=args['subtitle_size'])
+        if meeting is not None:
+            text(meeting, width=750, y="+1cm", color=args['subtitle_color'], size=args['subtitle_size'])
 
-        if date != None:
+        if date is not None:
             text(date, width=750, y="+1cm", color=args['date_color'], size=args['date_size'])
 
 THEME['maketitle']['template'] = theme_maketitle
@@ -121,26 +120,25 @@ THEME['maketitle']['template'] = theme_maketitle
 def background_layout():
 
     from beampy.document import document
+    from beampy.geometry import *
+
     N = len( document._slides )
     cur_slide = document._global_counter['slide'] + 1
-    
+
     slide_width = float(document._width)
     slide_height = float(document._height)
-    slide_R  = slide_width/slide_height
-   
-    #Display the page number 
-    t1 = text('%i/%i'%(cur_slide, N), x={"shift": 0.01,"align":"right"}, 
-              y={"shift": 0.035, "unit":"height", "align":"bottom"}, size=13,
-              color='gray')
-         
-         
-    #Create a progress bar     
-    svg("""
-    <rect width="%i" height="5" style="fill:grey;"/>
-    """%(cur_slide/float(N) * slide_width - 0.1*slide_width), x=0.01, y=t1.center+{"shift":0.0, "align":"middle"})
-    
-    
-         
-   
-    
+
+    # Create a progress bar
+    available_width = slide_width
+    prog = rectangle(x=0, y={'align':'bottom', 'anchor':'bottom'}, height=5,
+                    width=(cur_slide/float(N) * available_width), color='lightblue',
+                    edgecolor=None)
+
+    # Display the page number 
+    t1 = text('%i/%i'%(cur_slide, N),
+              x={"shift": 0.01, "align":"right",
+                 "anchor":"right"},
+              y=prog.top-bottom(5), size=13, color='lightblue')
+
+# Register the layour function
 THEME['slide']['layout'] = background_layout
