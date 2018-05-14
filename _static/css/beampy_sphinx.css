@@ -1,0 +1,36 @@
+div.sphx-glr-footer.container {
+    width: 100%;
+}
+
+div.sphx-glr-download.container {
+    width: 100%;
+}
+
+div.sphx-glr-download a{
+    background-color: white;
+    background-image: none;
+    border-radius: 2px;
+    border: 1px solid #f7f5fa;
+    color: #4582ec;
+    display: inline-block;
+    display: table-caption;
+    padding: 1ex;
+    text-align: center;
+}
+
+div.sphx-glr-download a:hover {
+  box-shadow: none;
+  text-decoration: none;
+  background-image: none;
+  background-color: white;
+  border-radius: 2px;
+  border: 1px solid #4582ec;
+}
+
+div.sphx-glr-download code.download{
+    color: #4582ec;
+}
+
+div.sphx-glr-footer {
+    columns: 2;
+}

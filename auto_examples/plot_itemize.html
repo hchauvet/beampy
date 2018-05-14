@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>itemize &#8212; Beampy 0.4.9 documentation</title>
+    <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/css/beampy_sphinx.css" type="text/css" />
+    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="../_static/js/jquery-fix.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/bootstrap-sphinx.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="line" href="plot_line.html" />
+    <link rel="prev" title="group" href="plot_group.html" />
+<meta charset='utf-8'>
+<meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1'>
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+  </head><body>
+
+  <div id="navbar" class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <!-- .btn-navbar is used as the toggle for collapsed navbar content -->
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../index.html">
+          Beampy</a>
+        <span class="navbar-text navbar-version pull-left"><b>0.4.9</b></span>
+      </div>
+
+        <div class="collapse navbar-collapse nav-collapse">
+          <ul class="nav navbar-nav">
+            
+            
+              <li class="dropdown globaltoc-container">
+  <a role="button"
+     id="dLabelGlobalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="../index.html">Documentation <b class="caret"></b></a>
+  <ul class="dropdown-menu globaltoc"
+      role="menu"
+      aria-labelledby="dLabelGlobalToc"><ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Install Beampy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Beampy Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../themes.html">Beampy Theme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../API.html">Beampy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Change-log</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../todo.html">TODO</a></li>
+</ul>
+</ul>
+</li>
+              
+                <li class="dropdown">
+  <a role="button"
+     id="dLabelLocalToc"
+     data-toggle="dropdown"
+     data-target="#"
+     href="#">Page <b class="caret"></b></a>
+  <ul class="dropdown-menu localtoc"
+      role="menu"
+      aria-labelledby="dLabelLocalToc"><ul>
+<li><a class="reference internal" href="#">itemize</a></li>
+<li><a class="reference internal" href="#module-arguments">Module arguments</a></li>
+</ul>
+</ul>
+</li>
+              
+            
+            
+            
+            
+            
+              <li class="hidden-sm">
+<div id="sourcelink">
+  <a href="../_sources/auto_examples/plot_itemize.rst.txt"
+     rel="nofollow">Source</a>
+</div></li>
+            
+          </ul>
+
+          
+            
+<form class="navbar-form navbar-right" action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+          
+        </div>
+    </div>
+  </div>
+
+<div class="container">
+  <div class="row">
+      <div class="col-md-3">
+        <div id="sidebar" class="bs-sidenav" role="complementary"><ul>
+<li><a class="reference internal" href="#">itemize</a></li>
+<li><a class="reference internal" href="#module-arguments">Module arguments</a></li>
+</ul>
+
+<div id="sourcelink">
+  <a href="../_sources/auto_examples/plot_itemize.rst.txt"
+     rel="nofollow">Source</a>
+</div>
+<form action="../search.html" method="get">
+ <div class="form-group">
+  <input type="text" name="q" class="form-control" placeholder="Search" />
+ </div>
+  <input type="hidden" name="check_keywords" value="yes" />
+  <input type="hidden" name="area" value="default" />
+</form>
+        </div>
+      </div>
+    <div class="col-md-9 content">
+      
+  <div class="section" id="itemize">
+<span id="sphx-glr-auto-examples-plot-itemize-py"></span><h1>itemize<a class="headerlink" href="#itemize" title="Permalink to this headline">¶</a></h1>
+<p>Create a list or an enumeration of items from an input python list of strings.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># Remove quiet=True to get Beampy render outputs</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="n">document</span><span class="p">(</span><span class="n">quiet</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">slide</span><span class="p">(</span><span class="s1">&#39;Itemize&#39;</span><span class="p">):</span>
+    <span class="n">itemize</span><span class="p">([</span><span class="s1">&#39;&#39;&#39;This is a long text inside an item.</span>
+<span class="s1">             It will crop at the given itemize width&#39;&#39;&#39;</span><span class="p">,</span>
+             <span class="sa">r</span><span class="s1">&#39;\sqrt{1+10} \times \frac{x}{y}&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;tata&#39;</span><span class="p">],</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">400</span>
+    <span class="p">)</span>
+
+<span class="n">display_matplotlib</span><span class="p">(</span><span class="n">gcs</span><span class="p">())</span>
+</pre></div>
+</div>
+<img alt="../_images/sphx_glr_plot_itemize_001.png" class="align-center" src="../_images/sphx_glr_plot_itemize_001.png" />
+</div>
+<div class="section" id="module-arguments">
+<h1>Module arguments<a class="headerlink" href="#module-arguments" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt>
+<code class="descclassname">beampy.</code><code class="descname">itemize</code><span class="sig-paren">(</span><em>items_list</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<dd><p>Generates a list or an enumeration.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>items_list</strong> (<em>list of str</em>) – List of item sentences.</li>
+<li><strong>x</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>{'center'</em><em>, </em><em>'auto'}</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Horizontal position for the item list (the default is ‘center’). See
+positioning system of Beampy.</li>
+<li><strong>y</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>{'center'</em><em>, </em><em>'auto'}</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Vertical position for the item list (the default is ‘auto’). See
+positioning system of Beampy.</li>
+<li><strong>width</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Width of the group containing items (the default is None, which implies
+that the width is computed to fit the longest item width).</li>
+<li><strong>item_style</strong> (<em>{'bullet'</em><em>,</em><em>'number'}</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Style of the item markers (the default theme sets this value to
+‘bullet’, which implies that item marker decorator is a bullet). The
+bullet could be replaced by any string, including latex symbols. When
+<a href="#id1"><span class="problematic" id="id2">`</span></a>item_style`=’number’, the item makers is an increasing number to
+create an enumeration.</li>
+<li><strong>item_spacing</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Vertical spacing between items (the default theme sets this value to
+‘+1cm’). <cite>item_spacing</cite> accepts the same values as Beampy <cite>x</cite> or <cite>y</cite>.</li>
+<li><strong>item_indent</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Horizontal item indent (the default theme sets this value to ‘0cm’).
+<cite>item_indent</cite> accepts the same values as Beampy <cite>x</cite> or <cite>y</cite>.</li>
+<li><strong>item_color</strong> (<em>str</em><em>, </em><em>optional</em>) – Color of item marker (the default theme sets this value to
+doc._theme[‘title’][‘color’]). Color could be given as svg-color-names
+or HTML color hex values (expl: #fffff for white).</li>
+<li><strong>text_color</strong> (<em>str</em><em>, </em><em>optional</em>) – Color of the item texts (the default theme sets this value to
+doc._theme[‘text’][‘color’]). Color could be given as svg-color-names
+or HTML color hex values (expl: #fffff for white).</li>
+<li><strong>item_layers</strong> (<em>(</em><em>list of int</em><em> or </em><em>string</em><em>) or </em><em>None</em><em>, </em><em>optional</em>) – <p>Place items into layers to animate them (the default theme sets this
+value to None, which implies that all items are displayed on the same
+layer). The list should have the same length as the <cite>items_list</cite>. The
+item in <cite>item_layers</cite> list could refers to a given layer number, given
+as int, or use python list index syntax (like ‘:’, ‘:-1’, ‘3:’) given
+as string.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">itemize</span><span class="p">([</span><span class="s1">&#39;item1 on all layers&#39;</span><span class="p">,</span> <span class="s1">&#39;item2 on layer 1&#39;</span><span class="p">],</span>
+<span class="go">            item_layers=[&#39;:&#39;,1])</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="sphx-glr-footer docutils container">
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/plot_itemize.py" download=""><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_itemize.py</span></code></a></div>
+<div class="sphx-glr-download docutils container">
+<a class="reference download internal" href="../_downloads/plot_itemize.ipynb" download=""><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_itemize.ipynb</span></code></a></div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
+</div>
+
+
+    </div>
+      
+  </div>
+</div>
+<footer class="footer">
+  <div class="container">
+    <p class="pull-right">
+      <a href="#">Back to top</a>
+      
+    </p>
+    <p>
+        &copy; Copyright 2016-2018, Beampy Dev Team.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.<br/>
+    </p>
+  </div>
+</footer>
+  </body>
+</html>
