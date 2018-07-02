@@ -355,7 +355,7 @@ def html5_export():
                 response = urllib2.urlopen(jsurl)
                 jst = response.read()
             js_out += u'</script>'
-                js_out += jst.decode('utf-8', errors='replace')
+            js_out += jst.decode('utf-8', errors='replace')
 
 
             output += css_out + js_out

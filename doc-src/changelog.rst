@@ -3,6 +3,27 @@
 Change-log
 ==========
 
+0.5.0
+-----
+
+* Add box function to decorate group
+* New experimental way to write text inside presentation using context manager
+
+  .. code-block:: python
+		  
+     with text(width=400):
+         """
+	 Any comment inside the context manager will be passed to the
+	 text function as input argument. This allows clearer source
+	 when writing long texts.
+
+	 No more need to add an *r* before to protect the text passed to
+	 latex, it's now automatically added.
+	 """
+	 
+* Correct bug when only html object are present in one slide
+* Correct small typos in the install section of the documentation.
+
 0.4.9
 -----
 
