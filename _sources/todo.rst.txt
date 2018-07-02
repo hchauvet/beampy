@@ -34,7 +34,6 @@ Figure
 Itemize
 -------
 
-* Rewrite the function as Beampy module class
 * Allow better animation of items of the list
 
 Arrow

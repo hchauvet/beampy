@@ -43,7 +43,7 @@ Install dependencies using apt-get
 
 .. code-block:: bash
 
-   sudo apt-get install ffmpeg inkscap texlive-extra-utils texlive-latex-extras pdf2svg python-pil python-beautifulsoup
+   sudo apt-get install ffmpeg inkscape texlive-extra-utils texlive-latex-extra pdf2svg python-pil python-beautifulsoup
 
 From Python pip
 ***************

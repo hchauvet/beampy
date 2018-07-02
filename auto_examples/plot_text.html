@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>text &#8212; Beampy 0.4.9 documentation</title>
+    <title>text &#8212; Beampy 0.5.0 documentation</title>
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
@@ -39,7 +39,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           Beampy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.9</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -159,7 +159,7 @@
 <h1>Module arguments<a class="headerlink" href="#module-arguments" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt>
-<em class="property">class </em><code class="descclassname">beampy.</code><code class="descname">text</code><span class="sig-paren">(</span><em>textin</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
+<em class="property">class </em><code class="descclassname">beampy.</code><code class="descname">text</code><span class="sig-paren">(</span><em>textin=None</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
 <dd><p>Add text to the current slide. Input text is by default processed using
 Latex and could use Latex syntax.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -167,7 +167,7 @@ Latex and could use Latex syntax.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>textin</strong> (<em>str</em>) – <p>Text to add. Could contain latex syntax with protected slash either by
+<li><strong>textin</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Text to add. Could contain latex syntax with protected slash either by
 using double slash or by using the python <strong>r</strong> before string.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">text</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\sqrt</span><span class="si">{x}</span><span class="s1">&#39;</span><span class="p">)</span>
 </pre></div>

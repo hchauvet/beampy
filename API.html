@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Beampy API &#8212; Beampy 0.4.9 documentation</title>
+    <title>Beampy API &#8212; Beampy 0.5.0 documentation</title>
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
@@ -39,7 +39,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           Beampy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.4.9</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.0</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -221,6 +221,14 @@ and add them to the module</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="beampy.beampy_module.process_with">
+<code class="descname">process_with</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beampy.beampy_module.process_with" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function called by the __exit__ function</p>
+<p>Need to be redefined by each module to adjust the behaviours
+of “with :”</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="beampy.beampy_module.run_render">
 <code class="descname">run_render</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beampy.beampy_module.run_render" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run the function self.render if the module is not in cache</p>
@@ -382,7 +390,7 @@ is width of the image).</li>
 
 <dl class="class">
 <dt id="beampy.text">
-<em class="property">class </em><code class="descclassname">beampy.</code><code class="descname">text</code><span class="sig-paren">(</span><em>textin</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#beampy.text" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">beampy.</code><code class="descname">text</code><span class="sig-paren">(</span><em>textin=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#beampy.text" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add text to the current slide. Input text is by default processed using
 Latex and could use Latex syntax.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -390,7 +398,7 @@ Latex and could use Latex syntax.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>textin</strong> (<em>str</em>) – <p>Text to add. Could contain latex syntax with protected slash either by
+<li><strong>textin</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Text to add. Could contain latex syntax with protected slash either by
 using double slash or by using the python <strong>r</strong> before string.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">text</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\sqrt</span><span class="si">{x}</span><span class="s1">&#39;</span><span class="p">)</span>
 </pre></div>
@@ -434,6 +442,12 @@ separate each text</p>
 <p>self.svgtext</p>
 <p>If their is no output from latex</p>
 <p>self.svgtext = ‘’</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beampy.text.process_with">
+<code class="descname">process_with</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#beampy.text.process_with" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process the text inside the width</p>
 </dd></dl>
 
 <dl class="method">
