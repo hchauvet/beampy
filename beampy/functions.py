@@ -15,15 +15,15 @@ import sys
 from subprocess import check_call
 import tempfile
 import time
-import hashlib #To create uniq id for elements (from content and args_dict)
+import hashlib  # To create uniq id for elements
 
-#Lib to check the source code
+# Lib to check the source code
 import inspect
-from io import BytesIO
-#Create REGEX pattern 
+# Create REGEX pattern 
 find_svg_tags = re.compile('id="(.*)"')
 
-def unit_operation( value, to=0 ):
+
+def unit_operation(value, to=0):
     """
         realise operation on values and return the result in px
 
@@ -44,46 +44,46 @@ def unit_operation( value, to=0 ):
 
     return "%0.1f"%to
 
-def convert_unit( value ):
+
+def convert_unit(value):
     """
         Function to convert unit to px (default unit in svg)
     """
 
     value = str(value)
-    #Convert metric to cm
+    # Convert metric to cm
     if 'mm' in value:
         value = "%fcm"%(float(value.replace('mm',''))*10**-1)
 
 
-    #if it's pt remove the pt tag and convert to float
+    # if it's pt remove the pt tag and convert to float
     if 'px' in value:
-        out = "%0.1f"%(float(value.replace('px','')))
+        out = "%0.1f" % (float(value.replace('px', '')))
 
-    #cm to pt
+    # cm to pt
     elif "cm" in value:
-        #old cm to pt: 28.3464567
-        out = "%0.1f"%(float(value.replace('cm','')) * 37.79527559055)
+        # old cm to pt: 28.3464567
+        out = "%0.1f" % (float(value.replace('cm', ''))*37.79527559055)
 
-    #px to pt
+    # px to pt
     elif "pt" in value:
-        #old: 0.75 px to pt
-        out = "%0.1f"%( float(value.replace('pt','')) * 1.333333 )
+        # old: 0.75 px to pt
+        out = "%0.1f" % (float(value.replace('pt', ''))*1.333333)
 
-    #inch to pt
+    # inch to pt
     elif "in" in value:
-        #1 inch = 72pt
-        out = "%0.1f"%( float(value.replace('in','')) * 72 )
-        
+        # 1 inch = 72pt
+        out = "%0.1f" % (float(value.replace('in', ''))*72)
     else:
-        out = "%0.1f"%(float(value))
+        out = "%0.1f" % (float(value))
 
     return out
 
 
-
-def pre_cache_svg_image( svg_frames ):
+def pre_cache_svg_image(svg_frames):
     """
-        Function to extract raster image from svg to define them only once on the slide
+        Function to extract raster image from svg to define them only
+        once on the slide.
     """
 
     all_images = []
@@ -98,25 +98,25 @@ def pre_cache_svg_image( svg_frames ):
 
     return out_svg_frames, all_images
 
-def make_global_svg_defs_new_but_buggy( svg_soup ):
+
+def make_global_svg_defs_new_but_buggy(svg_soup):
     """
         Function to change svg refs and id to a global counter 
         to avoid miss-called elements in slides
-        
+
         Input -> svg_soup: beautifulsoup object of the svg
     """
+
     
-    
-    #tps = time.time()
-    #Test if it exist a svg_id global counter
+    # Test if it exist a svg_id global counter
     if 'svg_id' not in document._global_counter:
-        document._global_counter['svg_id'] = 0  #init the counter
-        
-    #Get all id from defined object in <defs>         
+        document._global_counter['svg_id'] = 0  # init the counter
+
+    # Get all id from defined object in <defs>
     for defs in svg_soup.find_all('defs'):
-        tags_to_replace = find_svg_tags.findall( str(defs) )
-        
-        
+        tags_to_replace = find_svg_tags.findall(str(defs))
+
+
         base_name = "beampy"
         for cpt, tag in enumerate(tags_to_replace):
             #print(tag)
@@ -135,7 +135,8 @@ def make_global_svg_defs_new_but_buggy( svg_soup ):
     #print('Svg refs changed in %0.4fs'%(time.time() - tps))
     
     return svg_soup
-    
+
+
 def make_global_svg_defs(svg_soup):
     """
         Function to use global counter for id in svg defs and use
@@ -143,9 +144,7 @@ def make_global_svg_defs(svg_soup):
         svg_soup a BeautifulSoup object of the svg file
     """
 
-    #tps = time.time()
-    
-    #Test if it exist a svg_id global counter
+    # Test if it exist a svg_id global counter
     if 'svg_id' not in document._global_counter:
         document._global_counter['svg_id'] = 0  #init the counter
 
@@ -346,53 +345,45 @@ def gce(doc=document):
 
     return doc._global_counter['element']
 
-    
-def pdf2svg( pdf_input_file, svg_output_file  ) :
 
-	'''
+def pdf2svg(pdf_input_file, svg_output_file):
+    '''
+    Runs pdf2svg in shell:
+    pdf2svg pdf_input_file svg_output_file
 
-		Runs pdf2svg in shell:
-		pdf2svg pdf_input_file svg_output_file
+    '''
 
-	'''
-
-	return check_call( [ document._external_cmd['pdf2svg'], pdf_input_file, svg_output_file  ] )
+    return check_call([document._external_cmd['pdf2svg'],
+                       pdf_input_file, svg_output_file])
 
 
-def convert_pdf_to_svg( pdf_input_file, temp_directory = 'local' ):
+def convert_pdf_to_svg(pdf_input_file, temp_directory='local'):
+    '''
+    Open pdf_input_file, convert to svg using pdf2svg.
+    '''
 
-	'''
+    local_directory, filename_pdf = os.path.split(pdf_input_file)
+    filename = os.path.splitext(filename_pdf)[0]
 
-		Open pdf_input_file, convert to svg using pdf2svg.
+    if temp_directory == 'local':
+        temp_directory = local_directory
+    if len(temp_directory) > 0:
+        svg_output_file = temp_directory + '/' + filename + '.svg'
+    else:
+        svg_output_file = filename + '.svg'
 
-	'''
+    try:
+        pdf2svg(pdf_input_file, svg_output_file)
 
-	local_directory, filename_pdf = os.path.split( pdf_input_file )
-	filename = os.path.splitext( filename_pdf)[0]
+        with open(svg_output_file, 'r') as f:
+            svg_figure = f.read()
 
-	if temp_directory == 'local' :
-		temp_directory = local_directory
+        check_call(['rm', svg_output_file])
 
-	if len(temp_directory) > 0 :
-		svg_output_file = temp_directory + '/' + filename + '.svg'
-	else :
-		svg_output_file = filename + '.svg'
+        return svg_figure
 
-	try :
-
-		pdf2svg( pdf_input_file, svg_output_file )
-
-		with open( svg_output_file, 'r' ) as f:
-			svg_figure = f.read()
-
-		check_call( [ 'rm', svg_output_file ] )
-
-		return svg_figure
-
-	except ValueError :
-
-		return None
-
+    except ValueError:
+        return None
 
 
 def load_args_from_theme(function_name, args):
@@ -401,11 +392,12 @@ def load_args_from_theme(function_name, args):
     """
 
     for key in args:
-        if args[key] == "" or args[key] == None:
+        if args[key] == "" or args[key] is None:
             try:
                 args[key] = document._theme[function_name][key]
-            except:
-                print("[Beampy] No theme propertie for %s in %s"%(key,element_id))
+            except KeyError:
+                print("[Beampy] No theme propertie for %s in %s" % (key, element_id))
+
 
 def check_function_args(function, arg_values_dict):
     """
@@ -450,21 +442,20 @@ def inherit_function_args(function_name, args_dict):
     return args_dict
 
 def color_text( textin, color ):
+    '''
+    Adds Latex color to a string.
+    '''
 
-	'''
-		Adds Latex color to a string.
-	'''
+    if "#" in color:
+        textin = r'{\color[HTML]{%s} %s }' % (color.replace('#', '').upper(),
+                                              textin)
+    else:
+        textin = r'{\color{%s} %s }' % (color, textin)
 
-	if "#" in    color:
-		textin = r'{\color[HTML]{%s} %s }'%( color.replace('#','').upper(), textin)
-
-	else:
-		textin =r'{\color{%s} %s }'%( color, textin)
-
-	return textin
+    return textin
 
 
-def dict_deep_update( original, update ):
+def dict_deep_update(original, update):
 
     """
     Recursively update a dict.
@@ -482,23 +473,25 @@ def dict_deep_update( original, update ):
 
 
 
-def create_element_id( bpmod, use_args=True, use_name=True, use_content=True, add_slide=True, slide_position=True ):
+def create_element_id(bpmod, use_args=True, use_name=True,
+                      use_content=True, add_slide=True, slide_position=True):
     """
-        create a unique id for the beampy_module using bpmod.content and bpmod.args.keys() and bpmod.name
+        create a unique id for the beampy_module using bpmod.content
+        and bpmod.args.keys() and bpmod.name
     """
     ct_to_hash = ''
 
     if add_slide:
         ct_to_hash += gcs()
 
-    if use_args and bpmod.args != None:
-        ct_to_hash += ''.join(['%s:%s'%(k,v) for k,v in bpmod.args.items()])
+    if use_args and bpmod.args is not None:
+        ct_to_hash += ''.join(['%s:%s' % (k, v) for k, v in bpmod.args.items()])
 
-    if use_name and bpmod.name != None:
+    if use_name and bpmod.name is not None:
         ct_to_hash += bpmod.name
 
-    if use_content and bpmod.content != None:
-        ct_to_hash += str(bpmod.content)  
+    if use_content and bpmod.content is not None:
+        ct_to_hash += str(bpmod.content)
             
     if slide_position:
         ct_to_hash += str(len(document._slides[gcs()].element_keys))
@@ -521,64 +514,67 @@ def create_element_id( bpmod, use_args=True, use_name=True, use_content=True, ad
     return outid
 
 
-#TODO: Improve this function
+# TODO: Improve this function
 def get_command_line(func_name):
-    #Function to print the line of the command in the source code file
+    """
+    Function to print the line of the command in the source code file
     frame,filename,nline,function_name,lines,index = inspect.stack()[-1]
-    if type(func_name) != type(''):
-        #func_name = func_name.func_name
+    """
+
+    frame, filename, nline, function_name, lines, index = inspect.stack()[-1]
+    # print(nline, func_name)
+    if not isinstance(func_name, str):
+        # func_name = func_name.func_name
         func_name = func_name.__name__
 
-    #print(frame,filename,nline,function_name,lines,index)
+    # print(frame,filename,nline,function_name,lines,index)
     start = None
-    for cpt, line in enumerate(document._source_code[:nline][::-1]):
+    src = document._source_code.source(stop=nline).split('\n')
+    # print(src)
+    for cpt, line in enumerate(src[::-1]):
         if func_name+'(' in line:
+            # print(line)
             start = (nline) - (cpt + 1)
             break
 
-    #print start
-    if start != None:
-        #print('line (%i->%i):\n'%(start,nline-1) +''.join(document._source_code[start:nline]))
+    # print start
+    if start is not None:
         stop = nline-1
-        source = ''.join(document._source_code[start:nline])
+        source = document._source_code.source(start+1, nline).replace('\n', '')
     else:
         start = 0
         stop = 0
         source = func_name
-        #print(frame,filename,nline,function_name,lines,index)
 
     return (start, nline-1, source)
 
-def guess_file_type( file_name, file_type = None ) :
-    
+
+def guess_file_type(file_name, file_type=None):
+    """
+    Guess the type of a file name
+    """
+
     file_extensions = {
-        'svg':['svg'],
-        'pdf':['pdf'],
-        'png':['png'],
-        'jpeg':['jpg','jpeg']
+        'svg': ['svg'],
+        'pdf': ['pdf'],
+        'png': ['png'],
+        'jpeg': ['jpg', 'jpeg']
         }
     
-    if file_type == None:
-        
-        try :
-            
+    if file_type is None:
+        try:
             ext = file_name.lower().split('.')[-1]
             
             for file_type in file_extensions:
-                
-                if ext in file_extensions[file_type] :
-                    
+                if ext in file_extensions[file_type]:
                     break
-                
-            
-        except :
-            
+        except TypeError:
             print('Unknown file type for file name: ' + file_name + '.' )
 
     return file_type
 
 
-#Function to render texts in document
+# Function to render texts in document
 def render_texts():
     """
         Function to merge all text in the document to run latex only once
@@ -689,4 +685,52 @@ def render_texts():
         #Remove temp files
         for f in glob.glob(tmpname+'*'):
             os.remove(f)
-        
+
+
+# How do we split inputs paragraphs (all type of python strings)
+PYTHON_COMMENT_REGEX = re.compile('"{3}?|"|\'{3}?|\'', re.MULTILINE)
+
+
+def small_comment_parser(src):
+    """
+    Find comments inside a python source code.
+    return a list of parsed comments.
+
+    Parameters
+    ----------
+    
+    src : str
+        The source code to parse.x
+    """
+
+    # print(src)
+    cur_marker_pos = 0
+    cur_marker_type = ''
+    marker_open = False
+    text_parts = []
+    for part in PYTHON_COMMENT_REGEX.finditer(src):
+        start, stop = part.start(), part.end()
+        # Init
+        if cur_marker_pos == 0:
+            cur_marker_type = src[start:stop].strip()
+            cur_marker_pos = stop
+            marker_open = True
+        else:
+            if marker_open:
+                if cur_marker_type == src[start:stop].strip():
+                    # print("end of marker %s" % cur_marker_type)
+                    # Store the text
+                    # comments = cur_marker_type
+                    comments = src[cur_marker_pos:stop-len(cur_marker_type)]
+                    text_parts += [comments]
+
+                    cur_marker_pos = stop
+                    cur_marker_type = ''
+                    marker_open = False
+
+            else:
+                cur_marker_pos = stop
+                cur_marker_type = src[start:stop].strip()
+                marker_open = True
+
+    return text_parts

@@ -72,12 +72,12 @@ def save(output_file=None, format=None):
         render_texts()
         output = html5_export()
 
-    elif output_file is not None and format == "svg":
+    elif 'svg' in file_ext or format == "svg":
         document._output_format = 'svg'
         save_layout()
         # Render glyphs
         render_texts()
-        output = svg_export(output_file)
+        output = svg_export(bdir+'/tmp')
         output_file = None
 
     elif 'pdf' in file_ext or format == 'pdf':
@@ -110,7 +110,7 @@ def pdf_export(name_out):
     pdfjoincmd = document._external_cmd['pdfjoin']
 
     # use inkscape to translate svg to pdf
-    svgcmd = inkscapecmd+" --without-gui  --file='%s' --export-pdf='%s'"
+    svgcmd = inkscapecmd+" --without-gui  --file='%s' --export-pdf='%s' -d=300"
     bdir = os.path.dirname(name_out)
 
     print('Render svg slides')
@@ -257,7 +257,8 @@ def html5_export():
 
         # Add a small peace of svg that will be used to get the data from the global store
         tmpout[slide_id]['svg'] = [] # Init the store for the differents layers
-        tmpout[slide_id]['layers_nums'] = max(slide.svglayers)
+        #tmpout[slide_id]['layers_nums'] = max(slide.svglayers)
+        tmpout[slide_id]['layers_nums'] = slide.num_layers
         tmpout[slide_id]['svg_header'] = slide.svgheader
         tmpout[slide_id]['svg_footer'] = slide.svgfooter
 
@@ -266,10 +267,14 @@ def html5_export():
         modulessvgdefs = ''.join(slide.svgdefout).decode('utf-8', errors='replace')
         global_store += "<svg><defs>" + modulessvgdefs
 
-        for layer in range(max(slide.svglayers)+1):
+        for layer in range(slide.num_layers+1):
             print('write layer %i'%layer)
             # Export svg defs to the global store
-            layer_content = slide.svglayers[layer].decode('utf-8', errors='replace')
+            if layer in slide.svglayers:
+                layer_content = slide.svglayers[layer].decode('utf-8', errors='replace')
+            else:
+                layer_content = '' #create an empty content (usefull when only html are present in one slide)
+
             global_store += "<g id='slide_{i}-{layer}'>{content}</g>".format(i=islide, layer=layer, content=layer_content)
             # Create an svg use for the given layer
             tmpout[slide_id]['svg'] += ['<use xlink:href="#slide_{i}-{layer}"/>'.format(i=islide, layer=layer)]
@@ -349,8 +354,8 @@ def html5_export():
                 print('Download %s'%jsurl)
                 response = urllib2.urlopen(jsurl)
                 jst = response.read()
-                js_out += jst.decode('utf-8', errors='replace')
             js_out += u'</script>'
+                js_out += jst.decode('utf-8', errors='replace')
 
 
             output += css_out + js_out

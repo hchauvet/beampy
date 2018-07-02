@@ -7,8 +7,8 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy import document
-from beampy.functions import (gcs, latex2svg, color_text,getsvgwidth,
-                              getsvgheight)
+from beampy.functions import (gcs, color_text, getsvgwidth,
+                              getsvgheight, small_comment_parser)
 
 from beampy.modules.core import beampy_module
 import tempfile
@@ -18,6 +18,7 @@ from bs4 import BeautifulSoup
 import sys
 import hashlib
 
+
 class text(beampy_module):
     """
     Add text to the current slide. Input text is by default processed using
@@ -26,7 +27,7 @@ class text(beampy_module):
     Parameters
     ----------
 
-    textin : str
+    textin : str, optional
         Text to add. Could contain latex syntax with protected slash either by
         using double slash or by using the python **r** before string.
 
@@ -74,7 +75,7 @@ class text(beampy_module):
 
     """
 
-    def __init__(self, textin, **kwargs):
+    def __init__(self, textin=None, **kwargs):
 
         self.type = 'text'
         self.check_args_from_theme(kwargs)
@@ -99,6 +100,16 @@ class text(beampy_module):
 
         # Register the function to the current slide
         self.register()
+
+    def process_with(self):
+        """
+        Process the text inside the width
+        """
+        source = document._source_code.source(start=self.start_line,
+                                              stop=self.stop_line)
+        input_texts = small_comment_parser(source)
+
+        self.content = r'\\'.join([r"%s" % t for t in input_texts])
 
     def pre_render(self):
         """

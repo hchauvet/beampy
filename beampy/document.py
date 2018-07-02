@@ -10,11 +10,84 @@ from beampy.cache import cache_slides
 from beampy import __version__ as bpversion
 # Auto change path
 import os
-import sys
 import glob
+import inspect
 bppath = os.path.dirname(__file__) + '/'
 basename = os.path.basename(__file__)
 script_file_name = os.path.basename(sys.argv[0]).split('.')[0]
+
+
+class SourceManager(object):
+    """
+    SourceManager allows to read source file of the script and
+    return it as a string.
+
+    Python scripts could be run from different cases:
+
+    1) Script run from a file: find the file name
+
+    2) Interactive session in a classic Python shell
+       -> redirect stdin
+
+    3) Ipython: use the "In" variables stored in
+       globals dict
+
+    Example
+    =======
+
+    Source = SourceManager()
+
+    # To get the source code
+    str_source = Source.source()
+
+    # To get line 3 to 10 of the source
+    src_lines = Source.source(3,10)
+
+    """
+
+    def __init__(self):
+
+        cframe = inspect.stack()[-1][0]
+        # cur_frame = inspect.currentframe().f_code
+        cur_frame = cframe.f_code
+        # print(cframe)
+        guess_filename = cur_frame.co_filename
+        self.python_code = None
+        # print(guess_filename)
+        # Default
+        self.source = self.return_nonesource
+        self.join_char = ''
+
+        if guess_filename == '':
+            guess_filename = sys.argv[0]
+
+        # Is the script launch from python ./my_file.py
+        if '.py' in guess_filename:
+            with open(guess_filename, 'r') as f:
+                self.python_code = f.readlines()
+            self.source = self.return_filesource
+            
+        # Ipython case
+        if '<ipython-input-' in guess_filename or 'In' in globals():
+            self.source = self.return_ipythonsource
+            self.join_char = '\n'
+
+        # Need to record the stdin
+        if 'stdin' in guess_filename:
+            print("todo")
+
+    def return_filesource(self, start=0, stop=-1):
+        return ''.join(self.python_code[start:stop])
+
+    def return_ipythonsource(self, start=0, stop=-1):
+        return '\n'.join(In[-1].split('\n')[start:stop])
+
+    def return_nonesource(self):
+        return ''
+
+    def return_stdin(self):
+        return self.stdin
+
 
 class document():
 
@@ -40,9 +113,9 @@ class document():
     _source_code = []  # Store the source code of the input script
     _rendered = False  # Store the state of the entire document (allow multiformat output)
 
-    # Store data that need to be globally loaded in html like raster contents
-    # images, video, etc...
-    # Format of an entry in the list: {'type': 'svg (or html)', 'content': the data to be loaded}
+    # Store data that need to be globally loaded in html like raster
+    # contents images, video, etc...  Format of an entry in the list:
+    # {'type': 'svg (or html)', 'content': the data to be loaded}
     _global_store = {}
 
     # Define path to external commands (see default THEME file)
@@ -70,18 +143,18 @@ class document():
             document._quiet = True
             sys.stdout = open(os.devnull, 'w')
 
-		#reset if their is old variables
+        # reset if their is old variables
         self.reset()
-        #A document is a dictionnary that contains all the slides
+        # A document is a dictionnary that contains all the slides
         self.data = self._contents
-        #To store different counters
+        # To store different counters
         self.global_counter = self._global_counter
 
-        #Check if we want to load a new theme
+        # Check if we want to load a new theme
         if 'theme' in kwargs:
             theme = kwargs['theme']
 
-            #Check if it's a python file which is given or a name of themes (stored in beampy/themes)
+            # Check if it's a python file which is given or a name of themes (stored in beampy/themes)
             themelist = []
             if '.py' in theme:
                 themename = theme.split('.')[0]
@@ -106,20 +179,20 @@ class document():
                 self.theme_name = 'default'
                 print("No slide theme '" + theme + "', returning to default theme.")
 
-        #Load document options from THEME
+        # Load document options from THEME
         self.set_options(kwargs)
 
-        #Load external tools
+        # Load external tools
         self.link_external_programs()
 
-        #Load the source code of the current presentation
+        # Load the source code of the current presentation
         self.get_source_code()
 
-        #Print the header message
+        # Print the header message
         print("="*20 + " BEAMPY START " + "="*20)
 
     def set_options(self, input_dict):
-        #Get document option from THEME
+        # Get document option from THEME
         default_options = self._theme['document']
         if 'theme' in input_dict:
             default_options['theme'] = input_dict['theme']
@@ -134,12 +207,12 @@ class document():
                 print(default_options)
                 sys.exit(1)
 
-        #Update default if not in input
+        # Update default if not in input
         for key, value in default_options.items():
             if key not in good_values:
                 good_values[key] = value
 
-        #Set size etc...
+        # Set size etc...
         document._width = good_values['width']
         document._curwidth = float(document._width)
         document._height = good_values['height']
@@ -154,9 +227,8 @@ class document():
         if document._cache == False:
             document._cache = None
         else:
-            #cache_file = './.beampy_cache_%s_%s.pklz'%(script_file_name, document._output_format)
-            cache_file = './.beampy_cache_%s'%(script_file_name)
-            print("\nChache file to %s"%(cache_file))
+            cache_file = './.beampy_cache_%s' % (script_file_name)
+            print("\nChache file to %s" % (cache_file))
             document._cache = cache_slides(cache_file, self)
 
         self.options = good_values
@@ -175,7 +247,7 @@ class document():
         document._resize_raster = True
         document._output_format = 'html5'
 
-    def dict_deep_update( self, original, update ):
+    def dict_deep_update(self, original, update):
 
         """
         Recursively update a dict.
@@ -191,8 +263,8 @@ class document():
         return update
 
     def link_external_programs(self):
-        #Function to link [if THEME['document']['external'] = 'auto'
-        #and check external if programs exist
+        # Function to link [if THEME['document']['external'] = 'auto'
+        # and check external if programs exist
 
         #Loop over options
         missing = False
@@ -203,15 +275,15 @@ class document():
                 if progname == 'video_encoder':
                     find_ffmpeg = find_executable('ffmpeg')
                     find_avconv = find_executable('avconv')
-                    if find_ffmpeg != None:
+                    if find_ffmpeg is not None:
                         document._external_cmd[progname] = find_ffmpeg
-                    elif find_avconv != None:
+                    elif find_avconv is not None:
                         document._external_cmd[progname] = find_avconv
                     else:
                         missing = True
                 else:
-                    find_app = find_executable( progname )
-                    if find_app != None:
+                    find_app = find_executable(progname)
+                    if find_app is not None:
                         document._external_cmd[progname] = find_app
                     else:
                         missing = True
@@ -232,10 +304,4 @@ class document():
         print('Linked external programs\n%s'%outprint)
 
     def get_source_code(self):
-        in_file = sys.argv[0]
-        fo = open(in_file, 'r')
-        document._source_code = fo.readlines()
-        fo.close()
-
-
-    
+        document._source_code = SourceManager()

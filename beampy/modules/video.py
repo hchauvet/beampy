@@ -95,7 +95,7 @@ class video(beampy_module):
             self.content = videofile
 
         # Special args for cache id
-        self.args_for_cache_id = ['width', 'still_image_time']
+        self.args_for_cache_id = ['width', 'still_image_time', 'embedded']
         # Add the time stamp of the video file
         fdate = str(os.path.getmtime( self.content ))
         self.args['filedate'] = fdate
@@ -168,7 +168,8 @@ class video(beampy_module):
         """
 
         FFMPEG_CMD = document._external_cmd['video_encoder']
-        FFMPEG_CMD += ' -loglevel 8 -i %s -f image2 -ss %0.3f -vframes 1 -'%(self.content, self.still_image_time)
+        FFMPEG_CMD += ' -loglevel 8 -i "%s" -f image2 -ss %0.3f -vframes 1 -'%(self.content, self.still_image_time)
+
 
         img_out = os.popen(FFMPEG_CMD).read()
 

@@ -7,12 +7,12 @@ Created on Sun Oct 25 20:33:18 2015
 from beampy import document
 from beampy.functions import (gcs, create_element_id, check_function_args,
                               get_command_line, convert_unit,
-                              pre_cache_svg_image, print_function_args,
-                              render_texts)
+                              pre_cache_svg_image, print_function_args)
 
 from beampy.geometry import positionner, distribute
 import sys
 import time
+import inspect
 
 
 class slide():
@@ -252,7 +252,7 @@ class slide():
             - Transform module to svg or html
             - Loop over groups
             - Place modules
-            -write the final svg
+            - write the final svg
         """
         print('-' * 20 + ' slide_%i ' % self.num + '-' * 20)
 
@@ -263,6 +263,7 @@ class slide():
         # Todo: do that using multiprocessing
         for i, key in enumerate(self.element_keys):
             elem = self.contents[key]
+
             if elem.type != 'group':
                 if not elem.rendered:
                     elem.run_render()
@@ -350,7 +351,13 @@ class slide():
                 # Export the svg of the slide at a given layer in the slide.svglayers store
                 for layer in curgroup.layers:
                     print('export layer %i'%layer)
-                    self.svglayers[layer] = curgroup.export_svg_layer(layer)
+                    # Check if the layer contain svg outputs (for instance video only layer could exists)
+                    try:
+                        self.svglayers[layer] = curgroup.export_svg_layer(layer)
+                    except Exception as e:
+                        # TODO ADD a log to this try
+                        print('no svg for layer %i' % layer)
+                        
 
                 #Need to deal with html module
                 if document._output_format == 'html5':
@@ -382,7 +389,7 @@ class slide():
         svg_template = """<?xml version="1.0" encoding="utf-8" standalone="no"?>
         <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
         "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-        <svg width='{width}px' height='{height}px' style='background-color: "{bgcolor}";'
+        <svg width='{width}px' height='{height}px' style='background-color: {bgcolor};'
         xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="full"
         xmlns:xlink="http://www.w3.org/1999/xlink"
         xmlns:dc="http://purl.org/dc/elements/1.1/"
@@ -417,11 +424,12 @@ class beampy_module():
     jsout = None  # Store javascript if needed
     animout = None  # Store multiple rasters for animation
 
-    call_cmd = '' # Store the command used in the source script
-    call_lines = '' # Store lines of the call cmd
-    id = None # store a unique id for this module
-    group_id = None # store the group id if the module is inside one group
-
+    call_cmd = ''  # Store the command used in the source script
+    call_lines = ''  # Store lines of the call cmd
+    id = None  # store a unique id for this module
+    group_id = None  # store the group id if the module is inside one group
+    start_line = 0
+    stop_line = 0
 
     # Needed args (give some default one)
     x = 0
@@ -483,7 +491,7 @@ class beampy_module():
 
         # Add the source of the script that run this module
         try:
-            start, stop, source = get_command_line( self.name )
+            start, stop, source = get_command_line(self.name)
         except:
             start = 0
             stop = 0
@@ -813,10 +821,48 @@ class beampy_module():
 
         return self
 
-
     def __len__(self):
         # Need a len of 0 to manager layer [:-1] should return -1
         return 0
+
+    def __enter__(self):
+        """
+        Implement __enter__ __exit__ to pass the string input of
+        the function as comment inside a "with" statement to an input
+        of the function via the "process_with" method
+
+
+        with beampy_module():
+            '''
+            This text will be stored in the self.input 
+            '''
+
+            "this one also"
+        """
+
+        # Get the line in the source code of the group
+        previous_frame = inspect.currentframe().f_back
+        traceback = inspect.getframeinfo(previous_frame)
+        self.start_line = traceback.lineno
+
+        return self
+
+    def __exit__(self, exception_type, exception_value, traceback):
+
+        previous_frame = inspect.currentframe().f_back
+        traceback = inspect.getframeinfo(previous_frame)
+        self.stop_line = traceback.lineno
+        self.process_with()
+
+    def process_with(self):
+        """
+        Function called by the __exit__ function
+
+        Need to be redefined by each module to adjust the behaviours
+        of "with :"
+        """
+        print("With statement not implemented for this module")
+
 
 class group(beampy_module):
     """Group Beampy modules together and manipulate them as a group
@@ -1061,7 +1107,6 @@ class group(beampy_module):
                 elem.y = '%ipx'%elem.positionner.y['final']
                 # Add the element to the parentgroup
                 slide.contents[self.parentid].add_elements_to_group(elem.id, elem)
-
 
         self.rendered = True
 

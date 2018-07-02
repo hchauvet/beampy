@@ -55,6 +55,26 @@ slides.
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="Add box around a group. ">
+
+.. only:: html
+
+    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_box_thumb.png
+
+        :ref:`sphx_glr_auto_examples_plot_box.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/plot_box
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Include code in your presentation.">
 
 .. only:: html
