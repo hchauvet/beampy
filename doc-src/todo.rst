@@ -15,7 +15,9 @@ Core
 * Finish documentation of all functions :ref:`API`
 * Rewrite export function as class
 * Improve width/height of elements (add % of curent width/height like for x,y position)
-
+* Add table of content system (and function to print TOC)
+* Add compatibility with Jupiter Notebook
+  
 Text
 ----
 
@@ -30,7 +32,8 @@ Figure
 
 * allow http images as input
 * add an option to not embed the image
-
+* When height is given as argument recalculate the width accordingly.
+  
 Itemize
 -------
 
