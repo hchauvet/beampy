@@ -96,7 +96,7 @@ From Bokeh
         y = np.random.rand(100)
         p.circle(x, y, legend="sin(x)")
 
-        # figure(p)
+        figure(p)
 
     # Export the 3 slides of the presentation
     save('./examples_html_outputs/figure.html')

@@ -3,6 +3,15 @@
 Change-log
 ==========
 
+0.5.1
+-----
+
+* Fix several bugs in bokeh figures (thx to `Silmathoron <https://github.com/Silmathoron>`_)
+* Fix bokeh figure resizing, it's now use the "sizing_mode = scale_both" from bokeh and revert the css transform scaling for the bokeh div.
+* Fix javascript loader for bokeh (new bokeh version (>0.12.6) named their main div "bk_root")
+* Add function to cache file in beampy cache class
+* Cache javascript external libraries files from bokeh (download from their CDN, if "doc = document(cache=False)")
+  
 0.5.0
 -----
 

@@ -337,30 +337,53 @@ def html5_export():
         output += '</script>\n'
 
         if bokeh_required:
-            # TODO: Cache downloaded files !
             from bokeh.resources import CDN
             import urllib2
 
             css_out = u'<style>'
             for cssurl in CDN.css_files:
-                print('Download %s'%cssurl)
-                response = urllib2.urlopen(cssurl)
-                csst = response.read()
-                css_out += csst.decode('utf-8', errors='replace')
+                cssname = cssurl[cssurl.rfind("/") + 1:]
+                # Test if the css is stored in cache
+                if document._cache is not None and document._cache.is_file_cached(cssname):
+                    csst = document._cache.get_cached_file(cssname)                    
+                    css_out += csst.decode('utf-8', errors='replace') + '\n'
+                else:
+                    try:
+                        print('Download %s'%cssurl)
+                        response = urllib2.urlopen(cssurl, timeout=5)
+                        csst = response.read()
+                        if document._cache is not None:
+                            document._cache.add_file(cssname, csst)
+                        # Don't forget to add a newline !
+                        css_out += csst.decode('utf-8', errors='replace') + '\n'
+                        
+                    except urllib2.URLError, e:
+                        print('Error in download: %s' % e)
+                    
             css_out += u'</style>'
 
             js_out = u'<script>'
             for jsurl in CDN.js_files:
-                print('Download %s'%jsurl)
-                response = urllib2.urlopen(jsurl)
-                jst = response.read()
+	        jsname = jsurl[jsurl.rfind("/") + 1:]
+                if document._cache is not None and document._cache.is_file_cached(jsname):
+                    jst = document._cache.get_cached_file(jsname)
+                    js_out += jst.decode('utf-8', errors='replace') + '\n'
+                else:
+                    try:
+                        print('Download %s'%jsurl)
+                        response = urllib2.urlopen(jsurl, timeout=5)
+                        jst = response.read()
+                        if document._cache is not None:
+                            document._cache.add_file(jsname, jst)
+                        js_out += jst.decode('utf-8', errors='replace') + '\n'
+                    except urllib2.URLError, e:
+                        print('Error in download: %s' % e)
+                    
             js_out += u'</script>'
-            js_out += jst.decode('utf-8', errors='replace')
-
 
             output += css_out + js_out
 
-    with open(curdir+'statics/footer_V2.html','r') as f:
+    with open(curdir+'statics/footer_V2.html', 'r') as f:
         output += f.read()
 
     return output

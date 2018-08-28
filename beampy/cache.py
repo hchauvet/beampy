@@ -128,8 +128,42 @@ class cache_slides():
                     except:
                         pass
 
+    def add_file(self, filename, content):
+        """
+        Function to add to the cache a file with it's content. It used to
+        store required javascript libraries for instance.
+        """
 
+        file_id = hash(filename)
+        self.data[file_id] = {'filename': filename}
+        self.write_file_cache(filename, content)
 
+    def get_cached_file(self, filename):
+        """
+        Try to get a given filename from cache 
+        """
+
+        file_id = hash(filename)
+        if file_id in self.data:
+            output_content = self.read_file_cache(filename)
+        else:
+            print('File %s is not cached' % filename)
+            output_content = ''
+
+        return output_content
+
+    def is_file_cached(self, filename):
+        """
+        Check if a file with a given filename is in cache directory
+        """
+        out = False
+        file_id = hash(filename)
+
+        if file_id in self.data:
+            out = True
+
+        return out
+    
     def is_cached(self, slide, bp_module):
         """
             Function to check if the given element is in the cache or not

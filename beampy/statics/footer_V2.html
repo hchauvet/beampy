@@ -131,6 +131,22 @@
     }
   }
 
+  /* Resize trick for bokeh */
+  Beampy.resizebokeh = function() {
+    var db = document.body;
+    var sx = db.clientWidth / window.innerWidth;
+    var sy = db.clientHeight / window.innerHeight;
+    var scale = Math.max(sx, sy);
+			  
+    //For bokeh plot don't do a rescale
+    var bkplt = $("#html_store_slide_"+this.id_slide+"-"+this.layer+" #bk_resizer");
+		  
+    if (bkplt.length > 0){
+        bkplt.css("width", "calc("+bkplt.attr("width")+"*"+1/scale+")");
+        bkplt.css("height", "calc("+bkplt.attr("height")+"*"+1/scale+")");
+        bkplt.css("transform", "scale("+scale+")");
+    }
+  }			  
   /* Adapt the size of the slides to the window */
 
   Beampy.onresize = function() {
@@ -144,6 +160,8 @@
     db.style.OTransform = transform;
     db.style.msTransform = transform;
     db.style.transform = transform;
+
+    this.resizebokeh();
   }
 
 
@@ -287,17 +305,24 @@
         Beampy.toggleContent();
 
         //Pour bokeh
-        var bokeh = $('#html_store_slide_'+this.id_slide+'-'+this.layer+' .bk-plotdiv');
+	var bokeh = $('#html_store_slide_'+this.id_slide+'-'+this.layer+' .bk-root');
+			
         //console.log(bokeh);
-        if (bokeh.length) {
-            scripts_slide['slide_'+this.id_slide].load_bokeh();
+	if (bokeh.length>0) {
+	    //clean div content before loading the plot
+	    bokeh.html("");
+	    //load the bokeh plot		
+	    scripts_slide['slide_'+this.id_slide].load_bokeh();
+	    //Update the size
+	    this.resizebokeh();		
         }
 
         //Test si des residus de bokeh
-        var bokeh_trash = $('.bk-bs-modal');
-        if (bokeh_trash.length) {
-            bokeh_trash.remove(); //Remove these remainings divs
-        }
+        //var bokeh_trash = $('.bk-bs-modal');
+        //if (bokeh_trash.length) {
+        //    bokeh_trash.remove(); //Remove these remainings divs
+	//}
+			
       } else {
         this.layer = -1;
         console.warn("Layer doesn't exist.");

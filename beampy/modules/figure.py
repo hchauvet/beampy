@@ -260,15 +260,22 @@ class figure(beampy_module):
         #Bokeh images
         if self.ext == 'bokeh':
 
+            # Change the sizing mode (need scale_both) to adapt size of the figure
+            self.content.sizing_mode = 'scale_both'
+            
             # Run the bokeh components function to separate figure html div and js script
             figscript, figdiv = components(self.content, wrap_script=False)
-
+            
             # Transform figscript to givea function name load_bokehjs
             tmp = figscript.splitlines()
             goodscript = '\n'.join( ['["load_bokeh"] = function() {'] + tmp[1:-1] + ['};\n'] )
 
             #Add the htmldiv to htmlout
-            self.htmlout = figdiv
+            self.htmlout = "<div id='bk_resizer' width='{width}px' height='{height}px' style='width: {width}px; height: {height}px; transform-origin: left top 0px;'> {html} </div>"
+            self.htmlout = self.htmlout.format(width=self.positionner.width,
+                                               height=self.positionner.height,
+                                               html=figdiv)
+            
             #Add the script to scriptout
             self.jsout = goodscript
 

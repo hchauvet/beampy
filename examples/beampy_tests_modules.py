@@ -21,7 +21,7 @@ with slide():
     with slide():
         title("Text")
         text(r\"""Use LaTeX to render text and equation \\ $$\sqrt{10}$$\""")
-        """, langage="python", width=530, x="1cm")
+        """, language="python", width=530, x="1cm")
 
 
 
@@ -31,7 +31,7 @@ with slide('Figure'):
         code(r"""
     slide("Figure")
     figure("./svg_anims/test_0.svg", width="500")
-        """, langage="python", width=350, x="1cm")
+        """, language="python", width=350, x="1cm")
 
 with slide('Svg animation'):
     animatesvg("./svg_anims/*.svg", width="500")
@@ -39,7 +39,7 @@ with slide('Svg animation'):
         code(r"""
 slide('Svg animation')
 animatesvg("./svg_anims/*.svg", width="500")
-        """, langage="python", width=300, x="1cm")
+        """, language="python", width=300, x="1cm")
 
 
 
@@ -75,7 +75,7 @@ with slide('Video'):
         code(r"""
     slide('Video')
     video("./test.webm", width="500", height="294")
-        """, langage="python", width="400", x="1cm")
+        """, language="python", width="400", x="1cm")
     
 
 with slide('Group and columns'):
@@ -106,7 +106,7 @@ with slide('Group and columns'):
         align="center",
         width=colwidth-20,
         color="#ffffff")
-        """, width=colwidth-40, langage="python", x="0.5cm")
+        """, width=colwidth-40, language="python", x="0.5cm")
 
 
 
@@ -130,25 +130,25 @@ with slide('Relative positioning'):
     text("youpi x=+1cm, y=+0.5cm", x="+1cm", y="+0.5cm")
     text(r"youpi x=-0, \\ y=+0.5cm", x="-0", y="+0.5cm")
     text(r"youpi x=+1.5cm,\\ y=-0", x="+1.5cm", y="-0")
-        """, langage="python", width="450", x="1cm")
+        """, language="python", width="450", x="1cm")
     
 
 with slide("Using element's anchors"):
     e0 = text('central element [e0]', y=0.2)
-    e1 = text('left of e0', y=e0.top+0, x=e0.left-{'shift': 0.1, 'align':'right'})
+    e1 = text('left of e0', y=e0.top+0, x=e0.left-right(0.1))
     e2 = text('right of e0', y=e0.top+0, x=e0.right+0.1)
     e4 = text('anchors available: top, bottom, center, right, left',
-              y=e0.bottom+'1cm', x=e0.center+{'shift':0, 'align':'middle'})
+              y=e0.bottom+'1cm', x=e0.center+center(0))
     
     with group(y=e4.bottom+0.15, width=700, height=150, background=codeback):
         code(r"""
     e0 = text('central element [e0]', y=0.2)
     e1 = text('left of e0', y=e0.top+0,
-             x=e0.left-{'shift': 0.1, 'align':'right'})
+             x=e0.left-right(0.1))
     e2 = text('right of e0', y=e0.top+0, x=e0.right+0.1)
     e4 = text('anchors available: top, bottom, center, right, left',
-              y=e0.bottom+'1cm', x=e0.center+{'shift':0, 'align':'middle'})
-        """, langage="python", width=450, x=0.05)
+              y=e0.bottom+'1cm', x=e0.center+center(0))
+        """, language="python", width=450, x=0.05)
 
 
 with slide('Tikz'):
@@ -238,7 +238,7 @@ with slide('Tikz'):
     t = text(r"\href{http://www.texample.net/tikz/examples/tutorial/}
     {http://www.texample.net/tikz/examples/tutorial/}",
     x="center", y=p.bottom+0.05)
-        """, langage="python", width="300", x="1cm")
+        """, language="python", width="300", x="1cm")
 
 
 
@@ -262,7 +262,7 @@ with slide('Bokeh plot'):
     y = np.sin(x)
     p.circle(x, y, legend="sin(x)")
     figure(p, y="+5px", x="center")
-        """, langage="python", width="300", x="1cm")
+        """, language="python", width="300", x="1cm")
 
 
 save('./beampy_tests.html')
