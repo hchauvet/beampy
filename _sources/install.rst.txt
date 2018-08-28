@@ -29,7 +29,7 @@ Python libraries
 * **lxml**: used by beautifulsoup to parse xml
 * **Python Image Library (PIL)**: to minipulate images.
 * **pygments**: [Optional] allows to add code syntax coloration to display code in your presentation.
-* **bokeh**: [Optional] Include `bokeh <https://bokeh.pydata.org/en/latest/>`_ interactive plots in your presentation.
+* **bokeh**: [Optional] Include `bokeh <https://bokeh.pydata.org/en/latest/>`_ interactive plots in your presentation. **Need bokeh version >= 0.12.6**
 
 Beampy also includes a version of `scour <https://github.com/codedread/scour>`_, an svg optimiser.
 
