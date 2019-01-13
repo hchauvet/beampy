@@ -24,6 +24,8 @@ class title( text ):
 
         self.content = titlein
 
+        self.svgtext = ''  # To store the svg produced by latex
+        
         #Add text arguments because we use the text render
         self.load_extra_args('text')
         #Re-compute the title when color or size is changed

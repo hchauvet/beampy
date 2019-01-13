@@ -117,7 +117,9 @@ class animatesvg(beampy_module):
         svgcontent = []
         # Render each figure in a group
         output = []
-        fig_args = {"width": self.width, "height": self.height, "x": 0, "y": 0}
+        fig_args = {"width": self.width.value,
+                    "height": self.height.value,
+                    "x": 0, "y": 0}
 
         if len(self.content)>0:
             #Test if output format support video

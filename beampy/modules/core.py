@@ -5,17 +5,20 @@ Created on Sun Oct 25 20:33:18 2015
 @author: hugo
 """
 from beampy import document
-from beampy.functions import (gcs, create_element_id, check_function_args,
-                              get_command_line, convert_unit,
-                              pre_cache_svg_image, print_function_args)
+from beampy.functions import (gcs, create_element_id,
+                              check_function_args, get_command_line,
+                              convert_unit, pre_cache_svg_image,
+                              print_function_args, set_curentslide,
+                              set_lastslide)
 
 from beampy.geometry import positionner, distribute
+from beampy.length_calculator import LengthCalcultor
 import sys
 import time
 import inspect
+import logging
 
-
-class slide():
+class slide(object):
     """
     Add a slide to the presentation.
 
@@ -42,6 +45,7 @@ class slide():
             document._global_counter['slide'] += 1
         else:
             document._global_counter['slide'] = 0
+            
         # Init group counter
         document._global_counter['group'] = 0
 
@@ -49,8 +53,11 @@ class slide():
         self.args = check_function_args(slide, kwargs)
 
         # The id for this slide
-        self.id = gcs()
         self.slide_num = document._global_counter['slide']
+        self.id = 'slide_%i' % self.slide_num
+        # Set this slide as the curent slide (where components will be added)
+        document._curentslide = self.id
+        
 
         # Change from dict to class
         self.tmpout = ''
@@ -60,7 +67,8 @@ class slide():
         self.num = document._global_counter['slide']+1
         self.title = title
         self.curwidth = document._width
-        self.num_layers = 0 # Store the number of layers in this slide
+        self.curheight = document._height
+        self.num_layers = 0  # Store the number of layers in this slide
 
         # Store all outputs
         self.svgout = []
@@ -71,18 +79,27 @@ class slide():
         self.svgheader = ''
         self.svgfooter = '\n</svg>\n'
         self.svglayers = {}  # Store slide final svg (without svg defs stored in self.svgdefout) for the given layer
-
+        
         # Do we need to render the THEME layout on this slide
         self.render_layout = True
 
         # Add the slide to the document contents list
         document._slides[self.id] = self
 
+        # Store the current TOC position
+        if len(document._TOC) > 0:
+            self.TOCposition = document._TOC[-1]
+        else:
+            self.TOCposition = 0
+        
         # Manage groups inside one slide the lower level of group is 0 and correspond
         # to the main slide
         self.groupsid = {}
         self.cur_group_level = -1
         g0 = group(x=0, y=0, width=document._width, height=document._height)
+        # Store the current group id (managed by the
+        # __enter__/__exit__ method of group class)
+        self.cur_group_id = g0.id
         self.groupsid[0] = [g0.id]  # store groups id objects in this list
 
         if title is not None:
@@ -97,29 +114,34 @@ class slide():
         g0.yoffset = self.ytop
 
     def add_module(self, module_id, module_content):
-        t = time.time()
         # Add a module to the current slide
+        
+        # logging.debug('Add module %s to slide %s' % (str(module_content.type), self.id))
+        
         self.element_keys += [module_id]
         self.contents[module_id] = module_content
 
         # Check if it's a new group or not
+        # print(self.groupsid, self.cur_group_level)
         if module_content.type != 'group':
-            self.contents[self.groupsid[self.cur_group_level][-1]].add_elements_to_group(module_id, module_content)
+            # print('Module added to group %s' % self.cur_group_id)
+            self.contents[self.cur_group_id].add_elements_to_group(module_id, module_content)
             # Add the id of the group to the module
-            self.contents[module_id].group_id = self.groupsid[self.cur_group_level][-1]
+            self.contents[module_id].group_id = self.cur_group_id
             # Todo[improvement]: register the group tree for a given module not just the last group
         else:
-
-            if self.cur_group_level > 0:
+            # print("add group %s with id %s" % (str(module_content), module_id))
+            if module_content.grouplevel > 0:
                 # Add this group id to the previous group
                 if module_content.parentid is not None:
                     # print("add parent %s"%module_content.parentid)
                     self.contents[module_content.parentid].add_elements_to_group(module_id, module_content)
 
-                if self.cur_group_level not in self.groupsid:
-                    self.groupsid[self.cur_group_level] = [ module_id ]
+                # Record group tree in groupsid dict
+                if module_content.grouplevel not in self.groupsid:
+                    self.groupsid[module_content.grouplevel] = [ module_id ]
                 else:
-                    self.groupsid[self.cur_group_level] += [ module_id ]
+                    self.groupsid[module_content.grouplevel] += [ module_id ]
 
         # print('Element %s added to slide in %f'%(str(module_content.name), time.time()-t))
 
@@ -155,10 +177,13 @@ class slide():
     def reset_rendered(self):
         self.svgout = []
         self.svgdefout = []  # Store module definition for slide
-        self.htmlout = {}
-        self.svglayers = {}
+        self.htmlout = {}  # Html is a dict, each key dict is a layer htmlout[0] = [html, html, html] etc...
         self.scriptout = []
         self.animout = []
+        self.svgheader = ''
+        self.svgfooter = '\n</svg>\n'
+        self.svglayers = {}  # Store slide final svg (without svg defs stored in self.svgdefout) for the given layer
+        
 
     def __enter__(self):
         return self
@@ -230,21 +255,31 @@ class slide():
         if self.render_layout:
             if self.args['layout'] is not None and 'function' in str(type(self.args['layout'])):
 
-                # We need to restor the id of the slide for each module produced in the layout
-                save_global_ct = document._global_counter['slide'] # backup the total number of slides
-                document._global_counter['slide'] = self.slide_num # put the slide number in the counter
-
+                set_curentslide(self.id)
+                # Need to get the current group
+                curgroup = self.contents[self.cur_group_id]
+                
                 # Need to store elements keys last index to retrieve elements added by theme layout function
                 first_elem_i = len(self.element_keys)
-
+                first_elem_in_group = len(curgroup.elementsid)
+                
                 # Run the layout function (which contains beampy modules)
                 self.args['layout']( )
 
+                # Store elements_keys created and pop them to insert
+                # them at the begining of the list (in the bakcground)
+                created_element_keys = self.element_keys[first_elem_i:]
+                self.element_keys = created_element_keys + self.element_keys[:first_elem_i]
+
+                #Whe need to todo the same for the elements contained in the group
+                curgroup.elementsid = curgroup.elementsid[first_elem_in_group:] + curgroup.elementsid[:first_elem_in_group]
+
                 # Loop over elements to add them to all layers in the slide
-                for eid in self.element_keys[first_elem_i:]:
+                for eid in created_element_keys:
                     self.contents[eid].add_layers(range(self.num_layers+1))
 
-                document._global_counter['slide'] = save_global_ct # restor the slide counter
+                #document._global_counter['slide'] = save_global_ct # restor the slide counter
+                set_lastslide()
 
     def newrender(self):
         """
@@ -266,14 +301,20 @@ class slide():
 
             if elem.type != 'group':
                 if not elem.rendered:
+                    # Run the pre render method of each modules
+                    elem.pre_render()
+                    # print('main loop run_render')
                     elem.run_render()
 
-                assert elem.width is not None
-                assert elem.height is not None
+                assert elem.width.value is not None
+                assert elem.height.value is not None
                 # print(elem.width, elem.height)
-
+            else:
+                # Run the pre render method for groups
+                elem.pre_render()
+                    
         # Loop over group level (from the max -> 0)
-        print('Number of groups %i' % max(self.groupsid))
+        print('Number of group levels %i' % max(self.groupsid))
 
         for level in range(max(self.groupsid), -1, -1):
 
@@ -281,65 +322,7 @@ class slide():
 
                 curgroup = self.contents[curgroupid]
 
-                #Check group given size
-                if curgroup.width is None:
-                    auto_width = document._width
-                else:
-                    auto_width = curgroup.width
-
-                if curgroup.height is None:
-                    auto_height = document._height
-                else:
-                    auto_height = curgroup.height
-
-                # First look at auto positionning for elements in groups
-                # Check if their is autox or autoy placement
-                if len(curgroup.autoxid) > 0:
-                    distribute(curgroup.autoxid, 'hspace', auto_width,
-                               offset=curgroup.xoffset, curslide=self)
-
-                if len(curgroup.autoyid) > 0:
-                    distribute(curgroup.autoyid, 'vspace', auto_height,
-                               offset=curgroup.yoffset, curslide=self)
-
-                # Place the module with these distributed postions
-                for elem in curgroup.autoxid + curgroup.autoyid + curgroup.manualid:
-                    # Check if the element have already be placed (html could be part of serveral groups level)
-                    if 'final' not in self.contents[elem].positionner.x:
-                        self.contents[elem].positionner.place( (auto_width, auto_height),
-                                                                curgroup.yoffset )
-
-                # Compute the real group size if no size (width or height) are given in group args
-                if curgroup.width is None :
-                    allxw = [ (self.contents[eid].positionner.x['final'],
-                               self.contents[eid].positionner.width) for eid in curgroup.elementsid ]
-
-                    minx = min([i[0] for i in allxw])
-                    maxx = max([i[0]+i[1] for i in allxw])
-
-                    width = maxx - minx
-                    # print('group width %f'%width)
-                    curgroup.width = width
-
-                    # Need to reloop over groups elements to increment dx as they have been positionned with slide width
-                    for eid in curgroup.elementsid:
-                        self.contents[eid].positionner.x['final'] -= minx
-
-                if curgroup.height is None:
-                    allyh = [ (self.contents[eid].positionner.y['final'],
-                               self.contents[eid].height) for eid in curgroup.elementsid ]
-
-                    miny = min([i[0] for i in allyh])
-                    maxy = max([i[0]+i[1] for i in allyh])
-                    height = maxy - miny
-                    # print('group height %f'%height)
-                    curgroup.height = height
-
-                    # Need to reloop over groups elements to increment dy as they have been positionned with slide height
-                    for eid in curgroup.elementsid:
-                        self.contents[eid].positionner.y['final'] -= miny
-
-                curgroup.update_size( curgroup.width, curgroup.height )
+                curgroup.compute_group_size()
                 # print(curgroup.width, curgroup.height)
 
                 # Render the current group (this export final module svg to slide storage)
@@ -404,7 +387,7 @@ class slide():
         self.svgheader = header_template
 
 
-class beampy_module():
+class beampy_module(object):
     """
         Base class for creating a module
 
@@ -426,7 +409,8 @@ class beampy_module():
 
     call_cmd = ''  # Store the command used in the source script
     call_lines = ''  # Store lines of the call cmd
-    id = None  # store a unique id for this module
+    id = None  # store an id for this module
+    uid = None # store an unique id for the module using python id() function
     group_id = None  # store the group id if the module is inside one group
     start_line = 0
     stop_line = 0
@@ -438,25 +422,39 @@ class beampy_module():
     height = None
     svg_decoration = '' # strore an svg element to add to the elemen group like a rectangle
 
-    #Special args used to create cache id from md5
+    #  Special args used to create cache id from md5
     args_for_cache_id = None
+    
+    # Define special keyword arguments not included in THEME file
+    special_kwargs = {'parent_slide_id': None}
+    
     #Do cache for this element or not
     cache = True
-
+ 
     #Save the id of the current slide for the module
     slide_id = None
 
+    # Store svg definitions like FILTERS or ClipPAth see self.add_svgdef method
+    svgdefs = []
+    svgdefsargs = []
+    
     def __init__(self, **kargs):
 
         self.check_args_from_theme(kargs)
         self.register()
         print("Base class for a new module")
 
-    def register(self):
+    def register(self, auto_render=False):
         # Function to register the module (run the function add to slide)
 
+        # Load the special_kwargs to set them as attribute of the module
+        self.load_special_kwargs()
+        
         # Save the id of the current slide for the module
-        self.slide_id = gcs()
+        if self.parent_slide_id is None:
+            self.slide_id = gcs()
+        else:
+            self.slide_id = self.parent_slide_id
 
         # Store the list of groups id where the module is finally located (used for html element to
         # resolve final positionning)
@@ -465,18 +463,24 @@ class beampy_module():
         # Ajout du nom du module
         self.name = self.get_name()
 
-        # Create a unique id for this element
+        # Create a unique id for this element 
         self.id = create_element_id( self )
-
+        
         # Store the layers where this module should be printed
         self.layers = [0]
         # Store a boolean to know if this module has been exported to slide store
         self.exported = False
 
+        # Store svg definitions like FILTERS or ClipPAth see self.add_svgdef method
+        self.svgdefs = []
+        self.svgdefsargs = []
+        
         # Add module to his slide
         document._slides[self.slide_id].add_module(self.id, self)
-
-        self.positionner = positionner( self.x, self.y , self.width, self.height, self.id)
+            
+        self.positionner = positionner(self.x, self.y ,
+                                       self.width, self.height,
+                                       self.id, self.slide_id)
 
         # Add anchors for relative positionning
         self.top = self.positionner.top
@@ -486,8 +490,8 @@ class beampy_module():
         self.center = self.positionner.center
 
         # Report width, height from positionner to self.width, self.height
-        self.width = self.positionner.width
-        self.height = self.positionner.height
+        # Always use the update_size method
+        self.update_size(self.width, self.height)
 
         # Add the source of the script that run this module
         try:
@@ -500,9 +504,19 @@ class beampy_module():
         self.call_cmd = source
         self.call_lines = (start, stop)
 
+        # Do we need to auto render elements
+        if auto_render:
+            if not self.rendered:
+                self.pre_render()
+                self.run_render()
+
+                # At the end of the render, width and height should be fixed !
+                assert self.width.value is not None
+                assert self.height.value is not None
+                
     def delete(self):
         # Remove from document
-        document._slides[gcs()].remove_module(self.id)
+        document._slides[self.slide_id].remove_module(self.id)
         del self
 
     def reset_outputs(self):
@@ -513,6 +527,12 @@ class beampy_module():
         self.rendered = False
         self.exported = False
 
+    def pre_render(self):
+        """
+        A method that is called at the begining of the slide.newrender method 
+        """
+        pass
+    
     def render(self):
         # Define the render for this module (how it is translated to an svg (or html element))
         # If the width/height changes ... update them!
@@ -524,14 +544,17 @@ class beampy_module():
         self.jsout = None
         self.animout = None
 
+        self.rendered = True
+
     def run_render(self):
         """
             Run the function self.render if the module is not in cache
         """
 
         # Get the current slide object
-        slide = document._slides[gcs()]
-
+        slide = document._slides[self.slide_id]
+        # print("Render: with height: %s and width: %s" % (self.height, self.width))
+        
         if self.cache and document._cache is not None:
             ct_cache = document._cache.is_cached('slide_%i'%slide.num, self)
             if ct_cache:
@@ -543,19 +566,23 @@ class beampy_module():
                     print("Elem %s from cache"%self.name)
             else:
                 #print("element %i not cached"%ct['positionner'].id)
+                if not self.rendered:
+                    self.render()
+                    document._cache.add_to_cache('slide_%i'%slide.num, self)
+                    try:
+                        print("Elem [%s ...] rendered"%self.call_cmd.strip()[:20])
+                    except:
+                        print("Elem %s rendered"%self.name)
+        else:
+            if not self.rendered:
                 self.render()
-                document._cache.add_to_cache('slide_%i'%slide.num, self)
                 try:
                     print("Elem [%s ...] rendered"%self.call_cmd.strip()[:20])
                 except:
                     print("Elem %s rendered"%self.name)
-        else:
-            self.render()
-            try:
-                print("Elem [%s ...] rendered"%self.call_cmd.strip()[:20])
-            except:
-                print("Elem %s rendered"%self.name)
 
+        # Process the svg definitions
+        self.render_svgdefs()
 
     def get_name(self):
         # Return the name of the module
@@ -568,23 +595,37 @@ class beampy_module():
 
         return name
 
-    def check_args_from_theme(self, arg_values_dict):
+    def check_args_from_theme(self, arg_values_dict, parent=None):
         """
-            Function to check input function args.
+            Function to check input function keyword args.
 
-            Functions args are defined in the default_theme.py
-            or if a theme is added the new value is taken rather than the default one
+            Functions args are defined in the default_theme.py or if a
+            theme is added the new value is taken rather than the
+            default one
+
+        Parameters
+        ----------
+        arg_values_dict: dictionary,
+            The key-value dictionary containing function arguments.
+
+        parent: string optional
+            The name of the parent beampy_module to also load args 
+
         """
 
-        #Add args value to the module
+        # Add args value to the module
         self.args = arg_values_dict
 
         function_name = self.get_name()
         default_dict = document._theme[function_name]
+        # Merge default dictionary with the parent dictionary
+        if parent is not None:
+            default_dict = dict(default_dict, **document._theme[parent])
+            
         outdict = {}
         for key, value in arg_values_dict.items():
             #Check if this arguments exist for this function
-            if key in default_dict:
+            if key in default_dict or key in self.special_kwargs:
                 outdict[key] = value
                 setattr(self, key, value)
             else:
@@ -592,11 +633,25 @@ class beampy_module():
                 print_function_args(function_name)
                 sys.exit(1)
 
-        #Check if their is ommited arguments that need to be loaded by default
+        # Check if their is ommited arguments that need to be loaded by default
         for key, value in default_dict.items():
             if key not in outdict:
                 setattr(self, key, value)
 
+    def load_special_kwargs(self):
+        """
+
+        Load all attributes contained in self.sepcial_kwargs
+        dictionnary as attributes of the beampy_module with the
+        setattr function.
+
+        """
+        
+        # Check if their is ommited arguments from the special_kwargs
+        for key, value in self.special_kwargs.items():
+            if not hasattr(self, key):
+                setattr(self, key, value)
+                
     def load_extra_args(self, theme_key):
         """
             Function to load default args from the theme for the given theme_key
@@ -626,15 +681,61 @@ class beampy_module():
         self.width = self.positionner.width
         self.height = self.positionner.height
 
+    
+    def add_svgdef(self, svgdef, svgdefsargs=[]):
+        """
+        Function to add svg clipPath or filter.
+
+        Parameters:
+        -----------
+
+        svgdef: string,
+            The svg syntax to add to <defs> environnement. This svg
+            syntax could include arguments as python string format
+            replacement (like '{width}') that will be replaced by
+            their value (store as instance of the class, like
+            self.width for '{width}') when render is executed.
+
+        svgdefargs: list of string optional
+            The list of arguments as string to format in the svgdef.
+        """
+
+        assert isinstance(svgdefsargs, list)
+        
+        self.svgdefs += [svgdef]
+        self.svgdefsargs += [svgdefsargs]
+
+    def render_svgdefs(self):
+        """
+        Function to render the svgdefs 
+        """
+        out_svgdefs = ''
+        if len(self.svgdefs) > 0:
+
+            for i, svgdef in enumerate(self.svgdefs):
+                out_args = {}
+                for args in self.svgdefsargs[i]:
+                    out_args[args] = getattr(self, args)
+
+                if out_args != {}:
+                    svgdef = svgdef.format(**out_args)
+                    
+                out_svgdefs += svgdef
+
+        if out_svgdefs != '':
+            document._slides[self.slide_id].svgdefout += [out_svgdefs]
+
+        self.out_svgdefs = out_svgdefs
+        
     def __repr__(self):
         out = 'module: %s\n'%self.name
         try:
-            out += 'source (lines %i->%i):\n%s'%(self.call_lines[0], self.call_lines[1],
+            out += 'source (lines %i->%i):\n%s\n'%(self.call_lines[0], self.call_lines[1],
                                        self.call_cmd)
         except:
             out += 'source : fail\n'
 
-        out += 'width: %s, height: %s\n'%(str(self.width), str(self.height))
+        out += 'width: %s, height: %s\n'%(str(self.width.value), str(self.height.value))
 
         return out
 
@@ -653,12 +754,12 @@ class beampy_module():
         if document._text_box:
             out +="""<rect x="0"  y="0" width="%s" height="%s"
             style="stroke:#009900;stroke-width: 1;stroke-dasharray: 10 5;
-            fill: none;" />""" % (self.positionner.width,
-                                  self.positionner.height)
+            fill: none;" />""" % (self.positionner.width.value,
+                                  self.positionner.height.value)
 
         if self.svg_decoration != '':
-            out += self.svg_decoration.format(width=self.positionner.width,
-                                              height=self.positionner.height)
+            out += self.svg_decoration.format(width=self.positionner.width.value,
+                                              height=self.positionner.height.value)
 
         out += '</g>'
 
@@ -670,20 +771,22 @@ class beampy_module():
         """
 
         # Todo: add data- to element like data-python="self.call_cmd.strip()"
-        out = '<g id="%s" transform="translate(%s,%s)" class="%s" >' % (self.id, self.positionner.x['final'],
-                                                    self.positionner.y['final'], self.name)
+        out = '<g id="%s" transform="translate(%s,%s)" class="%s" >' % (self.id,
+                                                                        self.positionner.x['final'],
+                                                                        self.positionner.y['final'],
+                                                                        self.name)
 
         out += self.svgout
 
         if document._text_box:
             out +="""<rect x="0"  y="0" width="%s" height="%s"
             style="stroke:#009900;stroke-width: 1;stroke-dasharray: 10 5;
-            fill: none;" />""" % (self.positionner.width,
-                                  self.positionner.height)
+            fill: none;" />""" % (self.positionner.width.value,
+                                  self.positionner.height.value)
 
         if self.svg_decoration != '':
-            out += self.svg_decoration.format(width=self.positionner.width,
-                                              height=self.positionner.height)
+            out += self.svg_decoration.format(width=self.positionner.width.value,
+                                              height=self.positionner.height.value)
 
         out += '</g>'
 
@@ -863,7 +966,80 @@ class beampy_module():
         """
         print("With statement not implemented for this module")
 
+    def above(self, other_element):
+        """
+        Set the current module to appears above the other_element_id.
+        """
+        assert isinstance(other_element, beampy_module)
 
+        if self.type == 'group':
+            pid = self.parentid
+        else:
+            pid = self.group_id
+            
+        curgroup = document._slides[self.slide_id].contents[pid]
+        other_pos = curgroup.exports_id.index(other_element.id)
+        self_pos = curgroup.exports_id.index(self.id)
+        
+        #remove the id of the current module
+        curgroup.exports_id.pop(self_pos)
+        #add the current module to it's new place (above the other)
+        curgroup.exports_id.insert(other_pos+1, self.id)
+
+    def below(self, other_element):
+        """
+        Set the current module to appears beow the othe_element
+        """
+        assert isinstance(other_element, beampy_module)
+        
+        if self.type == 'group':
+            pid = self.parentid
+        else:
+            pid = self.group_id
+                    
+        curgroup = document._slides[self.slide_id].contents[pid]
+        other_pos = curgroup.exports_id.index(other_element.id)
+        self_pos = curgroup.exports_id.index(self.id)
+        
+        #remove the id of the current module
+        curgroup.exports_id.pop(self_pos)
+        #add the current module to it's new place (below the other)
+        curgroup.exports_id.insert(other_pos, self.id)
+
+    def first(self):
+        """
+        Set the current object in the background
+        """
+        if self.type == 'group':
+            pid = self.parentid
+        else:
+            pid = self.group_id
+                    
+        curgroup = document._slides[self.slide_id].contents[pid]
+        self_pos = curgroup.exports_id.index(self.id)
+        
+        #remove the id of the current module
+        curgroup.exports_id.pop(self_pos)
+        #add the current module at the beginning
+        curgroup.exports_id.insert(0, self.id)
+
+    def last(self):
+        """
+        Set the current object in the foreground
+        """
+        if self.type == 'group':
+            pid = self.parentid
+        else:
+            pid = self.group_id
+                    
+        curgroup = document._slides[self.slide_id].contents[pid]
+        self_pos = curgroup.exports_id.index(self.id)
+        
+        #remove the id of the current module
+        curgroup.exports_id.pop(self_pos)
+        #add the current module at the end
+        curgroup.exports_id.insert(len(curgroup.exports_id), self.id)
+        
 class group(beampy_module):
     """Group Beampy modules together and manipulate them as a group
 
@@ -911,7 +1087,8 @@ class group(beampy_module):
     """
 
     def __init__(self, elements_to_group=None, x='center', y='auto',
-                 width=None, height=None, background=None, parendid=None):
+                 width=None, height=None, background=None, parentid=None,
+                 parent_slide_id=None, opengroup=True):
 
         # Store the input of the module
         self.width = width
@@ -923,10 +1100,14 @@ class group(beampy_module):
         self.content = []
         self.xoffset = 0
         self.yoffset = 0
-        self.parentid = parendid # Store the id of the parent group
-
-        #To store elements id to group
+        self.parentid = parentid # Store the id of the parent group
+        self.grouplevel = 0
+        
+        # To store elements id to group
         self.elementsid = []
+        # To store output ids for render (below/above)
+        self.exports_id = []
+        
         self.element_keys = []
         self.autoxid = []
         self.autoyid = []
@@ -935,49 +1116,100 @@ class group(beampy_module):
 
         self.content_layer = {} # Store group rendered svg content by layers
 
-        # To store layers inside groups
-        # self.layers_elementsid = {}
-        # self.svgout_layers = {} # To store svg output by layers
+        # Get the id of the slide 
+        if parent_slide_id is None:
+            slide = document._slides[gcs()]
+        else:
+            self.parent_slide_id = parent_slide_id
+            slide = document._slides[self.parent_slide_id]
 
-        #Add the parentid if level is more than 1
-        slide = document._slides[gcs()]
+        if elements_to_group is not None:
+            opengroup = False
+            
+        # Add the parentid if level is more than 1            
         if slide.cur_group_level >= 0:
             self.parentid = slide.contents[slide.groupsid[slide.cur_group_level][-1]].id
 
-        #Add group id from the slide groups counter (and add one because it's a new one
-        slide.cur_group_level += 1
-        self.grouplevel = slide.cur_group_level
-
+        #slide.cur_group_level += 1
+        self.grouplevel = slide.cur_group_level + 1
+        if opengroup:
+            slide.cur_group_level = self.grouplevel
+            
         # Add classic register to the slide
-        self.register()
+        self.register(auto_render=False)
         self.group_id = self.id
 
+        self.init_width = self.positionner.width.value
+        self.init_height = self.positionner.height.value
+        
         if elements_to_group is not None:
-            print('TODO: Need to remove these elements from previous group!')
+            # print('TODO: Need to remove these elements from previous group!')
             for e in elements_to_group:
+                #slide.remove_module(e.id)
                 self.add_elements_to_group(e.id, e)
+                
+                if e.group_id is not None:
+                    slide.contents[e.group_id].remove_element_in_group(e.id)
 
+                e.group_id = self.id
+
+    def reset_outputs(self):
+        """
+        Rewrite the reset_outputs function of beampy_module to add content_layer.
+        """
+        self.svgout = None  # The output of the render
+        self.htmlout = None  # We can store also html peace of code
+        self.jsout = None  # Store javascript if needed
+        self.animout = None  # Store multiple rasters for animation
+        self.rendered = False
+        self.exported = False
+        
+        self.content_layer = {} #Remove group content_layer outputs 
+        
     def __enter__(self):
-        # print('Enter a new group level: %i' % self.grouplevel)
-        # Check if we need to update the curwidth of slide
-        if self.width is not None:
-            document._slides[self.slide_id].curwidth = self.width
-        else:
-            self.width = document._slides[self.slide_id].curwidth
+        # Is the slide group level correctly set?
+        if document._slides[self.slide_id].cur_group_level != self.grouplevel:
+            #print('Change cur_group_level')
+            document._slides[self.slide_id].cur_group_level = self.grouplevel
 
+        #print('Enter a new group %s with level: %i' % (self.id,
+        #                                               self.grouplevel))
+
+        # Set the id to of the current group to this group id
+        document._slides[self.slide_id].cur_group_id = self.id
+        # Check if we need to update the curwidth of slide
+        if self.width.value is not None:
+            document._slides[self.slide_id].curwidth = self.width.value
+        else:
+            self.width.value = document._slides[self.slide_id].curwidth
+
+        # For the height check if a height is given in the group
+        if self.height.value is not None:
+            document._slides[self.slide_id].curheight = self.height.value
+            
         return self
 
     def __exit__(self, type, value, traceback):
-        # decrement slide cur_group position
+        #print('Exit group %s' % self.id)
         if self.grouplevel >= 1:
-            document._slides[self.slide_id].cur_group_level -= 1
+            document._slides[self.slide_id].cur_group_level = self.grouplevel - 1
 
         # Check if we need to update the curwidth of slide to the parent group
-        if self.parentid is not None and document._slides[self.slide_id].contents[self.parentid].width is not None:
-            document._slides[self.slide_id].curwidth = document._slides[self.slide_id].contents[self.parentid].width
+        if self.parentid is not None and document._slides[self.slide_id].contents[self.parentid].width.value is not None:
+            document._slides[self.slide_id].curwidth = document._slides[self.slide_id].contents[self.parentid].width.value
 
-        # print('Leave group return to group level %i'%document._slides[self.slide_id].cur_group_level)
-
+        # Check if we need to update the curheight of slide to the parent group
+        if self.parentid is not None and document._slides[self.slide_id].contents[self.parentid].height.value is not None:
+            document._slides[self.slide_id].curheight = document._slides[self.slide_id].contents[self.parentid].height.value
+            
+        # Get the id of the parentgroup as the cur_group_id
+        document._slides[self.slide_id].cur_group_id = self.parentid
+        
+        #print('Set current group level to %i'%document._slides[self.slide_id].cur_group_level)
+        
+        # Compute group size
+        # self.compute_group_size()
+        
     def add_layers(self, layerslist):
         self.layers = layerslist
 
@@ -1007,7 +1239,8 @@ class group(beampy_module):
         #Function to register elements inside the group
         is_auto = False
         self.elementsid += [eid]
-
+        self.exports_id += [eid]
+        
         # Add this elementid to the
         #print(element.layers)
         # self.add_element_layers(eid, element.layers)
@@ -1025,7 +1258,7 @@ class group(beampy_module):
 
         if element.type == 'html':
             self.htmlid += [eid]
-
+            
     def remove_element_in_group(self, elementid):
         """
         Function to remove element from the group key stores
@@ -1033,9 +1266,9 @@ class group(beampy_module):
         :param elementid: The id of the module to remove
         """
 
-        for store in [self.autoxid, self.autoyid, self.manualid, self.htmlid, self.elementsid]:
+        for store in (self.autoxid, self.autoyid, self.manualid,self.htmlid, self.elementsid, self.exports_id):
             if elementid in store:
-                store.pop( store.index(elementid) )
+                store.pop(store.index(elementid))
 
     def add_svg_content(self, layer, svg):
         # create or append the content_layer store with the given svg
@@ -1049,6 +1282,114 @@ class group(beampy_module):
         if layer not in self.layers:
             self.layers += [layer]
 
+    def compute_group_size(self):
+        """
+        Function to compute the size of a given group 
+
+        Update the size with self.update_size(width, height) at the end
+        """
+        
+        # Check group given size
+        if self.init_width is None:
+            auto_width = document._width
+        else:
+            auto_width = self.width.value
+            
+        if self.init_height is None:
+            auto_height = document._height
+        else:
+            auto_height = self.height.value
+
+        # First look at auto positionning for elements in groups
+        # Check if their is autox or autoy placement
+        if len(self.autoxid) > 0:
+            distribute(self.autoxid, 'hspace', auto_width,
+                       offset=self.xoffset,
+                       curslide=document._slides[self.slide_id])
+
+        if len(self.autoyid) > 0:
+            distribute(self.autoyid, 'vspace', auto_height,
+                       offset=self.yoffset,
+                       curslide=document._slides[self.slide_id])
+
+        # Place the module with these distributed postions
+        for elem in self.autoxid + self.autoyid + self.manualid:
+            # Check if the element have already be placed (html could be part of serveral groups level)
+            if 'final' not in document._slides[self.slide_id].contents[elem].positionner.x:
+                document._slides[self.slide_id].contents[elem].positionner.place((auto_width, auto_height),
+                                                                                 self.yoffset)
+
+        # Compute the real group size if no size (width or height) are given in group args
+        if self.init_width is None :
+
+            allxw = []
+
+            for eid in self.elementsid:
+                ewidth = document._slides[self.slide_id].contents[eid].positionner.width
+                """ 
+                # Should not happen 
+                if ewidth.value is None:
+                    print('Run render from compute_group_size to get width')
+                    ewidth.run_render()
+                """
+                
+                ewidth = ewidth.value
+                if ewidth is None:
+                    print('Width not known for:')
+                    print(document._slides[self.slide_id].contents[eid])
+                    sys.exit(0)
+                    
+                allxw += [(document._slides[self.slide_id].contents[eid].positionner.x['final'],
+                           ewidth) ]
+
+            minx = min([i[0] for i in allxw])
+            maxx = max([i[0]+i[1] for i in allxw])
+
+            width = maxx - minx
+            # print('group width %f'%width)
+            self.width.value = width
+
+            # Need to reloop over groups elements to increment dx
+            # as they have been positionned with slide width
+            for eid in self.elementsid:
+                document._slides[self.slide_id].contents[eid].positionner.x['final'] -= minx
+
+        if self.init_height is None:
+
+            allyh = []
+            
+            for eid in self.elementsid:
+                
+                eheight = document._slides[self.slide_id].contents[eid].height
+                """
+                # Should not happen
+                if eheight.value is None:
+                    print('Run render from compute_group_size to get height')
+                    eheight.run_render()
+                """
+                eheight = eheight.value
+                
+                if eheight is None:
+                    print('Height not known for:')
+                    print(document._slides[self.slide_id].contents[eid])
+                    sys.exit(0)
+                
+                allyh += [(document._slides[self.slide_id].contents[eid].positionner.y['final'],
+                           eheight) ]
+                    
+            miny = min([i[0] for i in allyh])
+            maxy = max([i[0]+i[1] for i in allyh])
+            height = maxy - miny
+            # print('group height %f'%height)
+            self.height.value = height
+
+            # Need to reloop over groups elements to increment dy
+            # as they have been positionned with slide height
+            for eid in self.elementsid:
+                document._slides[self.slide_id].contents[eid].positionner.y['final'] -= miny
+
+        self.update_size(self.width, self.height)
+                
     def render(self):
         """
             group render
@@ -1057,7 +1398,8 @@ class group(beampy_module):
         slide = document._slides[self.slide_id]
         self.content = []
 
-        for eid in self.elementsid:
+        # Loop over these elements id to export their svg code
+        for eid in self.exports_id:
 
             elem = slide.contents[eid]
 
@@ -1107,7 +1449,7 @@ class group(beampy_module):
                 elem.y = '%ipx'%elem.positionner.y['final']
                 # Add the element to the parentgroup
                 slide.contents[self.parentid].add_elements_to_group(elem.id, elem)
-
+        
         self.rendered = True
 
     def export_svg_content_layer(self, layer):
@@ -1118,8 +1460,8 @@ class group(beampy_module):
         """
 
         if self.background is not None:
-            pre_rect = '<rect width="%s" height="%s" style="fill:%s;" />'%(self.width,
-             self.height, self.background)
+            pre_rect = '<rect width="%s" height="%s" style="fill:%s;" />'%(self.width.value,
+             self.height.value, self.background)
         else:
             pre_rect = ''
 
@@ -1138,12 +1480,12 @@ class group(beampy_module):
         if document._text_box:
             out += """<rect x="0"  y="0" width="%s" height="%s"
               style="stroke:#009900;stroke-width: 1;stroke-dasharray: 10 5;
-              fill: none;" />""" % (self.positionner.width,
-                                    self.positionner.height)
+              fill: none;" />""" % (self.positionner.width.value,
+                                    self.positionner.height.value)
 
         if self.svg_decoration != '':
-            out += self.svg_decoration.format(width=self.positionner.width,
-                                              height=self.positionner.height)
+            out += self.svg_decoration.format(width=self.positionner.width.value,
+                                              height=self.positionner.height.value)
 
         out += '</g>'
 

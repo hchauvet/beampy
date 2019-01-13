@@ -8,7 +8,8 @@ Class to manage text for beampy
 """
 from beampy import document
 from beampy.functions import (gcs, color_text, getsvgwidth,
-                              getsvgheight, small_comment_parser)
+                              getsvgheight, small_comment_parser,
+                              latex2svg)
 
 from beampy.modules.core import beampy_module
 import tempfile
@@ -67,6 +68,10 @@ class text(beampy_module):
        `va`='baseline', the base-line of the first text row is computed and
        used as alignment reference (baseline-left).
 
+    extra_packages : list of string, optional
+        Add latex packages to render the text, like
+        [r'\usepackage{name1}', r'\usepackage{name2}']
+
 
     Example
     -------
@@ -92,14 +97,19 @@ class text(beampy_module):
         # Add special args for cache id
         # Text need to be re-rendered from latex if with, color or size are changed
         self.initial_width = self.width
-        self.args_for_cache_id = ['initial_width', 'color', 'size', 'align']
+        self.args_for_cache_id = ['initial_width', 'color', 'size', 'align', 'opacity']
 
         # Initialise the global store on document._content to store letter
         if 'svg_glyphs' not in document._contents:
             document._contents['svg_glyphs'] = {}
 
+        if self.extra_packages != []:
+            auto_render = True
+        else:
+            auto_render = False
+            
         # Register the function to the current slide
-        self.register()
+        self.register(auto_render=auto_render)
 
     def process_with(self):
         """
@@ -113,24 +123,13 @@ class text(beampy_module):
 
     def pre_render(self):
         """
-            The pre render will be run at the biginig to create a unique latex
-            file This reducde the number of calls to latex
-
-            self.latex_tmp will be stack using "newpage" latex command to
-            separate each text
-
-            the svg produced from the dvi will be load in
-
-            self.svgtext
-
-            If their is no output from latex
-
-            self.svgtext = ''
+        Prepare the latex render of the text 
         """
+
         if self.usetex:
-            # Check if a color is defined in args
+            #Check if a color is defined in args
             if hasattr(self, 'color'):
-                textin = color_text(self.content, self.color)
+                textin = color_text( self.content, self.color )
             else:
                 textin = self.content
 
@@ -141,18 +140,54 @@ class text(beampy_module):
             else:
                 texalign = ''
 
-            self.latex_tmp = r"""
-            \begin{varwidth}{%ipt}
+            template = r"""\begin{varwidth}{%ipt}
             %s
             \fontsize{%i}{%i}\selectfont %s
 
-            \end{varwidth}
-            """%( self.width*(72.27/96.), texalign,
-                self.size, (self.size+self.size*0.1),
-                textin )
-        else:
-            self.latex_tmp = ''
+            \end{varwidth}"""
 
+            self.latex_text = template % (self.width.value*(72.27/96.),
+                                          texalign, self.size,
+                                          (self.size+self.size*0.1),
+                                          textin)
+            # fontsize{size}{interlinear_size}
+            #96/72.27 pt_to_px for latex
+            
+        else:
+            self.latex_text = ''
+            
+    def local_render(self):
+        """Function to render only on text of this module. 
+
+        It's slower than writing all texts to one latex file and then
+        render it to dvi then svg.
+        """
+
+        if self.latex_text != '':
+            pretex = r"""
+            \documentclass[crop=True]{standalone}
+            \usepackage[utf8x]{inputenc}
+            \usepackage{fix-cm}
+            \usepackage[hypertex]{hyperref}
+            \usepackage[svgnames]{xcolor}
+            \renewcommand{\familydefault}{\sfdefault}
+            \usepackage{varwidth}
+            \usepackage{amsmath}
+            \usepackage{amsfonts}
+            \usepackage{amssymb}
+            \begin{document}
+            """
+
+            pretex += '\n'.join(self.extra_packages + document._latex_packages)
+            pretex += self.latex_text
+            pretex += '\end{document}'
+            
+            #latex2svg
+            self.svgtext = latex2svg( pretex )
+
+        else:
+            self.svgtext = ''
+            
     #Define the render
     def render(self):
         """
@@ -160,13 +195,17 @@ class text(beampy_module):
         """
 
         if self.usetex:
-
             #print(self.svgtext)
             if self.svgtext == '':
-                print("Latex Compilation Error")
-                print("Beampy Input:")
-                print(self.content)
-                sys.exit(0)
+                # Run the local render
+                self.local_render()
+
+                # If it's still empty their is an error
+                if self.svgtext == '':
+                    print("Latex Compilation Error")
+                    print("Beampy Input:")
+                    print(self.content)
+                    sys.exit(0)
 
             #Parse the ouput with beautifullsoup
             soup = BeautifulSoup(self.svgtext, 'xml')
@@ -246,6 +285,7 @@ class text(beampy_module):
                 text_height = text_height * tex_pt_to_px
                 baseline = baseline * tex_pt_to_px
                 yinit = yinit * tex_pt_to_px
+                g['opacity'] = self.opacity
                 #g['viewBox'] = svgsoup.get('viewBox')
 
             output = svgsoup.renderContents()
@@ -288,7 +328,7 @@ class text(beampy_module):
 
             os.remove(tmpnam + '.svg')
 
-            print(text_width, text_height)
+            # print(text_width, text_height)
 
         #Update positionner with the correct width and height of the final svg
         self.update_size(text_width, text_height)

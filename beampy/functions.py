@@ -1,4 +1,4 @@
-    # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Created on Fri May 15 16:45:51 2015
 
@@ -21,7 +21,8 @@ import hashlib  # To create uniq id for elements
 import inspect
 # Create REGEX pattern 
 find_svg_tags = re.compile('id="(.*)"')
-
+# Regex to remove tab new line
+remove_tabnewline = re.compile('\s+')
 
 def unit_operation(value, to=0):
     """
@@ -45,37 +46,50 @@ def unit_operation(value, to=0):
     return "%0.1f"%to
 
 
-def convert_unit(value):
+def convert_unit(value, ppi=72):
     """
-        Function to convert unit to px (default unit in svg)
+    Function to convert size given in some unit to pixels, following the
+    https://www.w3.org/TR/2008/REC-CSS2-20080411/syndata.html#length-units
+
+    Parameters:
+    -----------
+
+    value, str or int:
+        The given size followed by it's unit. Fixed units are (in, cm,
+        mm, pt, pc). Relative units are (em, ex, %)
+
+    ppi, int, optional:
+        The number of pixel per inch (Latex use 72)
     """
 
     value = str(value)
-    # Convert metric to cm
-    if 'mm' in value:
-        value = "%fcm"%(float(value.replace('mm',''))*10**-1)
 
-
-    # if it's pt remove the pt tag and convert to float
+    # px to px
     if 'px' in value:
-        out = "%0.1f" % (float(value.replace('px', '')))
+        value = '%0.1f' % (float(value.replace('px', '')))
 
-    # cm to pt
-    elif "cm" in value:
-        # old cm to pt: 28.3464567
-        out = "%0.1f" % (float(value.replace('cm', ''))*37.79527559055)
+    # mm to cm
+    if 'mm' in value:
+        value = "%fcm" % (float(value.replace('mm',''))*10**-1)
+        
+    # cm to inch
+    if "cm" in value:
+        value = "%fin" % (float(value.replace('cm', ''))*(1/2.54))
 
-    # px to pt
-    elif "pt" in value:
-        # old: 0.75 px to pt
-        out = "%0.1f" % (float(value.replace('pt', ''))*1.333333)
+    # pc to inch
+    if 'pc' in value:
+        value = '%fin' % (float(value.replace('pc','')*12))
+                             
+    # pt to inch
+    if "pt" in value:
+        value = "%fin" % (float(value.replace('pt', ''))*(1/72.0))
 
-    # inch to pt
-    elif "in" in value:
-        # 1 inch = 72pt
-        out = "%0.1f" % (float(value.replace('in', ''))*72)
+    # inch to px
+    if "in" in value:
+        # 1 inch = 72px
+        out = float(value.replace('in', ''))*ppi
     else:
-        out = "%0.1f" % (float(value))
+        out = float(value)
 
     return out
 
@@ -249,9 +263,16 @@ def optimize_svg(svgfile_in):
 
     return svgout
 
-def latex2svg(latexstring):
+def latex2svg(latexstring, write_tmpsvg=False):
     """
         Command to render latex -> dvi -> svg
+
+    Parameters
+    ==========
+
+    write_tmpsvg: true or false optional,
+        Write the svg produced by dvisvgm to a file (if True)
+        otherwise the output is read from stdout
     """
 
     dvisvgmcmd = document._external_cmd['dvisvgm']
@@ -290,17 +311,21 @@ def latex2svg(latexstring):
         print(output)
     else:
         #dvisvgm to convert dvi to svg [old -e option not compatible with linkmark]
-        res = os.popen( dvisvgmcmd+' -n -s -a --linkmark=none -v0 '+tmpnam+'.dvi' )
-        testsvg = res.read()
-        res.close()
+        if write_tmpsvg:
+            res = os.popen( dvisvgmcmd+' -n -a --linkmark=none -o '+tmpnam+'.svg --verbosity=0 '+tmpnam+'.dvi' )
+            res.close()
+            with open(tmpnam+'.svg') as svgf:
+                outsvg = svgf.read()
+        else:
+            res = os.popen( dvisvgmcmd+' -n -s -a --linkmark=none -v0 '+tmpnam+'.dvi' )
+            outsvg = res.read()
+            res.close()
 
         #Remove temp files
         for f in glob.glob(tmpnam+'*'):
             os.remove(f)
 
-    #tmpfile.close()
-
-    return testsvg
+    return outsvg
 
 def getsvgwidth( svgfile ):
     """
@@ -331,12 +356,28 @@ def getsvgheight( svgfile ):
     return res
 
 
-def gcs(doc=document):
+def gcs():
     """
         Fonction get current slide of the doc
     """
 
-    return "slide_%i"%(doc._global_counter['slide'])
+    return document._curentslide
+
+def set_curentslide(slide_id):
+    """
+    Set the curent slide to the given slide_id
+    """
+
+    document._curentslide = slide_id
+
+def set_lastslide():
+    '''
+    Set the curent slide as the last slide added in the presentation
+    '''
+
+    last_slide_id = 'slide_%i' % (document._global_counter['slide'])
+    document._curentslide = last_slide_id
+
 
 def gce(doc=document):
     """
@@ -482,7 +523,7 @@ def create_element_id(bpmod, use_args=True, use_name=True,
     ct_to_hash = ''
 
     if add_slide:
-        ct_to_hash += gcs()
+        ct_to_hash += bpmod.slide_id
 
     if use_args and bpmod.args is not None:
         ct_to_hash += ''.join(['%s:%s' % (k, v) for k, v in bpmod.args.items()])
@@ -494,17 +535,17 @@ def create_element_id(bpmod, use_args=True, use_name=True,
         ct_to_hash += str(bpmod.content)
             
     if slide_position:
-        ct_to_hash += str(len(document._slides[gcs()].element_keys))
+        ct_to_hash += str(len(document._slides[bpmod.slide_id].element_keys))
 
     outid = None
     if ct_to_hash != '':
-        #print(ct_to_hash)
+        # print(ct_to_hash)
         try:
             outid = hashlib.md5( ct_to_hash ).hexdigest()
         except:
             outid = hashlib.md5( ct_to_hash.encode('utf8') ).hexdigest()
 
-        if outid in document._slides[gcs()].element_keys:
+        if outid in document._slides[bpmod.slide_id].element_keys:
             print("Id for this element already exist!")
             sys.exit(0)
             outid = None
@@ -546,6 +587,9 @@ def get_command_line(func_name):
         stop = 0
         source = func_name
 
+    #Remove tab and space from source
+    source = remove_tabnewline.sub(' ', source)
+    
     return (start, nline-1, source)
 
 
@@ -558,7 +602,8 @@ def guess_file_type(file_name, file_type=None):
         'svg': ['svg'],
         'pdf': ['pdf'],
         'png': ['png'],
-        'jpeg': ['jpg', 'jpeg']
+        'jpeg': ['jpg', 'jpeg'],
+        'gif': ['gif']
         }
     
     if file_type is None:
@@ -575,13 +620,24 @@ def guess_file_type(file_name, file_type=None):
 
 
 # Function to render texts in document
-def render_texts():
+def render_texts(elements_to_render=[], extra_packages=[]):
     """
-        Function to merge all text in the document to run latex only once
+    Function to merge all text in the document to run latex only once
+    This function build the .tex file and then call two external programs
+    .tex -> latex -> .dvi -> dvisvgm -> svgfile
 
-        This function build the .tex file and then call two external programs
+    Parameters:
+    -----------
 
-        .tex -> latex -> .dvi -> dvisvgm -> svgfile
+    elements_to_render, list of beampy_module (optional):
+        List of beampy_module object to render (the default is empty,
+        which render all text module in all slides).
+
+    extra_packages, list of string (optional):
+        Give a list of extra latex packages to use in the latex
+        template. Latex packages should be given as follow:
+        [r'\usepackage{utf8x}{inputenc}']
+
     """
 
     print('Render texts of slides with latex')
@@ -596,8 +652,9 @@ def render_texts():
     \usepackage{amsmath}
     \usepackage{amsfonts}
     \usepackage{amssymb}
+    %s
     \begin{document}
-    """
+    """ % ('\n'.join(extra_packages + document._latex_packages))
     latex_pages = []
     latex_footer = r"\end{document}"
 
@@ -606,38 +663,43 @@ def render_texts():
     cpt_page = 1
     elements_pages = []
 
-    for sid in document._slides:
-        #Loop over content in the slide
-        for cid in document._slides[sid].element_keys:
-            e = document._slides[sid].contents[cid]
-            #Check if it's a text element, is it cached?, render it to latex syntax
-            if e.type == 'text' and e.usetex:
-                if e.cache and document._cache != None:
-                    ct_cache = document._cache.is_cached(sid, e)
-                    if ct_cache == False:
 
-                        #Run the pre_rendering
-                        e.pre_render()
+    if elements_to_render == []:
+        for sid in document._slides:
+            #Loop over content in the slide
+            for cid in document._slides[sid].element_keys:
+                e = document._slides[sid].contents[cid]
+                #Check if it's a text element, is it cached?, render it to latex syntax
+                if e.type == 'text' and e.usetex and not e.rendered:
+                    elements_to_render += [e]
+                    
+    for e in elements_to_render:
+        if e.cache and document._cache is not None:
+            ct_cache = document._cache.is_cached(e.slide_id, e)
+            if ct_cache is False:
 
-                        try:
-                            latex_pages += [ e.latex_tmp ]
-                            elements_pages += [ {"element": e, "page":cpt_page} ]
-                            cpt_page += 1
-                        except Exception as e:
-                            print(e)
-                else:
+                # Run the pre_rendering
+                e.pre_render()
 
-                    e.pre_render()
+                try:
+                    latex_pages += [e.latex_text]
+                    elements_pages += [{"element": e, "page": cpt_page}]
+                    cpt_page += 1
+                except Exception as e:
+                    print(e)
+        else:
+            
+            e.pre_render()
 
-                    try:
-                        latex_pages += [ e.latex_tmp ]
-                        elements_pages += [ {"element": e, "page":cpt_page} ]
-                        cpt_page += 1
-                    except Exception as e:
-                        print(e)
+            try:
+                latex_pages += [e.latex_text]
+                elements_pages += [{"element": e, "page": cpt_page}]
+                cpt_page += 1
+            except Exception as e:
+                print(e)
 
     if len(latex_pages) > 0:
-        #Write the file to latex
+        # Write the file to latex
 
         tmpfile, tmpname = tempfile.mkstemp(prefix='beampytmp')
         tmppath = tmpname.replace(os.path.basename(tmpname), '')
@@ -686,7 +748,7 @@ def render_texts():
         for f in glob.glob(tmpname+'*'):
             os.remove(f)
 
-
+            
 # How do we split inputs paragraphs (all type of python strings)
 PYTHON_COMMENT_REGEX = re.compile('"{3}?|"|\'{3}?|\'', re.MULTILINE)
 

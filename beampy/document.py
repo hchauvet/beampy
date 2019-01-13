@@ -12,6 +12,8 @@ from beampy import __version__ as bpversion
 import os
 import glob
 import inspect
+from time import time
+
 bppath = os.path.dirname(__file__) + '/'
 basename = os.path.basename(__file__)
 script_file_name = os.path.basename(sys.argv[0]).split('.')[0]
@@ -99,6 +101,7 @@ class document():
     # Global variables to sotre data
     _contents = {}
     _slides = {}
+    _curentslide = None
     _global_counter = {}
     _width = 0
     _height = 0
@@ -124,7 +127,14 @@ class document():
     # Define quiet state for docuement
     _quiet = False
 
-    def __init__(self, quiet=False, **kwargs):
+    # Store extra latex packages globally
+    _latex_packages = []
+
+    # The TOC format should be TOC = ['title':'Subsublevel title', level:1]
+    _TOC = []
+
+
+    def __init__(self, quiet=False, latex_packages=[], globals=globals(), locals=locals(), **kwargs):
         """
             Create document to store slides
             options (see THEME)
@@ -145,11 +155,14 @@ class document():
 
         # reset if their is old variables
         self.reset()
+        
         # A document is a dictionnary that contains all the slides
         self.data = self._contents
+        
         # To store different counters
         self.global_counter = self._global_counter
 
+        
         # Check if we want to load a new theme
         if 'theme' in kwargs:
             theme = kwargs['theme']
@@ -179,6 +192,9 @@ class document():
                 self.theme_name = 'default'
                 print("No slide theme '" + theme + "', returning to default theme.")
 
+        # Store extra latex packages globally
+        document._latex_packages = latex_packages
+        
         # Load document options from THEME
         self.set_options(kwargs)
 
@@ -224,6 +240,7 @@ class document():
         document._optimize_svg = good_values['optimize']
         document._resize_raster = good_values['resize_raster']
         document._output_format = good_values['format']
+        
         if document._cache == False:
             document._cache = None
         else:
@@ -246,7 +263,8 @@ class document():
         document._external_cmd = {}
         document._resize_raster = True
         document._output_format = 'html5'
-
+        document._TOC = []
+        
     def dict_deep_update(self, original, update):
 
         """
@@ -305,3 +323,61 @@ class document():
 
     def get_source_code(self):
         document._source_code = SourceManager()
+
+        
+def section(title):
+    """
+    Function to add a section in the TOC.
+
+    Parameters
+    ----------
+
+    title : str,
+        The title of the section.
+    """
+
+    islide = 0
+    if 'slide' in document._global_counter:
+        islide = document._global_counter['slide'] + 1
+        
+    document._TOC.append({'title': title, 'level': 0,
+                          'slide': islide, 'id':hash(time())})
+
+
+def subsection(title):
+    """
+    Function to add a subsection in the TOC.
+
+    Parameters
+    ----------
+
+    title : str,
+        The title of the subsection.
+    """
+    
+    islide = 0
+    if 'slide' in document._global_counter:
+        islide = document._global_counter['slide'] + 1
+        
+    document._TOC.append({'title': title, 'level': 1,
+                          'slide': islide, 'id':hash(time())})
+    
+def subsubsection(title):
+    """
+    Function to add a subsubsection in the TOC.
+
+    Parameters
+    ----------
+
+    title : str,
+        The title of the subsubsection.
+    """
+
+    islide = 0
+    if 'slide' in document._global_counter:
+        islide = document._global_counter['slide'] + 1
+        
+    document._TOC.append({'title': title, 'level': 2,
+                          'slide': islide, 'id':hash(time())})
+
+    

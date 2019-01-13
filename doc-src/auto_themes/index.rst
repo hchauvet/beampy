@@ -9,6 +9,26 @@ Beampy Themes
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="Port of the Beamer frankfurt theme to Beampy (with an headerbar that display TOC).">
+
+.. only:: html
+
+    .. figure:: /auto_themes/images/thumb/sphx_glr_theme_BeamerFrankfurt_thumb.png
+
+        :ref:`sphx_glr_auto_themes_theme_BeamerFrankfurt.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_themes/theme_BeamerFrankfurt
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Redefine title page with new arguments and a page layout with add a progress bar and slide numb...">
 
 .. only:: html

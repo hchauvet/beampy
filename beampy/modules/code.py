@@ -114,7 +114,7 @@ class code(beampy_module):
         req = os.popen(cmd)
         req.close()
 
-        f = figure(tmpname+'_good.svg', width=self.width, height=self.height)
+        f = figure(tmpname+'_good.svg', width=self.width.value, height=self.height.value)
         f.positionner = self.positionner
         f.render()
         self.svgout = f.svgout

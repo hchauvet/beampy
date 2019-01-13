@@ -102,7 +102,7 @@ def maketitle(*args, **kwargs):
     slide = document._slides[ gcs() ]
     slide.render_layout = False
 
-    try:
+    if callable(document._theme['maketitle']['template']):
         document._theme['maketitle']['template'](*args, **kwargs)
-    except:
+    else:
         default_maketitle(*args, **kwargs)

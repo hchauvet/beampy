@@ -33,8 +33,9 @@ with slide("Mpl animation"):
         
         
     animatesvg( anim_figs )
-     
 
+with slide("Test gif"):
+    figure('./test.gif', width=300)
 
 save('./html_out/%s.html'%test_name)
-save('./pdf_out/%s.pdf'%test_name)
+# save('./pdf_out/%s.pdf'%test_name)

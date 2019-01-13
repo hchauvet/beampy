@@ -2,15 +2,11 @@
 box
 ===
 
-Add box around a group. 
-
-.. warning::
-   This function is in beta version and need to be interfaced with beampy THEME.
+Create a boxed group, that could have a title. 
 
 """
 
 from beampy import *
-from beampy.utils import box
 
 # Remove quiet=True to get Beampy render outputs
 doc = document(quiet=True)
@@ -18,22 +14,22 @@ doc = document(quiet=True)
 
 with slide('Add nice boxes to group'):
 
-    with group(width=300, height=500, x=20, y='center') as g:
-        box(g, title='Very very very long box title', head_height=60)
+    with box(x=20, y='center', width=300, height='60%', title='Very very very long box title') as b1:
         text('Box text')
 
-    with group(width=450, height=200, x=g.right+10, y=g.top+0) as g2:
-        box(g2, title='Change color and drop-shadow', title_align='center', color='forestgreen',
-            shadow=True)
-        text('Box text, with a centered title')
+    with box(x=b1.right+10, y=b1.top+0, width=450,
+             title='Change color and drop-shadow', title_align='center',
+             color='crimson', shadow=True) as b2:
+        
+        text('Box text, with a centered title, and a nice crimson color', width='90%')
 
-    with group(width=450, height=280, x=g.right+10, y=g2.bottom+20) as g3:
-        box(g3, color='darkorange', rounded=70, background_color='lightgray', linewidth=4)
+    with box(x=b1.right+10, y=b2.bottom+50, width=b2.width, color='darkorange',
+             rounded=70, background_color='lightgray', linewidth=4, auto_height_margin=30) as b3:
         
         text('''
             Without title for the box, more rounded angle, bigger
             linewidth, and a background color
-            ''', align='center', width=420-20)
+            ''', align='center', width='90%')
             
 
 display_matplotlib(gcs())
@@ -43,5 +39,5 @@ display_matplotlib(gcs())
 #Module arguments
 #================
 #
-#.. autofunction:: beampy.utils.box
+#.. autoclass:: beampy.box
 #   :noindex:

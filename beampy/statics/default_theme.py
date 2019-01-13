@@ -43,7 +43,9 @@ THEME['text'] = {
     'y':'auto',
     'width':None,
     'usetex':True,
-    'va': ''
+    'va': '',
+    'opacity':1,
+    'extra_packages': []
 }
 
 
@@ -52,10 +54,11 @@ THEME['title'] = {
     'font': 'CMR',
     'color': 'ForestGreen',
     'x': {'shift':0.5, 'unit':'cm'},
-    'y': {'shift':1.2, 'unit':'cm'},
+    'y': {'shift':1.25, 'unit':'cm'},
     'reserved_y': '1.5cm',
     'align': '',
-    'va': 'baseline'
+    'va': 'baseline',
+    'opacity': 1
 }
 
 THEME['link'] = {
@@ -72,6 +75,26 @@ THEME['maketitle'] = {
     'subtitle_color':'#888888',
     'subtitle_size':20,
     'template': None #here you redefine a link to a function "def mytitle(titlein, author, subtitle, date, args)"" that is executed in maketitle to replace the default template
+}
+
+THEME['tableofcontents'] = {
+    'width': None,
+    'height': None,
+    'x': 25,
+    'y': 'center',
+    'section_yoffset': 50,
+    'subsection_xoffset': 20,
+    'subsection_yoffset': 10,
+    'section_style': 'round',
+    'subsection_style': None,
+    'section_decoration_color': THEME['title']['color'],
+    'section_decoration_size': 13,
+    'section_number_color': 'white',
+    'section_text_color': THEME['title']['color'],
+    'subsection_text_color': THEME['text']['color'],
+    'subsection_decoration_color': 'gray',
+    'subsection_decoration_size': 13/2,
+    'hidden_opacity': 0.2
 }
 
 THEME['video'] = {
@@ -146,5 +169,32 @@ THEME['rectangle'] = {
     'opacity': 1,
     'edgecolor': THEME['text']['color'],
     'height': '10px',
-    'width': '%spx'%(THEME['document']['width'])
+    'width': '%spx'%(THEME['document']['width']),
+    'rx':0,
+    'ry':0,
+    'svgfilter': None,
+    'svgclip': None
+}
+
+THEME['circle'] = {
+    'x':'center',
+    'y':'auto',
+    'color': THEME['title']['color'],
+    'linewidth': '1px',
+    'opacity': 1,
+    'edgecolor': THEME['title']['color'],
+    'r': '3px'
+}
+
+THEME['box'] = {
+    'rounded': 10,
+    'linewidth': 1,
+    'color': THEME['title']['color'],
+    'head_height': None,
+    'shadow': False,
+    'background_color': 'white',
+    'title_color': 'white',
+    'title_align': 'left',
+    'title_xoffset': 10,
+    'auto_height_margin': 15
 }

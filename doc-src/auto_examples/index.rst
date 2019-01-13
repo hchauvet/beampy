@@ -55,7 +55,7 @@ slides.
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Add box around a group. ">
+    <div class="sphx-glr-thumbcontainer" tooltip="Create a boxed group, that could have a title. ">
 
 .. only:: html
 
@@ -252,6 +252,26 @@ slides.
    :hidden:
 
    /auto_examples/plot_svg
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Create a table of content for your presentation. ">
+
+.. only:: html
+
+    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_TOC_thumb.png
+
+        :ref:`sphx_glr_auto_examples_plot_TOC.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/plot_TOC
 
 .. raw:: html
 

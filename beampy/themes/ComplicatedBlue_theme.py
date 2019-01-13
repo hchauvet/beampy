@@ -28,6 +28,7 @@ THEME['document'] = {
 THEME['slide'] = {
     'background': "#ffffff"   
 }
+
 THEME['text'] = {
     'size':20,
     'font':'CMR',
@@ -120,17 +121,17 @@ THEME['maketitle']['template'] = theme_maketitle
 def background_layout():
 
     from beampy.document import document
-    from beampy.geometry import *
+    from beampy.geometry import bottom
 
     N = len( document._slides )
-    cur_slide = document._global_counter['slide'] + 1
+    cur_slide = int(document._curentslide.split('_')[1]) + 1
 
     slide_width = float(document._width)
     slide_height = float(document._height)
 
     # Create a progress bar
     available_width = slide_width
-    prog = rectangle(x=0, y={'align':'bottom', 'anchor':'bottom'}, height=5,
+    prog = rectangle(x=0, y={'align':'bottom', 'anchor':'bottom', 'shift':0}, height=7,
                     width=(cur_slide/float(N) * available_width), color='lightblue',
                     edgecolor=None)
 

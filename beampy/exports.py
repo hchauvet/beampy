@@ -67,24 +67,21 @@ def save(output_file=None, format=None):
 
     if 'html' in file_ext or format == 'html5':
         document._output_format = 'html5'
-        save_layout()
-        # Render glyphs
         render_texts()
+        save_layout()
         output = html5_export()
 
     elif 'svg' in file_ext or format == "svg":
         document._output_format = 'svg'
-        save_layout()
-        # Render glyphs
         render_texts()
+        save_layout()
         output = svg_export(bdir+'/tmp')
         output_file = None
 
     elif 'pdf' in file_ext or format == 'pdf':
         document._output_format = 'pdf'
-        save_layout()
-        # Render glyphs
         render_texts()
+        save_layout()
         output = pdf_export(output_file)
 
         output_file = None
@@ -333,56 +330,13 @@ def html5_export():
             output += '\nscripts_slide["%s"] = {};\n scripts_slide["%s"]%s; \n'%(slide, slide, tmpscript[slide])
             if 'bokeh' in tmpscript[slide].lower():
                 bokeh_required = True
-
+                
         output += '</script>\n'
 
         if bokeh_required:
-            from bokeh.resources import CDN
-            import urllib2
-
-            css_out = u'<style>'
-            for cssurl in CDN.css_files:
-                cssname = cssurl[cssurl.rfind("/") + 1:]
-                # Test if the css is stored in cache
-                if document._cache is not None and document._cache.is_file_cached(cssname):
-                    csst = document._cache.get_cached_file(cssname)                    
-                    css_out += csst.decode('utf-8', errors='replace') + '\n'
-                else:
-                    try:
-                        print('Download %s'%cssurl)
-                        response = urllib2.urlopen(cssurl, timeout=5)
-                        csst = response.read()
-                        if document._cache is not None:
-                            document._cache.add_file(cssname, csst)
-                        # Don't forget to add a newline !
-                        css_out += csst.decode('utf-8', errors='replace') + '\n'
-                        
-                    except urllib2.URLError, e:
-                        print('Error in download: %s' % e)
-                    
-            css_out += u'</style>'
-
-            js_out = u'<script>'
-            for jsurl in CDN.js_files:
-	        jsname = jsurl[jsurl.rfind("/") + 1:]
-                if document._cache is not None and document._cache.is_file_cached(jsname):
-                    jst = document._cache.get_cached_file(jsname)
-                    js_out += jst.decode('utf-8', errors='replace') + '\n'
-                else:
-                    try:
-                        print('Download %s'%jsurl)
-                        response = urllib2.urlopen(jsurl, timeout=5)
-                        jst = response.read()
-                        if document._cache is not None:
-                            document._cache.add_file(jsname, jst)
-                        js_out += jst.decode('utf-8', errors='replace') + '\n'
-                    except urllib2.URLError, e:
-                        print('Error in download: %s' % e)
-                    
-            js_out += u'</script>'
-
-            output += css_out + js_out
-
+            cssbk, jsbk = get_bokeh_includes()
+            output += cssbk + jsbk
+            
     with open(curdir+'statics/footer_V2.html', 'r') as f:
         output += f.read()
 
@@ -420,10 +374,11 @@ def display_matplotlib(slide_id, show=False):
     oldformat = document._output_format
     document._output_format = 'svg'
 
-    # Render all text in slides
-    render_texts()
+    
     slide = document._slides[slide_id]
-
+    render_texts([slide.contents[eid] for eid in slide.element_keys if slide.contents[eid].type == 'text'])
+    slide.build_layout()
+    
     # Render the slide
     slide.newrender()
 
@@ -473,6 +428,60 @@ def display_matplotlib(slide_id, show=False):
     pyplot.yticks([])
     pyplot.tight_layout()
 
-    
     if show:
         pyplot.show()
+
+
+
+def get_bokeh_includes():
+    """
+    Function to get bokeh dependencies (style and javascript) from their CDN
+    
+    Return string with <style>bokeh_css</style><script>bokeh js</script>
+    """
+
+    from bokeh.resources import CDN
+    import urllib2
+
+    css_out = u'<style>'
+    for cssurl in CDN.css_files:
+        cssname = cssurl[cssurl.rfind("/") + 1:]
+        # Test if the css is stored in cache
+        if document._cache is not None and document._cache.is_file_cached(cssname):
+            csst = document._cache.get_cached_file(cssname)                    
+            css_out += csst.decode('utf-8', errors='replace') + '\n'
+        else:
+            try:
+                print('Download %s'%cssurl)
+                response = urllib2.urlopen(cssurl, timeout=5)
+                csst = response.read()
+                if document._cache is not None:
+                    document._cache.add_file(cssname, csst)
+                # Don't forget to add a newline !
+                css_out += csst.decode('utf-8', errors='replace') + '\n'
+
+            except urllib2.URLError, e:
+                print('Error in download: %s' % e)
+
+    css_out += u'</style>'
+
+    js_out = u'<script>'
+    for jsurl in CDN.js_files:
+        jsname = jsurl[jsurl.rfind("/") + 1:]
+        if document._cache is not None and document._cache.is_file_cached(jsname):
+            jst = document._cache.get_cached_file(jsname)
+            js_out += jst.decode('utf-8', errors='replace') + '\n'
+        else:
+            try:
+                print('Download %s'%jsurl)
+                response = urllib2.urlopen(jsurl, timeout=5)
+                jst = response.read()
+                if document._cache is not None:
+                    document._cache.add_file(jsname, jst)
+                js_out += jst.decode('utf-8', errors='replace') + '\n'
+            except urllib2.URLError, e:
+                print('Error in download: %s' % e)
+
+    js_out += u'</script>'
+
+    return css_out, js_out

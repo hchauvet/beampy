@@ -8,7 +8,7 @@ Module to write raw svg commands in slides
 from beampy import document
 from beampy.functions import (getsvgwidth, getsvgheight)
 from beampy.modules.core import beampy_module
-from beampy.geometry import convert_unit, positionner
+from beampy.geometry import convert_unit
 
 import tempfile
 import os
@@ -35,40 +35,47 @@ class svg( beampy_module ):
 
     """
 
+    
     def __init__(self, svg_content, **kwargs):
-        #The input type of the module
+        # The input type of the module
         self.type = 'svg'
 
-        #Add args to the module
+        # Need to call inkscape to get width and height
+        self.inkscape_size = True
+        
+        # Add args to the module
         self.load_args(kwargs)
 
-        #Save the content
+        # Save the content
         self.content = svg_content
-
+        
         #Register the module
         self.register()
-
-
-
+            
     def render(self):
         """
             The render of an svg part
         """
 
-        #TODO: Parse the svg to get height and width
-        #Need to get the height and width of the svg command
-        tmpsvg = '<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny" xmlns:xlink="http://www.w3.org/1999/xlink">%s</svg>'%self.content
-
         #Need to create a temp file
-        tmpfile, tmpname = tempfile.mkstemp(prefix='beampytmp')
-        with open( tmpname + '.svg', 'w' ) as f:
-            f.write( tmpsvg )
+        if self.inkscape_size:
+            
+            # Need to get the height and width of the svg command
+            tmpsvg = '<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny" xmlns:xlink="http://www.w3.org/1999/xlink"><defs>%s</defs> %s</svg>'
+            tmpsvg = tmpsvg % (self.svgdefs, self.content)
 
-        svg_width =  getsvgwidth(tmpname + '.svg')
-        svg_height = getsvgheight(tmpname + '.svg')
+            tmpfile, tmpname = tempfile.mkstemp(prefix='beampytmp')
+            with open( tmpname + '.svg', 'w' ) as f:
+                f.write( tmpsvg )
 
-        #remove the svg
-        os.remove( tmpname + '.svg' )
+            svg_width =  getsvgwidth(tmpname + '.svg')
+            svg_height = getsvgheight(tmpname + '.svg')
+
+            #remove the svg
+            os.remove( tmpname + '.svg' )
+        else:
+            svg_width = convert_unit(self.width.value)
+            svg_height = convert_unit(self.height.value)
 
         #Update the final svg size
         self.update_size(svg_width, svg_height)
@@ -121,6 +128,26 @@ class rectangle(svg):
         Opacity of the rectangle (the default theme sets this to 1). The
         value ranges between 0 (transparent) and 1 (solid).
 
+    rx: int, optional
+        The number of pixels for the rounding the rectangle corners in
+        x direction (The default theme sets this value to 0). 
+
+    ry: int, optional
+        The number of pixels for the rounding the rectangle corners in
+        y direction (The default theme sets this value to 0). 
+    
+    svgfilter: string or None, optional
+        Set the id of the svg filter ('#name') to apply to the
+        rectangle (default value is None, which means no
+        filter). Filter definitaion should be added to slide.svgdefout
+        list.
+
+    svgclip: string or None, optional
+       Set the id of the clip object ('#name') to apply on the
+       rectangle (the default value is None, which means no clip to
+       apply). Clip definition should be added to slide.svgdefout
+       list.
+
     """
 
     def __init__(self, **kwargs):
@@ -131,24 +158,60 @@ class rectangle(svg):
         # Add args to the module
         self.check_args_from_theme( kwargs )
 
-
+        # The size can be computed easily if no filter or clip path is given
+        if self.svgclip is not None or self.svgfilter is not None:
+            self.inkscape_size = False
+        else:
+            self.inkscape_size = True
+        
         # Build style for the rectangle
         beampy_svg_kword = {'color': 'fill',
                             'linewidth': 'stroke-width',
                             'opacity': 'opacity',
                             'edgecolor': 'stroke'}
 
-        style = ''
+        self.style = ''
         for kw in beampy_svg_kword:
             if hasattr(self, kw):
-                style += '%s:%s;'%(beampy_svg_kword[kw], getattr(self,kw))
+                self.style += '%s:%s;'%(beampy_svg_kword[kw], getattr(self,kw))
 
-        self.content = '<rect width="{width}" height="{height}" style="{style}" />'.format(width=self.width, height=self.height, style=style)
+        self.dxdy = int(convert_unit(self.linewidth)/2)
+                
+        self.content = '<rect x="{dx}" y="{dy}" rx="{rx}" ry="{ry}" width="{width}" height="{height}" style="{style}" {filter} {clip}/>'
 
+        # Store svg definitions
+        self.svgdefs = []
+        self.svgdefsargs = []
+        
         # Register the module
         self.register()
+        
+    def pre_render(self):
+
+        if self.svgfilter is None:
+            self.svgfilter = ''
+        else:
+            self.svgfilter = 'filter="url({id})"'.format(id=self.svgfilter)
+            
+        if self.svgclip is None:
+            self.svgclip = ''
+        else:
+            self.svgclip = 'clip-path="url({id})"'.format(id=self.svgclip)
+            
+        # Update the width height of the rectangle
+        self.content = self.content.format(width=self.width-self.dxdy*2,
+                                           height=self.height-self.dxdy*2,
+                                           dx=self.dxdy, dy=self.dxdy,
+                                           rx=self.rx, ry=self.ry,
+                                           style=self.style,
+                                           filter=self.svgfilter,
+                                           clip=self.svgclip)
+
+        
 
 
+
+        
 class line(svg):
     """
     Insert an svg line.
@@ -191,12 +254,13 @@ class line(svg):
 
         # The input type of the module
         self.type = 'svg'
-
+        
+        self.inkscape_size = True
+        
         # Add args to the module
         self.check_args_from_theme( kwargs )
         self.x2 = x2
         self.y2 = y2
-
 
         # convert unit of x2 and y2
         self.x2 = convert_unit(self.x2)
@@ -210,17 +274,26 @@ class line(svg):
                             'linewidth': 'stroke-width',
                             'opacity': 'opacity'}
 
-        style = ''
+        self.style = ''
         for kw in beampy_svg_kword:
             if hasattr(self, kw):
-                style += '%s:%s;'%(beampy_svg_kword[kw], getattr(self,kw))
+                self.style += '%s:%s;'%(beampy_svg_kword[kw], getattr(self,kw))
 
-        self.content = '<line x1="0" y1="0" x2="{x2}px" y2="{y2}px" style="{style}"/>'.format(x2=self.x2, y2=self.y2, style=style)
+        self.content = '<line x1="0" y1="0" x2="{x2}px" y2="{y2}px" style="{style}"/>'
 
+        # Store svg definitions
+        self.svgdefs = []
+        self.svgdefsargs = []
+        
         # Register the module
         self.register()
 
+    def pre_render(self):
+        self.content = self.content.format(x2=self.x2,
+                                           y2=self.y2,
+                                           style=self.style)
 
+        
 def hline(y, **kwargs):
     """
     Create an horizontal line at a given horizontal position.
@@ -303,6 +376,7 @@ def grid(dx, dy, **kwargs):
         vline('%spx'%cur_y, **kwargs)
         cur_y += dy
 
+        
 # TODO: Improve grid rendering to not loop over beampy elements but create a true grid
 class grid_new(svg):
     """
@@ -337,6 +411,8 @@ class grid_new(svg):
         # The input type of the module
         self.type = 'svg'
 
+        self.inkscape_size = True
+        
         # Add args to the module
         self.check_args_from_theme( kwargs )
         self.dx = dx
@@ -355,18 +431,102 @@ class grid_new(svg):
                             'linewidth': 'stroke-width',
                             'opacity': 'opacity'}
 
-        style = ''
+        self.style = ''
         for kw in beampy_svg_kword:
             if hasattr(self, kw):
-                style += '%s:%s;'%(beampy_svg_kword[kw], getattr(self,kw))
+                self.style += '%s:%s;'%(beampy_svg_kword[kw], getattr(self,kw))
 
-        svg_tmp = ''
 
         curslide = document._slides[self.slide_id]
-        base_hline = '<line id="{id}" x1="0" y1="0" x2="{x2}px" y2="{y2}px" style="{style}"/>'.format(x2=curslide.curwidth,
-                                                                                                      y2=0, style=style,
-                                                                                                      id='hlineXX')
+        base_hline = '<line id="{id}" x1="0" y1="0" x2="{x2}px" y2="{y2}px" style="{style}"/>'
 
-        self.content = svg_tmp
+        self.content = base_hline
+        self.content = self.content.format(x2=curslide.curwidth, y2=0,
+                                           style=self.style, id='hlineXX')
         # Register the module
         # self.register()
+
+
+        
+class circle(svg):
+    """
+    Insert an svg circle.
+
+    Parameters
+    ----------
+
+    x : int or float or {'center', 'auto'} or str, optional
+        Horizontal position for the rectangle (the default is 'center'). See
+        positioning system of Beampy.
+
+    y : int or float or {'center', 'auto'} or str, optional
+        Vertical position for the rectangle (the default theme sets this to
+        'auto'). See positioning system of Beampy.
+
+    r : int or float or string, optional
+         radius of the circle (the default theme sets this to 3 for '3px').
+         When the value is given as string it accepts a unit allow by svg syntax.
+         ("em" | "ex" | "px" | "in" | "cm" | "mm" | "pt" | "pc" | "%")
+    
+    color : string, optional
+        Color filling the circle (the default theme sets this to
+        THEME['title']['color']). The color is given either as HTML hex value
+        "#ffffff" or as svg colornames "blank".
+
+    linewidth : string, optional
+        Circle edge line width (the default theme sets this to '1px'). The
+        value is given as string followed by an unit accepted by svg syntax.
+
+    edgecolor : string, optional
+        Color of the circle edge (the default theme sets this to
+        THEME['title']['color']). The color is given either as HTML hex value
+        "#ffffff" or as svg colornames "blank".
+
+    opacity: float, optional
+        Opacity of the circle (the default theme sets this to 1). The
+        value ranges between 0 (transparent) and 1 (solid).
+
+    """
+
+    def __init__(self, **kwargs):
+
+        # The input type of the module
+        self.type = 'svg'
+
+        self.inkscape_size = False
+        
+        # Add args to the module
+        self.check_args_from_theme( kwargs )
+        
+        # Build style for the rectangle
+        beampy_svg_kword = {'color': 'fill',
+                            'linewidth': 'stroke-width',
+                            'opacity': 'opacity',
+                            'edgecolor': 'stroke'}
+
+        self.style = ''
+        for kw in beampy_svg_kword:
+            if hasattr(self, kw):
+                self.style += '%s:%s;'%(beampy_svg_kword[kw], getattr(self,kw))
+
+        self.cx = convert_unit(self.r) + int(convert_unit(self.linewidth)/2)
+        self.cy = convert_unit(self.r) + int(convert_unit(self.linewidth)/2)
+
+        self.content = '<circle cx="{cx}" cy="{cy}" r="{r}" style="{style}" />'
+
+        # Store svg definitions
+        self.svgdefs = []
+        self.svgdefsargs = []
+        
+        # Register the module
+        self.register()
+
+    def pre_render(self):
+        self.content = self.content.format(r=self.r, cx=self.cx, cy=self.cy, style=self.style)
+
+        self.width = convert_unit(self.r) * 2 + convert_unit(self.linewidth)
+        self.height = convert_unit(self.r) * 2 + convert_unit(self.linewidth)
+
+        self.update_size(self.width, self.height)
+        
+

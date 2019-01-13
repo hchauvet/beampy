@@ -90,9 +90,8 @@ class cache_slides():
             if bp_module.rendered:
                 #Set the uniq id from the element['content'] value of the element
                 elemid = create_element_id(bp_module, use_args=False, add_slide=False, slide_position=False)
-
-                if elemid != None:
-                    
+                
+                if elemid is not None:
                     
                     self.data[elemid] = {}
                     
@@ -100,22 +99,22 @@ class cache_slides():
                     #if "matplotlib" not in str(type(bp_module)):
                     #    self.data[elemid]['content'] = bp_module.content
                         
-                    self.data[elemid]['width'] = bp_module.positionner.width
-                    self.data[elemid]['height'] = bp_module.positionner.height
+                    self.data[elemid]['width'] = bp_module.positionner.width.value
+                    self.data[elemid]['height'] = bp_module.positionner.height.value
                     
-                    if bp_module.svgout != None:
+                    if bp_module.svgout is not None:
                         #create a temp filename
                         svgoutname = tempfile.mktemp(prefix='svgout_', dir='')
                         self.data[elemid]['svgout'] = svgoutname
                         #save the file 
                         self.write_file_cache(svgoutname, bp_module.svgout)
                         
-                    if bp_module.htmlout != None:
+                    if bp_module.htmlout is not None:
                         htmloutname = tempfile.mktemp(prefix='htmlout_', dir='')
                         self.data[elemid]['htmlout'] = htmloutname
                         self.write_file_cache(htmloutname, bp_module.htmlout)
                         
-                    if bp_module.jsout != None:
+                    if bp_module.jsout is not None:
                         jsoutname = tempfile.mktemp(prefix='jsout_', dir='')
                         self.data[elemid]['jsout'] = jsoutname
                         self.write_file_cache(jsoutname, bp_module.jsout)
@@ -174,7 +173,7 @@ class cache_slides():
             elemid = create_element_id(bp_module, use_args=False, add_slide=False, slide_position=False)
 
             #print(bp_module.name,":",elemid)
-            if elemid != None and elemid in self.data:
+            if elemid is not None and elemid in self.data:
                 cacheelem = self.data[elemid]
                 out = True
 
@@ -212,14 +211,6 @@ class cache_slides():
             Export cache data to a pickle file
         """
 
-        """
-        for ct in self.data:
-            print(ct)
-            for elem in self.data[ct]:
-                print(elem)
-                print(self.data[ct][elem]['element'].keys())
-        """
-
         #Check if their is some glyphs in the global_store
         if 'glyphs' in self.global_store:
             self.data['glyphs'] = self.global_store['glyphs']
@@ -242,28 +233,24 @@ class cache_slides():
         return output
         
 #TODO: solve import bug when we try to import this function from beampy.functions...
-def create_element_id( bp_mod, use_args=True, use_render=True,
-                       use_content=True, add_slide=True, slide_position=True,
-                       use_size = False ):
-    """
-        create a unique id for the element using 
-        element['content'] and element['args'].keys() and element['render'].__name__
-    """
-    from beampy.functions import gcs
+def create_element_id(bp_mod, use_args=True, use_render=True,
+                      use_content=True, add_slide=True, slide_position=True,
+                      use_size = False):
+    
     from beampy.document import document
 
     ct_to_hash = ''
 
     if add_slide:
-        ct_to_hash += gcs()
+        ct_to_hash += bp_mod.slide_id
 
     if use_args and hasattr(bp_mod, 'args'):
         ct_to_hash += ''.join(['%s:%s'%(k,v) for k,v in bp_mod.args.items()])
 
-    if use_render and bp_mod.name != None:
+    if use_render and bp_mod.name is not None:
         ct_to_hash += bp_mod.name
 
-    if use_content and bp_mod.content != None:
+    if use_content and bp_mod.content is not None:
         ct_to_hash += str(bp_mod.content)
 
     if use_size:
@@ -280,9 +267,9 @@ def create_element_id( bp_mod, use_args=True, use_render=True,
         ct_to_hash += '(%s,%s)'%(str(w), str(h))
 
     if slide_position:
-        ct_to_hash += str(len(document._slides[gcs()].element_keys))
+        ct_to_hash += str(len(document._slides[bp_mod.slide_id].element_keys))
 
-    if bp_mod.args_for_cache_id != None:
+    if bp_mod.args_for_cache_id is not None:
         for key in bp_mod.args_for_cache_id:
             try:
                 tmp = getattr(bp_mod, key)
@@ -290,17 +277,14 @@ def create_element_id( bp_mod, use_args=True, use_render=True,
             except:
                 print('No parameters %s for cache id for %s'%(key, bp_mod.name))
 
-
-
     outid = None
     if ct_to_hash != '':
         #print ct_to_hash
         outid = hashlib.md5( ct_to_hash ).hexdigest()
 
-        if outid in document._slides[gcs()].element_keys:
+        if outid in document._slides[bp_mod.slide_id].element_keys:
             print("Id for this element already exist!")
             sys.exit(0)
             outid = None
-        #print outid
 
     return outid

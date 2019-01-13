@@ -49,7 +49,7 @@ with slide('test group relative position'):
 
 
     g1.add_border()
-
+    g2.add_border()
 # TODO: solve the bug for video when pdf is exported after html....
 save('./html_out/%s.html'%test_name)
 save('./pdf_out/%s.pdf'%test_name)

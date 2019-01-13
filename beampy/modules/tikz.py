@@ -107,7 +107,7 @@ class tikz(beampy_module):
         """%(extra_tex_packages, tikz_fig_opts, tikzcommands)
 
         #latex2svg
-        svgout = latex2svg(pretex)
+        svgout = latex2svg(pretex, write_tmpsvg=True)
 
         if svgout != '':
 
@@ -122,13 +122,13 @@ class tikz(beampy_module):
             tikz_width = float(tikz_width) * tex_pt_to_px
             tikz_height = float(tikz_height) * tex_pt_to_px
 
-            print(tikz_width, tikz_height)
+            # print(tikz_width, tikz_height)
 
             # Default is args['figure_anchor'] == top_left
             dx = -float(xinit)
             dy = -float(yinit)
 
-            print(self.positionner.x, self.positionner.y)
+            # print(self.positionner.x, self.positionner.y)
 
             if 'bottom' in self.figure_anchor:
                 self.positionner.y['anchor'] = 'bottom'

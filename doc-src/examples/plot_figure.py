@@ -10,6 +10,7 @@ Figure format can be:
 * svg
 * jpeg
 * png
+* gif
 * Matplotlib figure object
 * Bokeh figure object
 
@@ -46,6 +47,17 @@ with slide('A matplotlib figure'):
 
 display_matplotlib(gcs())
 
+########################################################
+#
+#From a gif
+#----------
+#
+#
+
+with slide('An animated gif'):
+    figure('../../tests/test.gif', width='50%')
+
+    
 ########################################################
 #
 #From Bokeh

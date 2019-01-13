@@ -42,6 +42,59 @@ save('./simple_one.html')
 
 ## Change log:
 
+### 0.5.2
+
+* Fix bug with dvisvgm output for tikz dvi (function latex2svg has now
+  an option to write the svg produced by dvisvgm).
+* Add tableofcontents modules [See documentation](https://hchauvet.github.io/beampy/auto_examples/plot_TOC.html).
+* Add a BeamerFrankfurt theme [See documentation](https://hchauvet.github.io/beampy/auto_themes/theme_BeamerFrankfurt.htm).
+* Figure module accepts animated gif.
+* Extra latex packages could be added to text module with the
+  "extra_packages" argument.
+* Compute svg rectangle and circle size which improve the rendering
+  speed (no need to call Inkscape).
+* Improve box module (it is now a subclass of group) [See documentation](https://hchauvet.github.io/beampy/auto_examples/plot_box.html).
+* Correct some scale factors in the convert_unit function.
+* Width and height are now Length objects and accept complex
+  operations like:
+  
+  ```python
+
+  # 50% of the currentwidth 
+  a = rectangle(width='50%', height=10)
+
+  # width/height relative to the a element
+  b = rectangle(width=a.width/2+'2cm', height=a.height/'10pt')
+  ```
+
+* module position (x,y) operation now accept Length objects (width/height):
+
+  ```python
+
+  a = rectangle(width='50%', height=10)
+
+  b = rectangle(x=a.width+'2cm', y=a.height+5)
+  ```
+  
+* Change the core of beampy to render elements when needed for
+  operation on position or length (i.e. when you make an operation on
+  an element width or height that is unknown, the element will be
+  rendered to get its size and allow the operation)
+* Add "zorder" operation for modules (above/below/last/first) to change
+  their overlay order:
+
+  ```python
+
+  a = rectangle(x='center', y='center', width=50, height=50)
+  b = rectangle(x='center', y='center', width=a.height+100,
+                height=a.height+100, color='red')
+
+  # Make b appears below a
+  b.below(a)
+  
+  # equivalent to a.above(b) or a.last() or b.first()
+  ```
+
 ### 0.5.1
 
 * Fix several bugs in bokeh figures (thx to [Silmathoron](https://github.com/Silmathoron))

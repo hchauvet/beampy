@@ -121,14 +121,14 @@ class video(beampy_module):
         size, imgframe = self.video_image()
         #Get video size to get the ratio (to estimage the height)
         _, _, vidw, vidh = size
-        scale_x = self.width/float(vidw)
+        scale_x = (self.width/float(vidw)).value
         width = self.width
 
-        if self.height is None:
+        if self.height.value is None:
             height = vidh * scale_x
             print('Video size might be buggy, estimated height %ipx'%height)
         else:
-            height = self.height
+            height = self.height.value
 
         #HTML tag for video
         if self.embedded:
