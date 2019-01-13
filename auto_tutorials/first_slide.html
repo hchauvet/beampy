@@ -2,14 +2,25 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Your first presentation &#8212; Beampy 0.5.1 documentation</title>
+    
+    <title>Your first presentation &#8212; Beampy 0.5.2 documentation</title>
+    
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
     <link rel="stylesheet" href="../_static/css/beampy_sphinx.css" type="text/css" />
-    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.5.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
@@ -24,7 +35,8 @@
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
 
-  </head><body>
+  </head>
+  <body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -37,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           Beampy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.1</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.2</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -142,14 +154,14 @@
 <div class="section" id="import-beampy">
 <h2>Import Beampy<a class="headerlink" href="#import-beampy" title="Permalink to this headline">¶</a></h2>
 <p>To start, you need to import beampy module in your python file.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="your-first-slide-hello-beampy">
 <h2>Your first slide: Hello Beampy<a class="headerlink" href="#your-first-slide-hello-beampy" title="Permalink to this headline">¶</a></h2>
 <p>A Beampy presentation is based on the <strong>document</strong> class, in which all slides and their contents will be stored. Let’s create our first slide.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="c1"># We first create a new document for our presentation</span>
 <span class="c1"># Remove quiet=True to see Beampy compiler output</span>
@@ -184,7 +196,7 @@ positioned in <em>y</em> –which means that if you add other elements they will
 equally spaced vertically–.</p>
 <p>Now we change the <em>x</em> and <em>y</em> with numerical values (x=0, y=0), the text is
 now in the upper-left corner.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">(</span><span class="s1">&#39;My first slide title&#39;</span><span class="p">):</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">(</span><span class="s1">&#39;My first slide title&#39;</span><span class="p">):</span>
     <span class="n">text</span><span class="p">(</span><span class="s1">&#39;Hello Beampy!&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
 <span class="n">display_matplotlib</span><span class="p">(</span><span class="n">gcs</span><span class="p">())</span>
@@ -195,7 +207,7 @@ now in the upper-left corner.</p>
 of slide (or group) width. So if you set <em>x=0.5</em> and <em>y=0.5x3/4</em> (as the
 aspect ratio of the theme is 4/3) the text will be anchored (default anchor is
 upper-left) to the center of the slide.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">(</span><span class="s1">&#39;My first slide title&#39;</span><span class="p">):</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">(</span><span class="s1">&#39;My first slide title&#39;</span><span class="p">):</span>
     <span class="n">text</span><span class="p">(</span><span class="s1">&#39;Hello Beampy!&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.5</span><span class="o">*</span><span class="mi">3</span><span class="o">/</span><span class="mf">4.</span><span class="p">)</span>
 
 <span class="n">display_matplotlib</span><span class="p">(</span><span class="n">gcs</span><span class="p">())</span>
@@ -204,7 +216,7 @@ upper-left) to the center of the slide.</p>
 <img alt="../_images/sphx_glr_first_slide_003.png" class="align-center" src="../_images/sphx_glr_first_slide_003.png" />
 <p>Now we could also set fixed position for <em>x</em> and <em>y</em>. To do so, if <em>x</em> and <em>y</em>
 are greater than 1.0 and their coordinates will be in pixel.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">(</span><span class="s1">&#39;My first slide title&#39;</span><span class="p">):</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">(</span><span class="s1">&#39;My first slide title&#39;</span><span class="p">):</span>
     <span class="n">text</span><span class="p">(</span><span class="s1">&#39;Hello Beampy!&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 
 <span class="n">display_matplotlib</span><span class="p">(</span><span class="n">gcs</span><span class="p">())</span>
@@ -221,9 +233,9 @@ Beampy modules options.</li>
 </ul>
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/first_slide.py" download=""><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">first_slide.py</span></code></a></div>
+<a class="reference download internal" href="../_downloads/first_slide.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">first_slide.py</span></code></a></div>
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/first_slide.ipynb" download=""><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">first_slide.ipynb</span></code></a></div>
+<a class="reference download internal" href="../_downloads/first_slide.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">first_slide.ipynb</span></code></a></div>
 </div>
 <p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
 </div>
@@ -242,7 +254,7 @@ Beampy modules options.</li>
     </p>
     <p>
         &copy; Copyright 2016-2018, Beampy Dev Team.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.<br/>
     </p>
   </div>
 </footer>

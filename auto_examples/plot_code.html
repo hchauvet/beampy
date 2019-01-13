@@ -2,14 +2,25 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>code &#8212; Beampy 0.5.1 documentation</title>
+    
+    <title>code &#8212; Beampy 0.5.2 documentation</title>
+    
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
     <link rel="stylesheet" href="../_static/css/beampy_sphinx.css" type="text/css" />
-    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.5.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
@@ -26,7 +37,8 @@
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
 
-  </head><body>
+  </head>
+  <body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -39,7 +51,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           Beampy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.1</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.2</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -139,7 +151,7 @@
 <p class="first admonition-title">Warning</p>
 <p class="last">This module is in very draft stage !!!</p>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="c1"># Remove quiet=True to get beampy compilation outputs</span>
 <span class="n">doc</span> <span class="o">=</span> <span class="n">document</span><span class="p">(</span><span class="n">quiet</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -166,7 +178,7 @@
 <h1>Module arguments<a class="headerlink" href="#module-arguments" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt>
-<em class="property">class </em><code class="descclassname">beampy.</code><code class="descname">code</code><span class="sig-paren">(</span><em>codetext</em>, <em>x='center'</em>, <em>y='auto'</em>, <em>width=None</em>, <em>language=None</em>, <em>size='14px'</em><span class="sig-paren">)</span></dt>
+<em class="property">class </em><code class="descclassname">beampy.</code><code class="descname">code</code><span class="sig-paren">(</span><em>codetext</em>, <em>x=’center’</em>, <em>y=’auto’</em>, <em>width=None</em>, <em>language=None</em>, <em>size=‘14px’</em><span class="sig-paren">)</span></dt>
 <dd><p>Add highlighted code syntax to your presentation. This module require pygments.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -178,7 +190,7 @@
 positioning system of Beampy.</li>
 <li><strong>y</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>{'center'</em><em>, </em><em>'auto'}</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Vertical position for the code (the default is ‘auto’). See positioning
 system of Beampy.</li>
-<li><strong>width</strong> (<em>string</em><em>, </em><em>optional</em>) – Width of the code (the default is <code class="xref py py-mod docutils literal notranslate"><span class="pre">document._width</span></code>). The value
+<li><strong>width</strong> (<em>string</em><em>, </em><em>optional</em>) – Width of the code (the default is <code class="xref py py-mod docutils literal"><span class="pre">document._width</span></code>). The value
 is given as string with a unit accepted by svg syntax.</li>
 <li><strong>language</strong> (<em>string</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Language of the source code (the default value is None, which implies
 that the language is guessed by pygments). See pygments language for
@@ -197,9 +209,9 @@ available ones.</li>
 
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/plot_code.py" download=""><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_code.py</span></code></a></div>
+<a class="reference download internal" href="../_downloads/plot_code.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_code.py</span></code></a></div>
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/plot_code.ipynb" download=""><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_code.ipynb</span></code></a></div>
+<a class="reference download internal" href="../_downloads/plot_code.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_code.ipynb</span></code></a></div>
 </div>
 <p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
 </div>
@@ -217,7 +229,7 @@ available ones.</li>
     </p>
     <p>
         &copy; Copyright 2016-2018, Beampy Dev Team.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.<br/>
     </p>
   </div>
 </footer>

@@ -2,14 +2,25 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Beampy Positioning system &#8212; Beampy 0.5.1 documentation</title>
+    
+    <title>Beampy Positioning system &#8212; Beampy 0.5.2 documentation</title>
+    
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
     <link rel="stylesheet" href="../_static/css/beampy_sphinx.css" type="text/css" />
-    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.5.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
@@ -24,7 +35,8 @@
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
 
-  </head><body>
+  </head>
+  <body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -37,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           Beampy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.1</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.2</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -191,7 +203,7 @@ for both <cite>x</cite> and <cite>y</cite>.</li>
 <p>The origin of the coordinate coordinate system is the upper-left corner of the
 slide or the current group. And is positive when moving toward the bottom-right
 corner.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">beampy.utils</span> <span class="kn">import</span> <span class="n">bounding_box</span><span class="p">,</span> <span class="n">draw_axes</span>
 
 <span class="n">doc</span> <span class="o">=</span> <span class="n">document</span><span class="p">(</span><span class="n">quiet</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -216,7 +228,7 @@ module with <cite>center</cite>, and equally spaced distribution of Beampy modul
 have <cite>auto</cite> as coordinates</p>
 <div class="section" id="centering">
 <h3>Centering<a class="headerlink" href="#centering" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
     <span class="n">draw_axes</span><span class="p">()</span>
     <span class="n">rectangle</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
               <span class="n">color</span><span class="o">=</span><span class="s1">&#39;lightgreen&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
@@ -232,7 +244,7 @@ have <cite>auto</cite> as coordinates</p>
 <h3>Auto<a class="headerlink" href="#auto" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="equally-spaced-vertically">
 <h4>Equally spaced vertically<a class="headerlink" href="#equally-spaced-vertically" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
     <span class="n">draw_axes</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;gold&#39;</span><span class="p">,</span> <span class="s1">&#39;crimson&#39;</span><span class="p">,</span> <span class="s1">&#39;orangered&#39;</span><span class="p">]:</span>
         <span class="n">rectangle</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
@@ -245,7 +257,7 @@ have <cite>auto</cite> as coordinates</p>
 </div>
 <div class="section" id="equally-spaced-horizontally">
 <h4>Equally spaced horizontally<a class="headerlink" href="#equally-spaced-horizontally" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
     <span class="n">draw_axes</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;gold&#39;</span><span class="p">,</span> <span class="s1">&#39;crimson&#39;</span><span class="p">,</span> <span class="s1">&#39;orangered&#39;</span><span class="p">]:</span>
         <span class="n">rectangle</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
@@ -258,7 +270,7 @@ have <cite>auto</cite> as coordinates</p>
 </div>
 <div class="section" id="equally-spaced-in-xy-directions">
 <h4>Equally spaced in xy directions<a class="headerlink" href="#equally-spaced-in-xy-directions" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
     <span class="n">draw_axes</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;gold&#39;</span><span class="p">,</span> <span class="s1">&#39;crimson&#39;</span><span class="p">,</span> <span class="s1">&#39;orangered&#39;</span><span class="p">]:</span>
         <span class="n">rectangle</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
@@ -288,11 +300,11 @@ like ‘2cm’.</li>
 <p>For <cite>y</cite> &lt; 1.0, the default will be changed in future version to be percent
 of the height. To already change this in your slide you could add just
 after importing Beampy:</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">DEFAULT_Y</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;height&#39;</span>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">DEFAULT_Y</span><span class="p">[</span><span class="s1">&#39;unit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;height&#39;</span>
 </pre></div>
 </div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
     <span class="n">draw_axes</span><span class="p">()</span>
     <span class="n">text</span><span class="p">(</span><span class="s1">&#39;x and y relative to width&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
     <span class="n">text</span><span class="p">(</span><span class="s1">&#39;x and y relative to width, with aspect ratio for y&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
@@ -309,7 +321,7 @@ after importing Beampy:</p>
 <h3>Anchors<a class="headerlink" href="#anchors" title="Permalink to this headline">¶</a></h3>
 <p>We could also change the anchor of the Beampy module using the <cite>center</cite>,
 <cite>right</cite>, <cite>bottom</cite> function in the coordinate.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
     <span class="n">draw_axes</span><span class="p">()</span>
 
     <span class="n">t1</span> <span class="o">=</span> <span class="n">text</span><span class="p">(</span><span class="s1">&#39;Top-left absolute positioning $$x=x^2$$&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
@@ -335,7 +347,7 @@ after importing Beampy:</p>
 element relative to this first one. To do so Beampy module have methods to
 refer to their anchors (module.left, module.right, module.top, module.bottom,
 module.center).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
     <span class="n">draw_axes</span><span class="p">()</span>
     <span class="n">texts_width</span> <span class="o">=</span> <span class="mi">200</span>
 
@@ -364,7 +376,7 @@ module.center).</p>
 <p>An other way to do relative positioning is to use string as coordinate with
 ‘+’ ot ‘-‘ before the shift and the unit. This will place the new Beampy
 Module relative to previous one.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
     <span class="n">draw_axes</span><span class="p">()</span>
 
     <span class="n">text</span><span class="p">(</span><span class="s1">&#39;text x=20, y=0.5cm&#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s1">&#39;20&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;0.5cm&#39;</span><span class="p">)</span>
@@ -398,7 +410,7 @@ module bounding-box.</li>
 <li>align: (left, right or center for x) and (top, bottom or center for y) is used
 to set the origin of slide axes.</li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">():</span>
     <span class="n">draw_axes</span><span class="p">()</span>
 
     <span class="n">t</span> <span class="o">=</span> <span class="n">text</span><span class="p">(</span><span class="s1">&#39;centered text&#39;</span><span class="p">,</span>
@@ -417,9 +429,9 @@ to set the origin of slide axes.</li>
 <img alt="../_images/sphx_glr_positioning_system_010.png" class="align-center" src="../_images/sphx_glr_positioning_system_010.png" />
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/positioning_system.py" download=""><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">positioning_system.py</span></code></a></div>
+<a class="reference download internal" href="../_downloads/positioning_system.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">positioning_system.py</span></code></a></div>
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/positioning_system.ipynb" download=""><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">positioning_system.ipynb</span></code></a></div>
+<a class="reference download internal" href="../_downloads/positioning_system.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">positioning_system.ipynb</span></code></a></div>
 </div>
 <p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
 </div>
@@ -438,7 +450,7 @@ to set the origin of slide axes.</li>
     </p>
     <p>
         &copy; Copyright 2016-2018, Beampy Dev Team.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.<br/>
     </p>
   </div>
 </footer>

@@ -2,14 +2,25 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>rectangle &#8212; Beampy 0.5.1 documentation</title>
+    
+    <title>rectangle &#8212; Beampy 0.5.2 documentation</title>
+    
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
     <link rel="stylesheet" href="../_static/css/beampy_sphinx.css" type="text/css" />
-    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.5.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
@@ -26,7 +37,8 @@
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
 
-  </head><body>
+  </head>
+  <body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -39,7 +51,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           Beampy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.1</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.2</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -135,7 +147,7 @@
 <span id="sphx-glr-auto-examples-plot-rectangle-py"></span><h1>rectangle<a class="headerlink" href="#rectangle" title="Permalink to this headline">¶</a></h1>
 <p>Easiest way to create rectangle in svg rather than using the
 :py:mod:beampy.svg.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="c1"># Remove quiet=True to get Beampy render outputs</span>
 <span class="n">doc</span> <span class="o">=</span> <span class="n">document</span><span class="p">(</span><span class="n">quiet</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -168,7 +180,7 @@ positioning system of Beampy.</li>
 <li><strong>height</strong> (<em>string</em><em>, </em><em>optional</em>) – Height of the rectangle (the default theme sets this to ‘10px’).
 The value is given as string with a unit accepted by svg syntax.</li>
 <li><strong>width</strong> (<em>string</em><em>, </em><em>optional</em>) – Width of the rectangle (the default theme sets this to
-<code class="xref py py-mod docutils literal notranslate"><span class="pre">document._width</span></code>). The value is given as string with a unit
+<code class="xref py py-mod docutils literal"><span class="pre">document._width</span></code>). The value is given as string with a unit
 accepted by svg syntax.</li>
 <li><strong>color</strong> (<em>string</em><em>, </em><em>optional</em>) – Color filling the rectangle (the default theme sets this to
 THEME[‘title’][‘color’]). The color is given either as HTML hex value
@@ -180,6 +192,18 @@ THEME[‘text’][‘color’]). The color is given either as HTML hex value
 “#ffffff” or as svg colornames “blank”.</li>
 <li><strong>opacity</strong> (<em>float</em><em>, </em><em>optional</em>) – Opacity of the rectangle (the default theme sets this to 1). The
 value ranges between 0 (transparent) and 1 (solid).</li>
+<li><strong>rx</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of pixels for the rounding the rectangle corners in
+x direction (The default theme sets this value to 0).</li>
+<li><strong>ry</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of pixels for the rounding the rectangle corners in
+y direction (The default theme sets this value to 0).</li>
+<li><strong>svgfilter</strong> (<em>string</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Set the id of the svg filter (‘#name’) to apply to the
+rectangle (default value is None, which means no
+filter). Filter definitaion should be added to slide.svgdefout
+list.</li>
+<li><strong>svgclip</strong> (<em>string</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Set the id of the clip object (‘#name’) to apply on the
+rectangle (the default value is None, which means no clip to
+apply). Clip definition should be added to slide.svgdefout
+list.</li>
 </ul>
 </td>
 </tr>
@@ -189,9 +213,9 @@ value ranges between 0 (transparent) and 1 (solid).</li>
 
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/plot_rectangle.py" download=""><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_rectangle.py</span></code></a></div>
+<a class="reference download internal" href="../_downloads/plot_rectangle.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_rectangle.py</span></code></a></div>
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/plot_rectangle.ipynb" download=""><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_rectangle.ipynb</span></code></a></div>
+<a class="reference download internal" href="../_downloads/plot_rectangle.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_rectangle.ipynb</span></code></a></div>
 </div>
 <p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
 </div>
@@ -209,7 +233,7 @@ value ranges between 0 (transparent) and 1 (solid).</li>
     </p>
     <p>
         &copy; Copyright 2016-2018, Beampy Dev Team.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.<br/>
     </p>
   </div>
 </footer>

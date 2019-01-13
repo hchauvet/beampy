@@ -16,7 +16,7 @@ doc = document(quiet=True)
 with slide('Grouping elements'):
 
     # Using with statement:
-    with group(y=0.1, background='lightblue') as g1:
+    with group(y=0.1, background='lightblue', width='90%') as g1:
         text("I'm inside the first group", y=0)
         text('Me too!', y="+0.1")
 
@@ -27,10 +27,10 @@ with slide('Grouping elements'):
         text('At the group center', x='center', y='center')
     
         # Add child group to the parent group
-        with group(width=400/2, background='red', x=g2.left+0, y=g2.bottom+bottom(0)) as g3:
+        with group(width='50%', background='red', x=g2.left+0, y=g2.bottom+bottom(0)) as g3:
             text('A group in a group')
 
-        with group(width=400/2, background='violet', x=g3.right+0, y=g3.top+0) as g3:
+        with group(width='50%', background='violet', x=g3.right+0, y=g3.top+0) as g3:
             text('A group in a group')
 
     with group(x='auto', y=g2.top+0, height=300, width=300) as g4:

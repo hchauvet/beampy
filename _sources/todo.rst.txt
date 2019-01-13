@@ -14,14 +14,12 @@ Core
 * Add more Theme
 * Finish documentation of all functions :ref:`API`
 * Rewrite export function as class
-* Improve width/height of elements (add % of curent width/height like for x,y position)
-* Add table of content system (and function to print TOC)
 * Add compatibility with Jupiter Notebook
   
 Text
 ----
 
-* Add options for latex (new packages, language)
+* Improve options for latex (new packages, language)
 * Add anchor inside latex paragraph to link other module to its coordinates
 * Don't convert text to path when export to pdf. And add search-friendly tags
   when using svg path as glyph (to allow copy/paste, search and discoverable

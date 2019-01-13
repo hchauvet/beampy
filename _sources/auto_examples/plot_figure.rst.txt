@@ -14,6 +14,7 @@ Figure format can be:
 * svg
 * jpeg
 * png
+* gif
 * Matplotlib figure object
 * Bokeh figure object
 
@@ -71,6 +72,26 @@ From Matplotlib
 
 .. image:: /auto_examples/images/sphx_glr_plot_figure_002.png
     :align: center
+
+
+
+
+From a gif
+----------
+
+
+
+
+
+.. code-block:: python
+
+
+    with slide('An animated gif'):
+        figure('../../tests/test.gif', width='50%')
+
+    
+
+
 
 
 

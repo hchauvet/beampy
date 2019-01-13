@@ -3,6 +3,60 @@
 Change-log
 ==========
 
+0.5.2
+-----
+
+* Fix bug with dvisvgm output for tikz dvi (function latex2svg has now
+  an option to write the svg produced by dvisvgm).
+* Add tableofcontents modules `See documentation <auto_examples/plot_TOC.html>`_.
+* Add a BeamerFrankfurt theme `See documentation <auto_themes/theme_BeamerFrankfurt.html>`_.
+* Figure module accepts animated gif.
+* Extra latex packages could be added to text module with the
+  "extra_packages" argument.
+* Compute svg rectangle and circle size which improve the rendering
+  speed (no need to call Inkscape).
+* Improve box module (it is now a subclass of group) `See documentation <auto_examples/plot_box.html>`_.
+* Correct some scale factors in the convert_unit function.
+* Width and height are now Length objects and accept complex
+  operations like:
+  
+  .. code-block:: python
+
+     # 50% of the currentwidth 
+     a = rectangle(width='50%', height=10)
+
+     # width/height relative to the a element
+     b = rectangle(width=a.width/2+'2cm', height=a.height/'10pt')
+
+
+* module position (x,y) operation now accept Length objects (width/height):
+
+  .. code-block:: python
+
+     a = rectangle(width='50%', height=10)
+
+     b = rectangle(x=a.width+'2cm', y=a.height+5)
+
+  
+* Change the core of beampy to render elements when needed for
+  operation on position or length (i.e. when you make an operation on
+  an element width or height that is unknown, the element will be
+  rendered to get its size and allow the operation)
+* Add "zorder" operation for modules (above/below/last/first) to change
+  their overlay order:
+
+  .. code-block:: python
+
+     a = rectangle(x='center', y='center', width=50, height=50)
+     b = rectangle(x='center', y='center', width=a.height+100,
+                   height=a.height+100, color='red')
+
+     # Make b appears below a
+     b.below(a)
+  
+     # equivalent to a.above(b) or a.last() or b.first()
+
+
 0.5.1
 -----
 
@@ -151,3 +205,5 @@ Change-log
 * Modules are now classes which inherit from a base class "beampy_module" in modules/core.py
 * cache is now unique for all format (pdf, svg, html) and special keys can be added
   to modules in order to create their chache id
+
+

@@ -2,14 +2,25 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>figure &#8212; Beampy 0.5.1 documentation</title>
+    
+    <title>figure &#8212; Beampy 0.5.2 documentation</title>
+    
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
     <link rel="stylesheet" href="../_static/css/beampy_sphinx.css" type="text/css" />
-    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.5.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
@@ -26,7 +37,8 @@
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
 
-  </head><body>
+  </head>
+  <body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -39,7 +51,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           Beampy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.1</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.2</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -78,6 +90,7 @@
 <li><a class="reference internal" href="#">figure</a><ul>
 <li><a class="reference internal" href="#from-one-file">From one file</a></li>
 <li><a class="reference internal" href="#from-matplotlib">From Matplotlib</a></li>
+<li><a class="reference internal" href="#from-a-gif">From a gif</a></li>
 <li><a class="reference internal" href="#from-bokeh">From Bokeh</a></li>
 </ul>
 </li>
@@ -121,6 +134,7 @@
 <li><a class="reference internal" href="#">figure</a><ul>
 <li><a class="reference internal" href="#from-one-file">From one file</a></li>
 <li><a class="reference internal" href="#from-matplotlib">From Matplotlib</a></li>
+<li><a class="reference internal" href="#from-a-gif">From a gif</a></li>
 <li><a class="reference internal" href="#from-bokeh">From Bokeh</a></li>
 </ul>
 </li>
@@ -152,12 +166,13 @@
 <li>svg</li>
 <li>jpeg</li>
 <li>png</li>
+<li>gif</li>
 <li>Matplotlib figure object</li>
 <li>Bokeh figure object</li>
 </ul>
 <div class="section" id="from-one-file">
 <h2>From one file<a class="headerlink" href="#from-one-file" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="c1"># Remove quiet=True to get beampy compilation outputs</span>
 <span class="n">doc</span> <span class="o">=</span> <span class="n">document</span><span class="p">(</span><span class="n">quiet</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -173,7 +188,7 @@
 </div>
 <div class="section" id="from-matplotlib">
 <h2>From Matplotlib<a class="headerlink" href="#from-matplotlib" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">(</span><span class="s1">&#39;A matplotlib figure&#39;</span><span class="p">):</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">(</span><span class="s1">&#39;A matplotlib figure&#39;</span><span class="p">):</span>
     <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">mpl</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
@@ -187,6 +202,13 @@
 </div>
 <img alt="../_images/sphx_glr_plot_figure_002.png" class="align-center" src="../_images/sphx_glr_plot_figure_002.png" />
 </div>
+<div class="section" id="from-a-gif">
+<h2>From a gif<a class="headerlink" href="#from-a-gif" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">(</span><span class="s1">&#39;An animated gif&#39;</span><span class="p">):</span>
+    <span class="n">figure</span><span class="p">(</span><span class="s1">&#39;../../tests/test.gif&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="s1">&#39;50%&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="from-bokeh">
 <h2>From Bokeh<a class="headerlink" href="#from-bokeh" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
@@ -194,7 +216,7 @@
 <p class="last">No svg export available for now, check the
 html file of the prensetation</p>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">(</span><span class="s1">&#39;A bokeh figure&#39;</span><span class="p">):</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">slide</span><span class="p">(</span><span class="s1">&#39;A bokeh figure&#39;</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">bokeh.plotting</span> <span class="kn">import</span> <span class="n">figure</span> <span class="k">as</span> <span class="n">bokfig</span>
 
     <span class="n">p</span> <span class="o">=</span> <span class="n">bokfig</span><span class="p">(</span><span class="n">height</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">600</span><span class="p">)</span>
@@ -219,7 +241,7 @@ html file of the prensetation</p>
 <dt>
 <em class="property">class </em><code class="descclassname">beampy.</code><code class="descname">figure</code><span class="sig-paren">(</span><em>content</em>, <em>ext=None</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
 <dd><p>Include a figure to the current slide. Figure formats could be (<strong>svg</strong>,
-<strong>pdf</strong>, <strong>png</strong>, <strong>jpeg</strong>, <strong>matplotib figure</strong>, and <strong>bokeh figure</strong>)</p>
+<strong>pdf</strong>, <strong>png</strong>, <strong>jpeg</strong>, <strong>gif</strong>, <strong>matplotib figure</strong>, and <strong>bokeh figure</strong>)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -228,7 +250,7 @@ html file of the prensetation</p>
 <li><strong>content</strong> (<em>str</em><em> or </em><em>matplotlib.figure</em><em> or </em><em>bokeh.figure</em>) – Figure input source. To load file, <cite>content</cite> is the path to the file.
 For matplotlib and bokeh, <cite>content</cite> is the python object figure of
 either matplotlib or bokeh.</li>
-<li><strong>ext</strong> (<em>{'svg'</em><em>,</em><em>'jpeg'</em><em>,</em><em>'png'</em><em>,</em><em>'pdf'</em><em>,</em><em>'bokeh'</em><em>,</em><em>'matplotlib'}</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Image format defined as string (the default value is None, which implies
+<li><strong>ext</strong> (<em>{'svg'</em><em>,</em><em>'jpeg'</em><em>,</em><em>'png'</em><em>,</em><em>'pdf'</em><em>, </em><em>'gif'</em><em>, </em><em>'bokeh'</em><em>,</em><em>'matplotlib'}</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Image format defined as string (the default value is None, which implies
 that the image format is guessed from file or python object name.</li>
 <li><strong>x</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>{'center'</em><em>, </em><em>'auto'}</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Horizontal position for the figure (the default is ‘center’).</li>
 <li><strong>y</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>{'center'</em><em>, </em><em>'auto'}</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Vertical position for the figure (the default is ‘auto’, which implies
@@ -244,9 +266,9 @@ is width of the image).</li>
 
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/plot_figure.py" download=""><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_figure.py</span></code></a></div>
+<a class="reference download internal" href="../_downloads/plot_figure.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_figure.py</span></code></a></div>
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/plot_figure.ipynb" download=""><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_figure.ipynb</span></code></a></div>
+<a class="reference download internal" href="../_downloads/plot_figure.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_figure.ipynb</span></code></a></div>
 </div>
 <p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
 </div>
@@ -264,7 +286,7 @@ is width of the image).</li>
     </p>
     <p>
         &copy; Copyright 2016-2018, Beampy Dev Team.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.<br/>
     </p>
   </div>
 </footer>

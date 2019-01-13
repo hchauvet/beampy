@@ -2,14 +2,25 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>box &#8212; Beampy 0.5.1 documentation</title>
+    
+    <title>box &#8212; Beampy 0.5.2 documentation</title>
+    
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="../_static/gallery.css" type="text/css" />
     <link rel="stylesheet" href="../_static/css/beampy_sphinx.css" type="text/css" />
-    <script type="text/javascript" src="../_static/documentation_options.js"></script>
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.5.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
@@ -26,7 +37,8 @@
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
 
-  </head><body>
+  </head>
+  <body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -39,7 +51,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           Beampy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.1</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.2</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -133,13 +145,8 @@
       
   <div class="section" id="box">
 <span id="sphx-glr-auto-examples-plot-box-py"></span><h1>box<a class="headerlink" href="#box" title="Permalink to this headline">¶</a></h1>
-<p>Add box around a group.</p>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">This function is in beta version and need to be interfaced with beampy THEME.</p>
-</div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">beampy.utils</span> <span class="kn">import</span> <span class="n">box</span>
+<p>Create a boxed group, that could have a title.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="c1"># Remove quiet=True to get Beampy render outputs</span>
 <span class="n">doc</span> <span class="o">=</span> <span class="n">document</span><span class="p">(</span><span class="n">quiet</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -147,22 +154,22 @@
 
 <span class="k">with</span> <span class="n">slide</span><span class="p">(</span><span class="s1">&#39;Add nice boxes to group&#39;</span><span class="p">):</span>
 
-    <span class="k">with</span> <span class="n">group</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">g</span><span class="p">:</span>
-        <span class="n">box</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Very very very long box title&#39;</span><span class="p">,</span> <span class="n">head_height</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">box</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="s1">&#39;60%&#39;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Very very very long box title&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">b1</span><span class="p">:</span>
         <span class="n">text</span><span class="p">(</span><span class="s1">&#39;Box text&#39;</span><span class="p">)</span>
 
-    <span class="k">with</span> <span class="n">group</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">450</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">right</span><span class="o">+</span><span class="mi">10</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">top</span><span class="o">+</span><span class="mi">0</span><span class="p">)</span> <span class="k">as</span> <span class="n">g2</span><span class="p">:</span>
-        <span class="n">box</span><span class="p">(</span><span class="n">g2</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Change color and drop-shadow&#39;</span><span class="p">,</span> <span class="n">title_align</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;forestgreen&#39;</span><span class="p">,</span>
-            <span class="n">shadow</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="n">text</span><span class="p">(</span><span class="s1">&#39;Box text, with a centered title&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">box</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">b1</span><span class="o">.</span><span class="n">right</span><span class="o">+</span><span class="mi">10</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">b1</span><span class="o">.</span><span class="n">top</span><span class="o">+</span><span class="mi">0</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">450</span><span class="p">,</span>
+             <span class="n">title</span><span class="o">=</span><span class="s1">&#39;Change color and drop-shadow&#39;</span><span class="p">,</span> <span class="n">title_align</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
+             <span class="n">color</span><span class="o">=</span><span class="s1">&#39;crimson&#39;</span><span class="p">,</span> <span class="n">shadow</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">b2</span><span class="p">:</span>
 
-    <span class="k">with</span> <span class="n">group</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">450</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">280</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">right</span><span class="o">+</span><span class="mi">10</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">g2</span><span class="o">.</span><span class="n">bottom</span><span class="o">+</span><span class="mi">20</span><span class="p">)</span> <span class="k">as</span> <span class="n">g3</span><span class="p">:</span>
-        <span class="n">box</span><span class="p">(</span><span class="n">g3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkorange&#39;</span><span class="p">,</span> <span class="n">rounded</span><span class="o">=</span><span class="mi">70</span><span class="p">,</span> <span class="n">background_color</span><span class="o">=</span><span class="s1">&#39;lightgray&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+        <span class="n">text</span><span class="p">(</span><span class="s1">&#39;Box text, with a centered title, and a nice crimson color&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="s1">&#39;90%&#39;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">box</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">b1</span><span class="o">.</span><span class="n">right</span><span class="o">+</span><span class="mi">10</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">b2</span><span class="o">.</span><span class="n">bottom</span><span class="o">+</span><span class="mi">50</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">b2</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkorange&#39;</span><span class="p">,</span>
+             <span class="n">rounded</span><span class="o">=</span><span class="mi">70</span><span class="p">,</span> <span class="n">background_color</span><span class="o">=</span><span class="s1">&#39;lightgray&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">auto_height_margin</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span> <span class="k">as</span> <span class="n">b3</span><span class="p">:</span>
 
         <span class="n">text</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
 <span class="s1">            Without title for the box, more rounded angle, bigger</span>
 <span class="s1">            linewidth, and a background color</span>
-<span class="s1">            &#39;&#39;&#39;</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">420</span><span class="o">-</span><span class="mi">20</span><span class="p">)</span>
+<span class="s1">            &#39;&#39;&#39;</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="s1">&#39;90%&#39;</span><span class="p">)</span>
 
 
 <span class="n">display_matplotlib</span><span class="p">(</span><span class="n">gcs</span><span class="p">())</span>
@@ -172,26 +179,36 @@
 </div>
 <div class="section" id="module-arguments">
 <h1>Module arguments<a class="headerlink" href="#module-arguments" title="Permalink to this headline">¶</a></h1>
-<dl class="function">
+<dl class="class">
 <dt>
-<code class="descclassname">beampy.utils.</code><code class="descname">box</code><span class="sig-paren">(</span><em>group_object</em>, <em>title=None</em>, <em>rounded=10</em>, <em>linewidth=1</em>, <em>color='red'</em>, <em>head_height=30</em>, <em>shadow=False</em>, <em>background_color='white'</em>, <em>title_color='white'</em>, <em>title_align='left'</em>, <em>title_xoffset=10</em><span class="sig-paren">)</span></dt>
+<em class="property">class </em><code class="descclassname">beampy.</code><code class="descname">box</code><span class="sig-paren">(</span><em>title=None</em>, <em>x=’center’</em>, <em>y=’auto’</em>, <em>width=None</em>, <em>height=None</em>, <em>parentid=None</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
 <dd><p>Draw a box around a group.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>group_object</strong> (<em>beampy.group object</em>) – The beampy group to apply the box</li>
 <li><strong>title</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The title of the box (the default value is None, which implies
 no title).</li>
+<li><strong>x</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>{'center'</em><em>, </em><em>'auto'}</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Horizontal position for the group (the default is ‘center’). See
+positioning system of Beampy.</li>
+<li><strong>y</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>{'center'</em><em>, </em><em>'auto'}</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Vertical position for the group (the default is ‘auto’). See
+positioning system of Beampy.</li>
+<li><strong>width</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Width of the group (the default is None, which implies that the width
+is computed to fit the group contents width).</li>
+<li><strong>height</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Height of the group (the default is None). When height is None the
+height is computed to fit the group contents height.</li>
+<li><strong>perentid</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Beampy id of the parent group (the default is None). This parentid is
+given automatically by Beampy render.</li>
 <li><strong>rounded</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of pixel for rounded borders (the default value is
 10).</li>
 <li><strong>linewidth</strong> (<em>int</em><em>, </em><em>optional</em>) – The linewidth of the border in pt (the default value is 1).</li>
 <li><strong>color</strong> (<em>svg color name as string</em><em>, </em><em>optional</em>) – The color of the contour line of the box (the default value is
 ‘red’).</li>
-<li><strong>head_height</strong> (<em>int</em><em>, </em><em>optional</em>) – The height in pixel of the background under the title (the
-default is 30, which corresponds of a one line title). You
-need to adjust this value for multi-lines titles.</li>
+<li><strong>head_height</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The height in pixel of the background under the title (the
+default is None, which implies that height is computed from
+title height + 10px of margins). You need to adjust this value
+for multi-lines titles.</li>
 <li><strong>shadow</strong> (<em>boolean</em><em>, </em><em>optional</em>) – Draw a shadow under the box (the default value is False, which
 means no shadow).</li>
 <li><strong>background_color</strong> (<em>svg color name as string</em><em>, </em><em>optional</em>) – The color of the background of the box (the default values is
@@ -201,6 +218,8 @@ means no shadow).</li>
 ‘left’).</li>
 <li><strong>title_xoffset</strong> (<em>int</em><em>, </em><em>optional</em>) – The horizontal offset in pixel from the box border of the
 title (the default value is 10).</li>
+<li><strong>auto_height_margin</strong> (<em>int</em><em>, </em><em>optional</em>) – The vertical margin in pixel (top and bottom) to use when box height is not specified
+(the default theme sets this value to 15).</li>
 </ul>
 </td>
 </tr>
@@ -210,9 +229,9 @@ title (the default value is 10).</li>
 
 <div class="sphx-glr-footer docutils container">
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/plot_box.py" download=""><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_box.py</span></code></a></div>
+<a class="reference download internal" href="../_downloads/plot_box.py" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_box.py</span></code></a></div>
 <div class="sphx-glr-download docutils container">
-<a class="reference download internal" href="../_downloads/plot_box.ipynb" download=""><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_box.ipynb</span></code></a></div>
+<a class="reference download internal" href="../_downloads/plot_box.ipynb" download=""><code class="xref download docutils literal"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_box.ipynb</span></code></a></div>
 </div>
 <p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.readthedocs.io">Gallery generated by Sphinx-Gallery</a></p>
 </div>
@@ -230,7 +249,7 @@ title (the default value is 10).</li>
     </p>
     <p>
         &copy; Copyright 2016-2018, Beampy Dev Team.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.<br/>
     </p>
   </div>
 </footer>

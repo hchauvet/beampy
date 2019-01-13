@@ -2,14 +2,25 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Beampy Theme &#8212; Beampy 0.5.1 documentation</title>
+    
+    <title>Beampy Theme &#8212; Beampy 0.5.2 documentation</title>
+    
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/gallery.css" type="text/css" />
     <link rel="stylesheet" href="_static/css/beampy_sphinx.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.5.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -24,7 +35,8 @@
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1'>
 <meta name="apple-mobile-web-app-capable" content="yes">
 
-  </head><body>
+  </head>
+  <body>
 
   <div id="navbar" class="navbar navbar-default navbar-fixed-top">
     <div class="container">
@@ -37,7 +49,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           Beampy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.1</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.2</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -143,7 +155,7 @@ rename it with a new name like <strong>mytheme_theme.py</strong>. You should kee
 modules. For each Beampy modules the dictionary contains a new dictionary with
 module arguments and their default values. For instance, the default theme
 define the following for Beampy text module:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">THEME</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">THEME</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
  <span class="s1">&#39;size&#39;</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span>
  <span class="s1">&#39;font&#39;</span><span class="p">:</span><span class="s1">&#39;CMR&#39;</span><span class="p">,</span>
  <span class="s1">&#39;color&#39;</span><span class="p">:</span><span class="s1">&#39;#000000&#39;</span><span class="p">,</span>
@@ -157,12 +169,12 @@ define the following for Beampy text module:</p>
 </pre></div>
 </div>
 <p>Then you could load your theme using:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#for a file named mytheme_theme.py in beampy/themes folder</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1">#for a file named mytheme_theme.py in beampy/themes folder</span>
 <span class="n">doc</span> <span class="o">=</span> <span class="n">document</span><span class="p">(</span><span class="n">theme</span><span class="o">=</span><span class="s1">&#39;mytheme&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>You could also change theme property directly in your presentation source file.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">beampy</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="n">doc</span> <span class="o">=</span> <span class="n">document</span><span class="p">(</span><span class="n">theme</span><span class="o">=</span><span class="s2">&quot;mytheme&quot;</span><span class="p">)</span>
 <span class="c1"># show keys of the theme dictionary</span>
@@ -191,7 +203,7 @@ the mailing list <a class="reference external" href="https://framalistes.org/sym
     </p>
     <p>
         &copy; Copyright 2016-2018, Beampy Dev Team.<br/>
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.1.<br/>
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.<br/>
     </p>
   </div>
 </footer>
