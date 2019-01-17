@@ -16,7 +16,20 @@ with slide('Width opetation'):
     d = circle(r=10)
     rectangle(width=d.width*5, height=d.height*2)
 
+with slide('Operation order'):
+    d = circle(r=10)
+    rectangle(width=d.width*5, height=d.height*2)
+    rectangle(width=5*d.width, height=2*d.height)
 
+    rectangle(width=d.width/2, height=d.height/2)
+    rectangle(width=200/d.width, height=200/d.height)
+    
+    rectangle(width=d.width+10, height=d.height+10)
+    rectangle(width=10+d.width, height=10+d.height)
+
+    rectangle(width=40-d.width, height=40-d.height)
+    rectangle(width=d.width-5, height=d.height-5)
+    
 with slide('Operation on None'):
     t = text('teset tootto tototo tututu', width=200, align='center')
     print(t.width, t.height)

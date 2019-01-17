@@ -896,6 +896,36 @@ class Length(object):
         
         return Length(None, None, mulv)
 
+    def __rmul__(self, left_value):
+        lvalue = self.process_right_value(left_value)
+        self.process_value()
+
+        mulv = lvalue * self.value
+
+        assert mulv >= 0
+
+        return Length(None, None, mulv)
+
+    def __radd__(self, left_value):
+        lvalue = self.process_right_value(left_value)
+        self.process_value()
+
+        sumv = lvalue + self.value
+
+        assert sumv >= 0
+
+        return Length(None, None, sumv)
+
+    def __rsub__(self, left_value):
+        lvalue = self.process_right_value(left_value)
+        self.process_value()
+
+        diffv = lvalue - self.value
+
+        assert diffv >= 0
+
+        return Length(None, None, diffv)
+    
     def __div__(self, right_value):
         # Process the incomming value 
         rvalue = self.process_right_value(right_value)
@@ -910,6 +940,17 @@ class Length(object):
         
         return Length(None, None, divv)
 
+    def __rdiv__(self, left_value):
+        
+        lvalue = self.process_right_value(left_value)
+        self.process_value()
+
+        divv = lvalue / self.value
+
+        assert divv >= 0
+
+        return Length(None, None, divv)
+    
     def __str__(self):
         return str(self.value)
 
