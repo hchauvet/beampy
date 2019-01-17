@@ -4,7 +4,7 @@
 Beampy main file
 """
 
-__version__ = '0.5.2'
+__version__ = '0.5.3'
 
 from beampy.functions import *
 from beampy.commands import *

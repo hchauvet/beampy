@@ -249,19 +249,18 @@ with slide('Bokeh plot'):
     x = np.linspace(0, 4*np.pi, 30  )
     y = np.sin(x)
     p.circle(x, y, legend="sin(x)")
-    figure(p, y=0.1, x="center")
+    f=figure(p, y=0.1, x="center")
 
-    with group(width=700, height=155, background=codeback, y="11cm"):
+    with group(width=700, height=155, background=codeback, y=f.bottom+0.05):
         code("""
-    slide()
-    title('Bokeh plot')
-    from bokeh.plotting import figure as bokfig
-    import numpy as np
-    p = bokfig(height=300, width=600)
-    x = np.linspace(0, 4*np.pi, 30  )
-    y = np.sin(x)
-    p.circle(x, y, legend="sin(x)")
-    figure(p, y="+5px", x="center")
+    with slide('Bokeh plot'):
+        from bokeh.plotting import figure as bokfig
+        import numpy as np
+        p = bokfig(height=300, width=600)
+        x = np.linspace(0, 4*np.pi, 30  )
+        y = np.sin(x)
+        p.circle(x, y, legend="sin(x)")
+        figure(p, y="+5px", x="center", y=0.1)
         """, language="python", width="300", x="1cm")
 
 

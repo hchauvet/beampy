@@ -112,18 +112,18 @@ class slide(object):
         # Add ytop to the slide main group
         g0.yoffset = self.ytop
 
+        
     def add_module(self, module_id, module_content):
         # Add a module to the current slide
-        
         # logging.debug('Add module %s to slide %s' % (str(module_content.type), self.id))
-        
+
         self.element_keys += [module_id]
         self.contents[module_id] = module_content
 
         # Check if it's a new group or not
         # print(self.groupsid, self.cur_group_level)
         if module_content.type != 'group':
-            # print('Module added to group %s' % self.cur_group_id)
+            logging.debug('Module added to group %s' % self.cur_group_id)
             self.contents[self.cur_group_id].add_elements_to_group(module_id, module_content)
             # Add the id of the group to the module
             self.contents[module_id].group_id = self.cur_group_id
@@ -133,16 +133,16 @@ class slide(object):
             if module_content.grouplevel > 0:
                 # Add this group id to the previous group
                 if module_content.parentid is not None:
-                    # print("add parent %s"%module_content.parentid)
+                    logging.debug("add parent %s"%module_content.parentid)
                     self.contents[module_content.parentid].add_elements_to_group(module_id, module_content)
 
                 # Record group tree in groupsid dict
                 if module_content.grouplevel not in self.groupsid:
-                    self.groupsid[module_content.grouplevel] = [ module_id ]
+                    self.groupsid[module_content.grouplevel] = [module_id]
                 else:
-                    self.groupsid[module_content.grouplevel] += [ module_id ]
+                    self.groupsid[module_content.grouplevel] += [module_id]
 
-        # print('Element %s added to slide in %f'%(str(module_content.name), time.time()-t))
+            logging.debug('Element %s added to slide'%(str(module_content.name)))
 
     def remove_module(self, module_id):
         # Remove a module
@@ -153,7 +153,8 @@ class slide(object):
         # Remove the module from contents main store
         self.contents.pop(module_id)
 
-    def add_rendered(self, svg=None, svgdefs=None, html=None, js=None, animate_svg=None, layer=0):
+    def add_rendered(self, svg=None, svgdefs=None, html=None, js=None,
+                     animate_svg=None, layer=0):
 
         if svg is not None:
             self.svgout += [svg]
@@ -207,11 +208,20 @@ class slide(object):
         # Get the max layers
         for mid in self.contents:
             module = self.contents[mid]
-            if not isinstance(module.layers, str):
-                maxmodulelayers = max(module.layers)
-                if maxmodulelayers > self.num_layers:
-                    self.num_layers = maxmodulelayers
 
+            # When the range of layer is defined as a string (usual
+            # with an unknown maximum), take the start value as
+            # maximum layer
+            if isinstance(module.layers, str):
+                start = int(module.layers.split(',')[0].replace('range(',''))
+                maxmodulelayers = start
+            else:
+                maxmodulelayers = max(module.layers)
+                
+            if maxmodulelayers > self.num_layers:
+                self.num_layers = maxmodulelayers
+
+        # Resolve 'range(0, max, 1)'
         layers_in_slide = []
         for mid in self.contents:
             module = self.contents[mid]
@@ -238,6 +248,7 @@ class slide(object):
         # Propagate layer of modules inside groups
         for mid in self.contents:
             if self.contents[mid].type == 'group':
+                logging.debug('Run propagate layer for %s' % str(self.contents[mid].name))
                 self.contents[mid].propagate_layers()
 
     def show(self):
@@ -843,6 +854,7 @@ class beampy_module(object):
         :param layerslist: list of layers where the module should be printed
         :return:
         """
+        logging.debug('layer list %s' % str(layerslist))
         self.layers = layerslist
 
     def __call__(self, *args, **kwargs):
@@ -851,7 +863,8 @@ class beampy_module(object):
 
     def __getitem__(self, item):
         """
-        Manage layer of a given module using the python getitem syntax with slicing
+        Manage layer of a given module using the python getitem syntax
+        with slicing
 
         self()[0] -> layer(0)
         self()[:1] -> layer(0,1)
@@ -860,7 +873,7 @@ class beampy_module(object):
         """
 
         if isinstance(item, slice):
-
+            # print(item.start, item.stop, item.step)
             if item.step is None:
                 step = 1
             else:
@@ -882,6 +895,7 @@ class beampy_module(object):
             if stop < 0:
                 stop = 'max%i'%stop
 
+            # print(start, stop, step)
             if isinstance(stop, str):
                 if isinstance(start, str):
                     self.add_layers('range(%s,max,%i)' % (start, step))
@@ -1038,7 +1052,8 @@ class beampy_module(object):
         curgroup.exports_id.pop(self_pos)
         #add the current module at the end
         curgroup.exports_id.insert(len(curgroup.exports_id), self.id)
-        
+
+
 class group(beampy_module):
     """Group Beampy modules together and manipulate them as a group
 
@@ -1171,8 +1186,8 @@ class group(beampy_module):
             #print('Change cur_group_level')
             document._slides[self.slide_id].cur_group_level = self.grouplevel
 
-        #print('Enter a new group %s with level: %i' % (self.id,
-        #                                               self.grouplevel))
+        logging.debug('Enter a new group %s with level: %i' % (self.id,
+                                                               self.grouplevel))
 
         # Set the id to of the current group to this group id
         document._slides[self.slide_id].cur_group_id = self.id
@@ -1189,7 +1204,7 @@ class group(beampy_module):
         return self
 
     def __exit__(self, type, value, traceback):
-        #print('Exit group %s' % self.id)
+        logging.debug('Exit group %s' % self.id)
         if self.grouplevel >= 1:
             document._slides[self.slide_id].cur_group_level = self.grouplevel - 1
 
@@ -1204,7 +1219,7 @@ class group(beampy_module):
         # Get the id of the parentgroup as the cur_group_id
         document._slides[self.slide_id].cur_group_id = self.parentid
         
-        #print('Set current group level to %i'%document._slides[self.slide_id].cur_group_level)
+        logging.debug('Set current group level to %i'%document._slides[self.slide_id].cur_group_level)
         
         # Compute group size
         # self.compute_group_size()
@@ -1220,9 +1235,10 @@ class group(beampy_module):
         slide = document._slides[self.slide_id]
 
         for eid in self.elementsid:
+            # logging.debug('Element to propagate layer %s ' % str(slide.contents[eid].name))
             for layer in self.layers:
                 if layer not in slide.contents[eid].layers and layer > min(slide.contents[eid].layers):
-                    # print('add layer %i to %s' % (layer, slide.contents[eid].name))
+                    logging.debug('add layer %i to %s' % (layer, slide.contents[eid].name))
                     slide.contents[eid].layers += [layer]
 
             # Clean layer of elements lower than the minimum of group layer
@@ -1239,10 +1255,6 @@ class group(beampy_module):
         is_auto = False
         self.elementsid += [eid]
         self.exports_id += [eid]
-        
-        # Add this elementid to the
-        #print(element.layers)
-        # self.add_element_layers(eid, element.layers)
 
         if element.x == 'auto':
             self.autoxid += [eid]

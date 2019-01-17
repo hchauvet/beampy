@@ -11,6 +11,15 @@ Beampy presentation output only one html file with every contents embedded.
 * [See Beampy documentation](https://hchauvet.github.io/beampy/)
 * [See a Beampy tests presentation](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html) (source is in *examples/beampy_tests_modules.py*)
 
+## Install:
+
+From Python Package Index:
+
+```bash
+pip install beampy-slideshow
+```
+
+[See full installation documentation](https://hchauvet.github.io/beampy/install.html#beampy-install)
 
 ## A quick example :
 
@@ -42,12 +51,19 @@ save('./simple_one.html')
 
 ## Change log:
 
+### 0.5.3
+
+Some minor fix:
+* Fix bug in layer propagation for box
+* Fix bug when last layer is set as [n:]
+* Start using logging.debug in modules
+
 ### 0.5.2
 
 * Fix bug with dvisvgm output for tikz dvi (function latex2svg has now
   an option to write the svg produced by dvisvgm).
 * Add tableofcontents modules [See documentation](https://hchauvet.github.io/beampy/auto_examples/plot_TOC.html).
-* Add a BeamerFrankfurt theme [See documentation](https://hchauvet.github.io/beampy/auto_themes/theme_BeamerFrankfurt.htm).
+* Add a BeamerFrankfurt theme [See documentation](https://hchauvet.github.io/beampy/auto_themes/theme_BeamerFrankfurt.html).
 * Figure module accepts animated gif.
 * Extra latex packages could be added to text module with the
   "extra_packages" argument.
