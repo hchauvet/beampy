@@ -12,7 +12,6 @@ from beampy.functions import (gcs, create_element_id,
                               set_lastslide)
 
 from beampy.geometry import positionner, distribute
-from beampy.length_calculator import LengthCalcultor
 import sys
 import time
 import inspect
