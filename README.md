@@ -47,7 +47,7 @@ save('./simple_one.html')
 * Fix bug with dvisvgm output for tikz dvi (function latex2svg has now
   an option to write the svg produced by dvisvgm).
 * Add tableofcontents modules [See documentation](https://hchauvet.github.io/beampy/auto_examples/plot_TOC.html).
-* Add a BeamerFrankfurt theme [See documentation](https://hchauvet.github.io/beampy/auto_themes/theme_BeamerFrankfurt.htm).
+* Add a BeamerFrankfurt theme [See documentation](https://hchauvet.github.io/beampy/auto_themes/theme_BeamerFrankfurt.html).
 * Figure module accepts animated gif.
 * Extra latex packages could be added to text module with the
   "extra_packages" argument.
