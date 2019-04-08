@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Change-log &#8212; Beampy 0.5.2 documentation</title>
+    <title>Change-log &#8212; Beampy 0.5.3 documentation</title>
     
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.5.2',
+        VERSION:     '0.5.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -51,7 +51,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           Beampy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.2</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.3</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -88,18 +88,19 @@
       role="menu"
       aria-labelledby="dLabelLocalToc"><ul>
 <li><a class="reference internal" href="#">Change-log</a><ul>
-<li><a class="reference internal" href="#id1">0.5.2</a></li>
-<li><a class="reference internal" href="#id4">0.5.1</a></li>
-<li><a class="reference internal" href="#id5">0.5.0</a></li>
-<li><a class="reference internal" href="#id6">0.4.9</a></li>
-<li><a class="reference internal" href="#id7">0.4.8</a></li>
-<li><a class="reference internal" href="#id8">0.4.7</a></li>
-<li><a class="reference internal" href="#id9">0.4.6</a></li>
-<li><a class="reference internal" href="#id10">0.4.5</a></li>
-<li><a class="reference internal" href="#id11">0.4.4</a></li>
-<li><a class="reference internal" href="#id12">0.4.3</a></li>
-<li><a class="reference internal" href="#id13">0.4.2</a></li>
-<li><a class="reference internal" href="#id14">0.4.1</a></li>
+<li><a class="reference internal" href="#id1">0.5.3</a></li>
+<li><a class="reference internal" href="#id2">0.5.2</a></li>
+<li><a class="reference internal" href="#id5">0.5.1</a></li>
+<li><a class="reference internal" href="#id6">0.5.0</a></li>
+<li><a class="reference internal" href="#id7">0.4.9</a></li>
+<li><a class="reference internal" href="#id8">0.4.8</a></li>
+<li><a class="reference internal" href="#id9">0.4.7</a></li>
+<li><a class="reference internal" href="#id10">0.4.6</a></li>
+<li><a class="reference internal" href="#id11">0.4.5</a></li>
+<li><a class="reference internal" href="#id12">0.4.4</a></li>
+<li><a class="reference internal" href="#id13">0.4.3</a></li>
+<li><a class="reference internal" href="#id14">0.4.2</a></li>
+<li><a class="reference internal" href="#id15">0.4.1</a></li>
 </ul>
 </li>
 </ul>
@@ -138,18 +139,19 @@
       <div class="col-md-3">
         <div id="sidebar" class="bs-sidenav" role="complementary"><ul>
 <li><a class="reference internal" href="#">Change-log</a><ul>
-<li><a class="reference internal" href="#id1">0.5.2</a></li>
-<li><a class="reference internal" href="#id4">0.5.1</a></li>
-<li><a class="reference internal" href="#id5">0.5.0</a></li>
-<li><a class="reference internal" href="#id6">0.4.9</a></li>
-<li><a class="reference internal" href="#id7">0.4.8</a></li>
-<li><a class="reference internal" href="#id8">0.4.7</a></li>
-<li><a class="reference internal" href="#id9">0.4.6</a></li>
-<li><a class="reference internal" href="#id10">0.4.5</a></li>
-<li><a class="reference internal" href="#id11">0.4.4</a></li>
-<li><a class="reference internal" href="#id12">0.4.3</a></li>
-<li><a class="reference internal" href="#id13">0.4.2</a></li>
-<li><a class="reference internal" href="#id14">0.4.1</a></li>
+<li><a class="reference internal" href="#id1">0.5.3</a></li>
+<li><a class="reference internal" href="#id2">0.5.2</a></li>
+<li><a class="reference internal" href="#id5">0.5.1</a></li>
+<li><a class="reference internal" href="#id6">0.5.0</a></li>
+<li><a class="reference internal" href="#id7">0.4.9</a></li>
+<li><a class="reference internal" href="#id8">0.4.8</a></li>
+<li><a class="reference internal" href="#id9">0.4.7</a></li>
+<li><a class="reference internal" href="#id10">0.4.6</a></li>
+<li><a class="reference internal" href="#id11">0.4.5</a></li>
+<li><a class="reference internal" href="#id12">0.4.4</a></li>
+<li><a class="reference internal" href="#id13">0.4.3</a></li>
+<li><a class="reference internal" href="#id14">0.4.2</a></li>
+<li><a class="reference internal" href="#id15">0.4.1</a></li>
 </ul>
 </li>
 </ul>
@@ -172,7 +174,16 @@
   <div class="section" id="change-log">
 <span id="changelog"></span><h1>Change-log<a class="headerlink" href="#change-log" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id1">
-<h2>0.5.2<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<h2>0.5.3<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Some minor fix:</p>
+<ul class="simple">
+<li>Fix bug in layer propagation for box</li>
+<li>Fix bug when last layer is set as [n:]</li>
+<li>Start using logging.debug in modules</li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h2>0.5.2<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p class="first">Fix bug with dvisvgm output for tikz dvi (function latex2svg has now
 an option to write the svg produced by dvisvgm).</p>
@@ -230,8 +241,8 @@ their overlay order:</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id4">
-<h2>0.5.1<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id5">
+<h2>0.5.1<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>Fix several bugs in bokeh figures (thx to <a class="reference external" href="https://github.com/Silmathoron">Silmathoron</a>)</li>
 <li>Fix bokeh figure resizing, it’s now use the “sizing_mode = scale_both” from bokeh and revert the css transform scaling for the bokeh div.</li>
@@ -240,8 +251,8 @@ their overlay order:</p>
 <li>Cache javascript external libraries files from bokeh (download from their CDN, if “doc = document(cache=False)”)</li>
 </ul>
 </div>
-<div class="section" id="id5">
-<h2>0.5.0<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id6">
+<h2>0.5.0<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p class="first">Add box function to decorate group</p>
 </li>
@@ -264,8 +275,8 @@ their overlay order:</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id6">
-<h2>0.4.9<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id7">
+<h2>0.4.9<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>Add documentation in Beampy module</li>
 <li>Add ‘anchor’ key to position dictionary to define anchor along the
@@ -276,15 +287,15 @@ anchors around Beampy modules. Add also a function to draw axes on slide,
 <strong>draw_axes()</strong></li>
 </ul>
 </div>
-<div class="section" id="id7">
-<h2>0.4.8<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id8">
+<h2>0.4.8<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>Partially fix issue #12.</li>
 <li>Clean code syntaxe.</li>
 </ul>
 </div>
-<div class="section" id="id8">
-<h2>0.4.7<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id9">
+<h2>0.4.7<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p class="first">Introduce layer mechanism. Slide elements can be animated by layers allowing mechanism like beamer “only”.
 The layer are managed as python slicing on Beampy modules.</p>
@@ -303,8 +314,8 @@ The layer are managed as python slicing on Beampy modules.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id9">
-<h2>0.4.6<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id10">
+<h2>0.4.6<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p class="first">The core of Beampy slide processor has been rewritten and now allows recursive group of elements.</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">group</span><span class="p">():</span>
@@ -337,15 +348,15 @@ The video is loaded from disk (be careful with file path) when the slide is disp
 </li>
 </ul>
 </div>
-<div class="section" id="id10">
-<h2>0.4.5<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id11">
+<h2>0.4.5<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>All texts are preprocessed in a single latex file (Latex is called only once: improve compilation time)</li>
 <li>Cache bug fix: Video and svg are now cached correctly</li>
 </ul>
 </div>
-<div class="section" id="id11">
-<h2>0.4.4<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id12">
+<h2>0.4.4<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
 <ul>
 <li><p class="first">Improve cache: one file per element cached (don’t write the cache twice!)</p>
 </li>
@@ -362,24 +373,24 @@ to change the anchor of the current element.</p>
 </li>
 </ul>
 </div>
-<div class="section" id="id12">
-<h2>0.4.3<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id13">
+<h2>0.4.3<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>Matplotlib figures can now be directly passed to <em>figure()</em> or a list of matplotlib figures can be animated with <em>animatesvg()</em></li>
 <li>Minor improvement in cache size (content is no more stored in cache file)</li>
 <li>Update of scour version (svg-optimiser)</li>
 </ul>
 </div>
-<div class="section" id="id13">
-<h2>0.4.2<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id14">
+<h2>0.4.2<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>Glyph paths from Latex are now unique (this reduce the number of svg lines in documents)</li>
 <li>Add <em>svg</em> command ton include raw svg in slide</li>
 <li>Improve the theme flexibility, a background with interactive elements can now be created!</li>
 </ul>
 </div>
-<div class="section" id="id14">
-<h2>0.4.1<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id15">
+<h2>0.4.1<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>All slide are now loaded into ram, improve speed</li>
 <li>Modules are now classes which inherit from a base class “beampy_module” in modules/core.py</li>

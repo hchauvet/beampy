@@ -48,10 +48,19 @@ Install dependencies using apt-get
 From Python pip
 ***************
 
-.. code-block:: bash
+- From the Python Package Index (PyPI)
 
-   sudo pip install  -e git+https://github.com/hchauvet/beampy.git#egg=beampy
+  .. code-block:: bash
 
+     pip install beampy-slideshow
+  
+- Last version from github
+
+  .. code-block:: bash
+
+     pip install -e git+https://github.com/hchauvet/beampy.git#egg=beampy
+
+  
 
 From the github archive
 ***********************
