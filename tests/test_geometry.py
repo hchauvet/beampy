@@ -2,8 +2,11 @@
 """
 Python file to test geometry (placement of module and width/height)
 """
+import logging
 
 from beampy import *
+
+logging.basicConfig(level=logging.DEBUG)
 
 doc = document(cache=False)
 
