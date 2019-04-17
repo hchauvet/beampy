@@ -139,7 +139,7 @@ class tikz(beampy_module):
             newmatrix = 'scale(%0.3f) translate(%0.1f,%0.1f)'%(tex_pt_to_px, dx, dy)
             g['transform'] = newmatrix
 
-            output = svgsoup.renderContents()
+            output = str(svgsoup.renderContents())
 
         else:
             output = ''

@@ -10,6 +10,7 @@ from beampy.functions import (getsvgwidth, getsvgheight)
 from beampy.modules.core import beampy_module
 from beampy.geometry import convert_unit
 
+import logging
 import tempfile
 import os
 
@@ -59,7 +60,7 @@ class svg( beampy_module ):
 
         #Need to create a temp file
         if self.inkscape_size:
-            
+            logging.debug('Run inkscape to get svg size')
             # Need to get the height and width of the svg command
             tmpsvg = '<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny" xmlns:xlink="http://www.w3.org/1999/xlink"><defs>%s</defs> %s</svg>'
             tmpsvg = tmpsvg % (self.svgdefs, self.content)
@@ -160,9 +161,10 @@ class rectangle(svg):
 
         # The size can be computed easily if no filter or clip path is given
         if self.svgclip is not None or self.svgfilter is not None:
-            self.inkscape_size = False
-        else:
             self.inkscape_size = True
+        else:
+            self.inkscape_size = False
+
         
         # Build style for the rectangle
         beampy_svg_kword = {'color': 'fill',

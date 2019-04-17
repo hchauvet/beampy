@@ -17,6 +17,7 @@ import time
 import inspect
 import logging
 
+
 class slide(object):
     """
     Add a slide to the presentation.
@@ -231,9 +232,9 @@ class slide(object):
                     layers_in_slide += [layer]
 
         layers_in_slide = sorted(layers_in_slide)
-        if layers_in_slide != range(0, self.num_layers+1):
+        if layers_in_slide != list(range(0, self.num_layers+1)):
             raise ValueError('Layers are not consecutive. I got %s, I should have %s'%(str(layers_in_slide),
-                                                                                       str(range(0, self.num_layers+1))))
+                                                                                       str(list(range(0, self.num_layers+1)))))
 
         # Propagate layer of modules inside groups
         for mid in self.contents:
@@ -275,7 +276,7 @@ class slide(object):
 
                 # Loop over elements to add them to all layers in the slide
                 for eid in created_element_keys:
-                    self.contents[eid].add_layers(range(self.num_layers+1))
+                    self.contents[eid].add_layers(list(range(self.num_layers+1)))
 
                 #document._global_counter['slide'] = save_global_ct # restor the slide counter
                 set_lastslide()
@@ -291,7 +292,7 @@ class slide(object):
         print('-' * 20 + ' slide_%i ' % self.num + '-' * 20)
 
         if self.title_element is not None:
-            self.title_element.add_layers(range(self.num_layers+1))
+            self.title_element.add_layers(list(range(self.num_layers+1)))
 
         # First loop over slide's modules to render them (to get height and width)
         # Todo: do that using multiprocessing
@@ -653,9 +654,10 @@ class beampy_module(object):
                 
     def load_extra_args(self, theme_key):
         """
-            Function to load default args from the theme for the given theme_key
-            and add them to the module
+        Function to load default args from the theme for the given theme_key
+        and add them to the module
         """
+        
         for key, value in document._theme[theme_key].items():
             if not hasattr(self, key):
                 setattr(self, key, value)
@@ -774,7 +776,11 @@ class beampy_module(object):
                                                                         self.positionner.x['final'],
                                                                         self.positionner.y['final'],
                                                                         self.name)
-
+        logging.debug(out)
+        logging.debug(type(out))
+        logging.debug(self.svgout)
+        logging.debug(type(self.svgout))
+        
         out += self.svgout
 
         if document._text_box:
@@ -871,16 +877,16 @@ class beampy_module(object):
             else:
                 start = item.start
 
-            if start < 0:
-                start = 'max%i'%start
+                if start < 0:
+                    start = 'max%i'%start
 
             if item.stop is None or item.stop > 100000:
                 stop = 'max'
             else:
                 stop = item.stop
 
-            if stop < 0:
-                stop = 'max%i'%stop
+                if stop < 0:
+                    stop = 'max%i'%stop
 
             if isinstance(stop, str):
                 if isinstance(start, str):
@@ -892,7 +898,7 @@ class beampy_module(object):
                 if isinstance(start, str):
                     self.add_layers('range(%s,%i,%i)'%(start, stop+1, step))
                 else:
-                    self.add_layers(range(start, item.stop+1, step))
+                    self.add_layers(list(range(start, item.stop+1, step)))
 
         else:
             if isinstance(item, list) or isinstance(item, tuple):

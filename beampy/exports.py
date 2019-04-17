@@ -25,7 +25,7 @@ curdir = os.path.dirname(__file__) + '/'
 
 
 def save_layout():
-    for islide in xrange(document._global_counter['slide']+1):
+    for islide in range(document._global_counter['slide']+1):
         slide = document._slides["slide_%i" % islide]
         slide.build_layout()
 
@@ -88,7 +88,8 @@ def save(output_file=None, format=None):
 
     if output_file is not None:
         with open(output_file, 'w') as f:
-            f.write(output.encode('utf8'))
+            # old py2 .encode('utf8')
+            f.write(output)
 
     # write cache file
     if document._cache is not None:
@@ -115,7 +116,7 @@ def pdf_export(name_out):
 
     print('Convert svg to pdf with inkscape')
     output_svg_names = []
-    for islide in xrange(document._global_counter['slide']+1):
+    for islide in range(document._global_counter['slide']+1):
         print('slide %i'%islide)
         for layer in range(max(document._slides['slide_%i'%islide].svglayers) + 1):
             print('layer %i'%layer)
@@ -152,7 +153,7 @@ def svg_export(dir_name, quiet=False):
     if dir_name[-1] != '/':
         dir_name += '/'
 
-    for islide in xrange(document._global_counter['slide']+1):
+    for islide in range(document._global_counter['slide']+1):
         print("Export slide %i"%islide)
 
         slide = document._slides["slide_%i"%islide]
@@ -162,21 +163,21 @@ def svg_export(dir_name, quiet=False):
 
         # The global svg glyphs need also to be added to the html5 page
         if 'glyphs' in document._global_store:
+            # OLD .decode('utf-8',errors='replace') after the join for py2
             glyphs_svg = '<defs>%s</defs>' % (
-                ''.join([glyph['svg'] for glyph in document._global_store['glyphs'].itervalues()]).decode('utf-8',
-                                                                                                          errors='replace'))
+                ''.join([glyph['svg'] for glyph in document._global_store['glyphs'].values()]))
         else:
             glyphs_svg = ''
 
-        # join all svg defs
-        def_svg = '<defs>%s</defs>'%(''.join(slide.svgdefout).decode('utf-8', errors='replace'))
+        # join all svg defs (old .decode('utf-8', errors='replace') after the join for py2)
+        def_svg = '<defs>%s</defs>'%(''.join(slide.svgdefout))
         for layer in range(max(slide.svglayers) + 1):
 
             # save the list of rendered svg to a new dict as a string
             tmp = slide.svgheader + glyphs_svg + def_svg
 
-            # Join all the svg contents
-            tmp += slide.svglayers[layer].decode('utf-8', errors='replace')
+            # Join all the svg contents (old .decode('utf-8', errors='replace') for py2)
+            tmp += slide.svglayers[layer]
 
             # Add the svgfooter
             tmp += slide.svgfooter
@@ -241,7 +242,7 @@ def html5_export():
     tmpout = {}
     tmpscript = {}
     global_store = ''
-    for islide in xrange(document._global_counter['slide']+1):
+    for islide in range(document._global_counter['slide']+1):
 
         tnow = time.time()
 
@@ -260,15 +261,17 @@ def html5_export():
         tmpout[slide_id]['svg_footer'] = slide.svgfooter
 
         # save the list of rendered svg to a new dict as a string that is loaded globally in the html
-        #tmp = ''.join(slide.svgout).decode('utf-8', errors='replace')
-        modulessvgdefs = ''.join(slide.svgdefout).decode('utf-8', errors='replace')
+        # tmp = ''.join(slide.svgout).decode('utf-8', errors='replace')
+        # OLD .decode('utf-8', errors='replace') after join for py2
+        modulessvgdefs = ''.join(slide.svgdefout)
         global_store += "<svg><defs>" + modulessvgdefs
 
         for layer in range(slide.num_layers+1):
             print('write layer %i'%layer)
             # Export svg defs to the global store
             if layer in slide.svglayers:
-                layer_content = slide.svglayers[layer].decode('utf-8', errors='replace')
+                # OLD .decode('utf-8', errors='replace') for py2
+                layer_content = slide.svglayers[layer]
             else:
                 layer_content = '' #create an empty content (usefull when only html are present in one slide)
 
@@ -289,7 +292,8 @@ def html5_export():
             # Add cached images to global_store
             # old comparision headers != []
             if headers:
-                tmp = ''.join(headers).decode('utf-8', errors='replace')
+                # OLD .decode('utf-8', errors='replace') after join for py2
+                tmp = ''.join(headers)
                 global_store += "<svg>%s</svg>"%(tmp)
 
         if slide.scriptout is not None:
@@ -310,7 +314,7 @@ def html5_export():
 
     # The global svg glyphs need also to be added to the html5 page
     if 'glyphs' in document._global_store:
-        glyphs_svg='<svg id="glyph_store"><defs>%s</defs></svg>'%( ''.join( [ glyph['svg'] for glyph in document._global_store['glyphs'].itervalues() ] ) )
+        glyphs_svg='<svg id="glyph_store"><defs>%s</defs></svg>'%( ''.join( [ glyph['svg'] for glyph in document._global_store['glyphs'].values() ] ) )
         output += glyphs_svg
 
     # Add the svg content
@@ -386,16 +390,17 @@ def display_matplotlib(slide_id, show=False):
 
     # Export glyphs
     if 'glyphs' in document._global_store:
-        glyphs_svg = '<defs>%s</defs>' % (''.join([glyph['svg'] for glyph in document._global_store['glyphs'].itervalues()]))
-        svgout += glyphs_svg.decode('utf-8', errors='replace')
+        glyphs_svg = '<defs>%s</defs>' % (''.join([glyph['svg'] for glyph in document._global_store['glyphs'].values()]))
+        # old .decode('utf-8', errors='replace') for py2
+        svgout += glyphs_svg
 
-    # join all svg defs
-    svgout += '<defs>%s</defs>' % (''.join(slide.svgdefout).decode('utf-8', errors='replace'))
+    # join all svg defs (old .decode('utf-8', errors='replace') after join for py2)
+    svgout += '<defs>%s</defs>' % (''.join(slide.svgdefout))
 
     for layer in range(max(slide.svglayers) + 1):
 
-        # Join all the svg contents
-        svgout += slide.svglayers[layer].decode('utf-8', errors='replace')
+        # Join all the svg contents (old .decode('utf-8', errors='replace') for py2)
+        svgout += slide.svglayers[layer]
 
     # Add the svgfooter
     svgout += slide.svgfooter
@@ -443,45 +448,49 @@ def get_bokeh_includes():
     from bokeh.resources import CDN
     import urllib2
 
-    css_out = u'<style>'
+    css_out = '<style>'
     for cssurl in CDN.css_files:
         cssname = cssurl[cssurl.rfind("/") + 1:]
         # Test if the css is stored in cache
         if document._cache is not None and document._cache.is_file_cached(cssname):
-            csst = document._cache.get_cached_file(cssname)                    
-            css_out += csst.decode('utf-8', errors='replace') + '\n'
+            csst = document._cache.get_cached_file(cssname)
+            # old .decode('utf-8', errors='replace') after csst for py2
+            css_out += csst + '\n'
         else:
             try:
-                print('Download %s'%cssurl)
+                print('Download %s' % cssurl)
                 response = urllib2.urlopen(cssurl, timeout=5)
                 csst = response.read()
                 if document._cache is not None:
                     document._cache.add_file(cssname, csst)
                 # Don't forget to add a newline !
-                css_out += csst.decode('utf-8', errors='replace') + '\n'
+                # old .decode('utf-8', errors='replace') after csst for py2
+                css_out += csst + '\n'
 
-            except urllib2.URLError, e:
+            except urllib2.URLError as e:
                 print('Error in download: %s' % e)
 
-    css_out += u'</style>'
+    css_out += '</style>'
 
-    js_out = u'<script>'
+    js_out = '<script>'
     for jsurl in CDN.js_files:
         jsname = jsurl[jsurl.rfind("/") + 1:]
         if document._cache is not None and document._cache.is_file_cached(jsname):
             jst = document._cache.get_cached_file(jsname)
-            js_out += jst.decode('utf-8', errors='replace') + '\n'
+            # old .decode('utf-8', errors='replace') after jst for py2
+            js_out += jst + '\n'
         else:
             try:
-                print('Download %s'%jsurl)
+                print('Download %s' % jsurl)
                 response = urllib2.urlopen(jsurl, timeout=5)
                 jst = response.read()
                 if document._cache is not None:
                     document._cache.add_file(jsname, jst)
-                js_out += jst.decode('utf-8', errors='replace') + '\n'
-            except urllib2.URLError, e:
+                # old .decode('utf-8', errors='replace') after jst for py2
+                js_out += jst + '\n'
+            except urllib2.URLError as e:
                 print('Error in download: %s' % e)
 
-    js_out += u'</script>'
+    js_out += '</script>'
 
     return css_out, js_out

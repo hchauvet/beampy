@@ -856,8 +856,6 @@ class Length(object):
 
         return tmp_rvalue
 
-
-        
     def __add__(self, right_value):
 
         # Process the incomming value 
@@ -926,7 +924,7 @@ class Length(object):
 
         return Length(None, None, diffv)
     
-    def __div__(self, right_value):
+    def __truediv__(self, right_value):
         # Process the incomming value 
         rvalue = self.process_right_value(right_value)
         # Process the element value
@@ -940,7 +938,7 @@ class Length(object):
         
         return Length(None, None, divv)
 
-    def __rdiv__(self, left_value):
+    def __rtruediv__(self, left_value):
         
         lvalue = self.process_right_value(left_value)
         self.process_value()

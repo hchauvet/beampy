@@ -11,14 +11,15 @@ from beampy.modules.core import beampy_module, gcs
 import base64
 import os
 try:
+    # Old python 2
     from cStringIO import StringIO
 except:
-    #Python 3.x
-    from io import StringIO
+    # Python 3.x
+    from io import BytesIO as StringIO
 
 from PIL import Image
 import sys
-
+import subprocess
 
 class video(beampy_module):
     """
@@ -170,8 +171,10 @@ class video(beampy_module):
         FFMPEG_CMD = document._external_cmd['video_encoder']
         FFMPEG_CMD += ' -loglevel 8 -i "%s" -f image2 -ss %0.3f -vframes 1 -'%(self.content, self.still_image_time)
 
-
-        img_out = os.popen(FFMPEG_CMD).read()
+        run_ffmpeg = subprocess.run(str(FFMPEG_CMD), stdout=subprocess.PIPE, shell=True)
+        img_out = run_ffmpeg.stdout
+        #run_ffmeg = os.popen(FFMPEG_CMD)
+        #img_out = run_ffmeg.read()
 
         img = StringIO(img_out)
 

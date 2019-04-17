@@ -12,14 +12,15 @@ from beampy.scour import scour
 import glob
 import os
 import sys
-from subprocess import check_call
+from subprocess import check_call, check_output
 import tempfile
 import time
 import hashlib  # To create uniq id for elements
+import logging
 
 # Lib to check the source code
 import inspect
-# Create REGEX pattern 
+# Create REGEX pattern
 find_svg_tags = re.compile('id="(.*)"')
 # Regex to remove tab new line
 remove_tabnewline = re.compile('\s+')
@@ -257,7 +258,8 @@ def optimize_svg(svgfile_in):
     #run scour
     #print('optimize svg...')
     t = time.time()
-    svgout = scour.scourString(svgfile_in, opts).encode("UTF-8")
+    #svgout = scour.scourString(svgfile_in, opts).encode("UTF-8")
+    svgout = scour.scourString(svgfile_in, opts)
     print('optimize svg run in %f'%(time.time()-t))
     #print('done')
 
@@ -275,6 +277,9 @@ def latex2svg(latexstring, write_tmpsvg=False):
         otherwise the output is read from stdout
     """
 
+    logging.debug('Run latex2svg function')
+    logging.debug(latexstring)
+    
     dvisvgmcmd = document._external_cmd['dvisvgm']
 
     #Write the document to a tmp file
@@ -325,6 +330,9 @@ def latex2svg(latexstring, write_tmpsvg=False):
         for f in glob.glob(tmpnam+'*'):
             os.remove(f)
 
+    # logging.debug(outsvg)
+    # logging.debug(type(outsvg))
+    
     return outsvg
 
 def getsvgwidth( svgfile ):
@@ -504,7 +512,7 @@ def dict_deep_update(original, update):
     from http://stackoverflow.com/questions/38987/how-can-i-merge-two-python-dictionaries-in-a-single-expression/44512#44512
     """
 
-    for key, value in original.iteritems():
+    for key, value in original.items():
         if not key in update:
             update[key] = value
         elif isinstance(value, dict):
@@ -587,7 +595,7 @@ def get_command_line(func_name):
         stop = 0
         source = func_name
 
-    #Remove tab and space from source
+    # Remove tab and space from source
     source = remove_tabnewline.sub(' ', source)
     
     return (start, nline-1, source)
@@ -621,7 +629,7 @@ def guess_file_type(file_name, file_type=None):
 
 # Function to render texts in document
 def render_texts(elements_to_render=[], extra_packages=[]):
-    """
+    r"""
     Function to merge all text in the document to run latex only once
     This function build the .tex file and then call two external programs
     .tex -> latex -> .dvi -> dvisvgm -> svgfile
@@ -637,9 +645,8 @@ def render_texts(elements_to_render=[], extra_packages=[]):
         Give a list of extra latex packages to use in the latex
         template. Latex packages should be given as follow:
         [r'\usepackage{utf8x}{inputenc}']
-
     """
-
+    
     print('Render texts of slides with latex')
     latex_header = r"""
     \documentclass[crop=true, multi=true]{standalone}
@@ -658,6 +665,7 @@ def render_texts(elements_to_render=[], extra_packages=[]):
     latex_pages = []
     latex_footer = r"\end{document}"
 
+    # logging.debug(latex_header)
     #Loop over slide
     t = time.time()
     cpt_page = 1
@@ -672,6 +680,7 @@ def render_texts(elements_to_render=[], extra_packages=[]):
                 #Check if it's a text element, is it cached?, render it to latex syntax
                 if e.type == 'text' and e.usetex and not e.rendered:
                     elements_to_render += [e]
+
                     
     for e in elements_to_render:
         if e.cache and document._cache is not None:
@@ -693,6 +702,7 @@ def render_texts(elements_to_render=[], extra_packages=[]):
 
             try:
                 latex_pages += [e.latex_text]
+                # logging.debug(e.latex_text)
                 elements_pages += [{"element": e, "page": cpt_page}]
                 cpt_page += 1
             except Exception as e:
@@ -711,17 +721,26 @@ def render_texts(elements_to_render=[], extra_packages=[]):
 
         print('Latex file writen in %f'%(time.time()-t))
 
-        #Run Latex
+        #Run Latex using subprocess
         #t = time.time()
-        tex = os.popen( "cd "+tmppath+" && latex -interaction=nonstopmode "+tmpname+".tex" )
+        cmd = "cd "+tmppath+" && latex -interaction=nonstopmode --halt-on-error "+tmpname+".tex"
+        logging.debug(cmd)
+        
+        tex = os.popen(cmd)
         #print('Latex run in %f'%(time.time()-t))
+        tex_outputs = tex.read()
+        # logging.debug(tex_outputs)
+        
+        if 'error' in tex_outputs:
+            print(error)
+            
         tex.close()
 
         #Upload svg to each elements
         dvisvgmcmd = document._external_cmd['dvisvgm']
 
         t = time.time()
-        res = os.popen(  dvisvgmcmd+' -n -s -p1- --linkmark=none -v0 '+tmpname+'.dvi' )
+        res = os.popen(dvisvgmcmd+' -n -s -p1- --linkmark=none -v0 '+tmpname+'.dvi')
         allsvgs = res.readlines()
         res.close()
 
@@ -731,6 +750,7 @@ def render_texts(elements_to_render=[], extra_packages=[]):
         #Join all svg lines and split them each time you find the schema
         svg_list = ''.join(allsvgs[1:]).split(schema)
 
+        
         #Process all pages to svg
         for i, ep in enumerate(elements_pages):
             #Loop over content in the slide
@@ -742,7 +762,7 @@ def render_texts(elements_to_render=[], extra_packages=[]):
             #print(document._slides[ep['slide']].contents[ep['element']])
             #document._slides[ep['slide']].contents[ep['element']].svgtext = tmpres
             ep['element'].svgtext = schema + svg_list[i]
-
+            
         print('DVI -> SVG in %f'%(time.time()-t))
         #Remove temp files
         for f in glob.glob(tmpname+'*'):

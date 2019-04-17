@@ -18,10 +18,10 @@ import os
 from bs4 import BeautifulSoup
 import sys
 import hashlib
-
+import logging
 
 class text(beampy_module):
-    """
+    r"""
     Add text to the current slide. Input text is by default processed using
     Latex and could use Latex syntax.
 
@@ -50,8 +50,8 @@ class text(beampy_module):
         The font size (the default theme sets this value to 20).
 
     font : str, optional
-        The Tex font (the default theme sets this value to 'CMR'). **THIS IS NOT
-        YET IMPLEMENTED!**
+        The Tex font (the default theme sets this value to
+        'CMR'). **THIS IS NOT YET IMPLEMENTED!**
 
     color : str, optional
         The text color (the default theme set this value to '#000000'). Color
@@ -146,6 +146,7 @@ class text(beampy_module):
 
             \end{varwidth}"""
 
+            # Matplotlib uses fontsize * 1.25 for spacing
             self.latex_text = template % (self.width.value*(72.27/96.),
                                           texalign, self.size,
                                           (self.size+self.size*0.1),
@@ -184,7 +185,7 @@ class text(beampy_module):
             
             #latex2svg
             self.svgtext = latex2svg( pretex )
-
+            
         else:
             self.svgtext = ''
             
@@ -224,7 +225,7 @@ class text(beampy_module):
 
             #New method with a global glyph store
             svgsoup = parse_dvisvgm_svg( svgsoup )
-
+            
             #Change id in svg defs to use the global id system
             #soup = make_global_svg_defs(soup)
 
@@ -232,7 +233,7 @@ class text(beampy_module):
 
             #Find all links to apply the style defined in theme['link']
             links = svgsoup.find_all('a')
-            style = ' '.join(['%s:%s;'%(str(key), str(value)) for key, value in document._theme['link'].items()])
+            style = ' '.join(['%s:%s;'%(str(key), str(value)) for key, value in list(document._theme['link'].items())])
             for link in links:
                 link['style'] = style
 
@@ -288,7 +289,7 @@ class text(beampy_module):
                 g['opacity'] = self.opacity
                 #g['viewBox'] = svgsoup.get('viewBox')
 
-            output = svgsoup.renderContents()
+            output = str(svgsoup.renderContents())
 
             #Add red box around the text
             if document._text_box:
@@ -334,6 +335,7 @@ class text(beampy_module):
         self.update_size(text_width, text_height)
 
         #Store the output svg
+        logging.debug(type(output))
         self.svgout = output
         #Update the rendered state of the module
         self.rendered = True
