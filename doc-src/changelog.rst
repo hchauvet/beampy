@@ -3,6 +3,16 @@
 Change-log
 ==========
 
+
+0.5.3
+-----
+
+Some minor fix:
+
+* Fix bug in layer propagation for box
+* Fix bug when last layer is set as [n:]
+* Start using logging.debug in modules
+
 0.5.2
 -----
 

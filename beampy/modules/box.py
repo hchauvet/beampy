@@ -7,6 +7,8 @@ from beampy.modules.core import group
 from beampy.modules.text import text
 from beampy.modules.svg import rectangle
 from beampy.geometry import center
+import logging
+
 
 class box(group):
     """
@@ -98,19 +100,19 @@ class box(group):
         self.bp_title = None # to store beampy text object for the title
         
         if self.title is not None:
-            # Title should not be in group 
+            # Title should not be in group
             self.build_title()
-            self.yoffset = self.head_height 
+            self.yoffset = self.head_height
 
     def build_title(self):
         
         self.title_xpos = self.title_xoffset
         self.title_ypos = 5
-        
+
         self.bp_title = text(self.title, x=self.title_xpos,
                              y=self.title_ypos, color=self.title_color,
                              width=self.width-20)
-        
+
         # Add y offset to the group (the height taken by the title)
         if self.head_height is None:
             self.head_height = (self.bp_title.height + 10).value
@@ -118,7 +120,7 @@ class box(group):
         # print(self.height, self.width)
         # self.remove_element_in_group(self.bp_title.id)
         # self.bp_title = None
-        
+
     def build_background(self):
         if self.shadow:
             self.svg_shadow = '#drop-shadow'            
@@ -205,6 +207,10 @@ class box(group):
         with self:
             self.build_background()
 
+        # Propagate the layer inside the group
+        # (as we added element in render time)
+        self.propagate_layers()
+        
         # Manage position of new objects 
         self.main_svg.first()
 
@@ -212,15 +218,19 @@ class box(group):
         if self.bp_title is not None:
             self.title_svg.above(self.main_svg)
 
+            # Set the correct layers for the title
+            logging.debug('set layer to box title to %s ' % str(self.layers))
+            self.bp_title.layers = self.layers
+
             title_xpos = self.left + self.title_xoffset
-            
+
             if self.title_align == 'center':
                 title_xpos = self.left + (self.title_svg.width-self.bp_title.width)/2
-            
+
             if self.title_align == 'right':
                 title_xpos = self.right - (self.bp_title.width + self.title_xpos)
-            
+
             self.bp_title.positionner.update_y(self.top + 5)
             self.bp_title.positionner.update_x(title_xpos)
-            
+
         set_lastslide()

@@ -11,6 +11,15 @@ Beampy presentation output only one html file with every contents embedded.
 * [See Beampy documentation](https://hchauvet.github.io/beampy/)
 * [See a Beampy tests presentation](https://rawgit.com/hchauvet/beampy/master/examples/beampy_tests.html) (source is in *examples/beampy_tests_modules.py*)
 
+## Install:
+
+From Python Package Index:
+
+```bash
+pip install beampy-slideshow
+```
+
+[See full installation documentation](https://hchauvet.github.io/beampy/install.html#beampy-install)
 
 ## A quick example :
 
@@ -41,6 +50,13 @@ save('./simple_one.html')
 
 
 ## Change log:
+
+### 0.5.3
+
+Some minor fix:
+* Fix bug in layer propagation for box
+* Fix bug when last layer is set as [n:]
+* Start using logging.debug in modules
 
 ### 0.5.2
 
