@@ -5,8 +5,6 @@ Created on Fri May 15 16:48:01 2015
 @author: hugo
 """
 
-# from beampy.global_variables import _document, _width, _height,
-# _global_counter
 from beampy.commands import document
 from beampy.functions import render_texts
 import json
@@ -89,7 +87,12 @@ def save(output_file=None, format=None):
     if output_file is not None:
         with open(output_file, 'w') as f:
             # old py2 .encode('utf8')
-            f.write(output)
+            try:
+                # Python 3 way to write output
+                f.write(output)
+            except Exception as e:
+                print('Encode output as utf-8, for python2 compatibility')
+                f.write(output.encode('utf8'))
 
     # write cache file
     if document._cache is not None:
@@ -340,6 +343,7 @@ def html5_export():
         if bokeh_required:
             cssbk, jsbk = get_bokeh_includes()
             output += cssbk + jsbk
+            output
             
     with open(curdir+'statics/footer_V2.html', 'r') as f:
         output += f.read()

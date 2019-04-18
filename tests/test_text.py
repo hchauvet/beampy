@@ -30,7 +30,7 @@ with slide('Test text with "with"'):
 
         "$$\frac{dC}{dt} \approx \frac{d\theta_{tip}/dt}{L_c}$$"
 
-with slide():
+with slide('Avec des accents léééé looo öoooo'):
     with text():
         """
         Test text inside the with statement.

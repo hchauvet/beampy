@@ -170,10 +170,12 @@ class video(beampy_module):
         """
 
         FFMPEG_CMD = document._external_cmd['video_encoder']
-        FFMPEG_CMD += ' -loglevel 8 -i "%s" -f image2 -ss %0.3f -vframes 1 -'%(self.content, self.still_image_time)
+        FFMPEG_CMD += ' -loglevel 8 -i "%s" -f image2 -ss %0.3f -vframes 1 -; exit 0'%(self.content, self.still_image_time)
 
-        run_ffmpeg = subprocess.run(str(FFMPEG_CMD), stdout=subprocess.PIPE, shell=True)
-        img_out = run_ffmpeg.stdout
+        #run_ffmpeg = subprocess.run(str(FFMPEG_CMD), stdout=subprocess.PIPE, shell=True)
+        #img_out = run_ffmpeg.stdout
+        run_ffmpeg = subprocess.check_output(str(FFMPEG_CMD), shell=True)
+        img_out = run_ffmpeg
         #run_ffmeg = os.popen(FFMPEG_CMD)
         #img_out = run_ffmeg.read()
 
