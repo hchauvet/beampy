@@ -948,7 +948,13 @@ class Length(object):
         assert divv >= 0
 
         return Length(None, None, divv)
-    
+
+    def __div__(self, right_value):
+        return self.__truediv__(right_value)
+
+    def __rdiv__(self, left_value):
+        return self.__rtruediv__(left_value)
+
     def __str__(self):
         return str(self.value)
 

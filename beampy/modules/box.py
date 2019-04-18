@@ -107,8 +107,9 @@ class box(group):
         self.title_xpos = self.title_xoffset
         self.title_ypos = 5
         
-        self.bp_title = text(self.title, x=self.title_xpos, y=self.title_ypos, color=self.title_color,
-                            width=self.width-20)
+        self.bp_title = text(self.title, x=self.title_xpos,
+                             y=self.title_ypos, color=self.title_color,
+                             width=self.width-20)
         
         # Add y offset to the group (the height taken by the title)
         if self.head_height is None:
@@ -184,14 +185,17 @@ class box(group):
                     elem.width.run_render()
         
             self.compute_group_size()
-            self.update_size(self.width, self.height+self.yoffset + 2*self.auto_height_margin)
+            self.update_size(self.width, self.height+self.yoffset +
+                             2*self.auto_height_margin)
             # Report offset on auto placed elements
             for eid in self.elementsid:
                 document._slides[self.slide_id].contents[eid].positionner.y['final'] += self.yoffset + self.auto_height_margin
 
         else:
-            # The case of the height is given and elements have a fixed shift, weed need to update the shift with the title yoffset
-            # TODO: This should be included in the group class !!!
+            # The case of the height is given and elements have a
+            # fixed shift, weed need to update the shift with the
+            # title yoffset TODO: This should be included in the group
+            # class !!!
             for eid in self.elementsid:
                 elemp = document._slides[self.slide_id].contents[eid].positionner
                 if elemp.y['align'] not in ['auto', 'center'] and elemp.y['reference'] != 'relative':

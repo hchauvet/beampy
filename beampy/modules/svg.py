@@ -52,7 +52,7 @@ class svg( beampy_module ):
         
         #Register the module
         self.register()
-            
+
     def render(self):
         """
             The render of an svg part
@@ -62,18 +62,21 @@ class svg( beampy_module ):
         if self.inkscape_size:
             logging.debug('Run inkscape to get svg size')
             # Need to get the height and width of the svg command
-            tmpsvg = '<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny" xmlns:xlink="http://www.w3.org/1999/xlink"><defs>%s</defs> %s</svg>'
-            tmpsvg = tmpsvg % (self.svgdefs, self.content)
+            tmpsvg = '<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny" xmlns:xlink="http://www.w3.org/1999/xlink">'
+            if self.out_svgdefs is not None:
+                tmpsvg += '<defs>%s</defs>' % (' '.join(self.out_svgdefs))
+
+            tmpsvg += ' %s</svg>' % (self.content)
 
             tmpfile, tmpname = tempfile.mkstemp(prefix='beampytmp')
-            with open( tmpname + '.svg', 'w' ) as f:
-                f.write( tmpsvg )
+            with open(tmpname + '.svg', 'w') as f:
+                f.write(tmpsvg)
 
-            svg_width =  getsvgwidth(tmpname + '.svg')
+            svg_width = getsvgwidth(tmpname + '.svg')
             svg_height = getsvgheight(tmpname + '.svg')
 
-            #remove the svg
-            os.remove( tmpname + '.svg' )
+            # remove the svg
+            os.remove(tmpname + '.svg')
         else:
             svg_width = convert_unit(self.width.value)
             svg_height = convert_unit(self.height.value)
@@ -178,8 +181,9 @@ class rectangle(svg):
                 self.style += '%s:%s;'%(beampy_svg_kword[kw], getattr(self,kw))
 
         self.dxdy = int(convert_unit(self.linewidth)/2)
-                
-        self.content = '<rect x="{dx}" y="{dy}" rx="{rx}" ry="{ry}" width="{width}" height="{height}" style="{style}" {filter} {clip}/>'
+        self.content = ''''<rect x="{dx}" y="{dy}" rx="{rx}" ry="{ry}"
+        width="{width}" height="{height}" style="{style}" {filter}
+        {clip}/>'''
 
         # Store svg definitions
         self.svgdefs = []
@@ -209,11 +213,7 @@ class rectangle(svg):
                                            filter=self.svgfilter,
                                            clip=self.svgclip)
 
-        
 
-
-
-        
 class line(svg):
     """
     Insert an svg line.

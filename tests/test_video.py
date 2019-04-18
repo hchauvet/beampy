@@ -21,4 +21,4 @@ with slide():
     video('../examples/test.webm')[1]
     
 save('./html_out/%s.html'%test_name)
-# save('./pdf_out/%s.pdf'%test_name)
+save('./pdf_out/%s.pdf'%test_name)

@@ -446,7 +446,14 @@ def get_bokeh_includes():
     """
 
     from bokeh.resources import CDN
-    import urllib2
+    try:
+        # Python 2
+        from urllib2 import URLError
+        from urllib2 import urlopen 
+    except:
+        from urllib.error import URLError
+        from urllib.request import urlopen
+        
 
     css_out = '<style>'
     for cssurl in CDN.css_files:
@@ -454,20 +461,18 @@ def get_bokeh_includes():
         # Test if the css is stored in cache
         if document._cache is not None and document._cache.is_file_cached(cssname):
             csst = document._cache.get_cached_file(cssname)
-            # old .decode('utf-8', errors='replace') after csst for py2
-            css_out += csst + '\n'
+            css_out += csst.decode('utf8') + '\n'
         else:
             try:
                 print('Download %s' % cssurl)
-                response = urllib2.urlopen(cssurl, timeout=5)
+                response = urlopen(cssurl, timeout=5)
                 csst = response.read()
                 if document._cache is not None:
                     document._cache.add_file(cssname, csst)
                 # Don't forget to add a newline !
-                # old .decode('utf-8', errors='replace') after csst for py2
-                css_out += csst + '\n'
+                css_out += csst.decode('utf8') + '\n'
 
-            except urllib2.URLError as e:
+            except URLError as e:
                 print('Error in download: %s' % e)
 
     css_out += '</style>'
@@ -477,18 +482,16 @@ def get_bokeh_includes():
         jsname = jsurl[jsurl.rfind("/") + 1:]
         if document._cache is not None and document._cache.is_file_cached(jsname):
             jst = document._cache.get_cached_file(jsname)
-            # old .decode('utf-8', errors='replace') after jst for py2
-            js_out += jst + '\n'
+            js_out += jst.decode('utf8') + '\n'
         else:
             try:
                 print('Download %s' % jsurl)
-                response = urllib2.urlopen(jsurl, timeout=5)
+                response = urlopen(jsurl, timeout=5)
                 jst = response.read()
                 if document._cache is not None:
                     document._cache.add_file(jsname, jst)
-                # old .decode('utf-8', errors='replace') after jst for py2
-                js_out += jst + '\n'
-            except urllib2.URLError as e:
+                js_out += jst.decode('utf8') + '\n'
+            except URLError as e:
                 print('Error in download: %s' % e)
 
     js_out += '</script>'

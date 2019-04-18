@@ -105,89 +105,102 @@ from beampy.functions import convert_unit
 from beampy.geometry import distribute
 
 def create_header_bar():
-    rtop = rectangle(x=0, y=0, height=35, color='black', edgecolor='black')
-    bluerect = rectangle(x=0, y=rtop.bottom+0, height=28*1.6,
-                         color=lead_color, edgecolor=lead_color)
-    bluerect.first()
 
-    cpt_title = 0
-    cur_toc = document._slides[document._curentslide].TOCposition
-    visibles_toc_pos = get_visibles_indices(document._curentslide,
-                                            currentsection=True)
-    last_pos = document._TOC.index(cur_toc)
-    last_level1_pos = 0
-    
-    for i, toc in enumerate(document._TOC):
-        if toc['level'] == 0:
-            cpt_title += 1
-        if toc['level'] == 1:
-            if i in visibles_toc_pos and i <= last_pos:
-                last_level1_pos = i
-
-    group_width = None
-    groups = [] # store group with toc title and subtitle circle
-    elems = []
-    for i, toc in enumerate(document._TOC):
-        if i in visibles_toc_pos and i <= last_pos:
-            selected_opacity = 1
-        else:
-            selected_opacity = 0.5
-
-        if i == last_level1_pos:
-            circle_color = 'white'
-        else:
-            circle_color = 'black'
-
-        if toc['slide'] <= document._global_counter['slide']:
-            slidelink = '#%i-0' % (toc['slide'])
-        else:
-            slidelink = '#%i-0' % (document._global_counter['slide'])
-
-        if toc['level'] == 0:
-            if len(elems) > 0:
-                g = group(elems, x=0, y=5, width=group_width)
-                groups += [g]
-                elems = []
-            
-            t1 = text(r'\href{%s}{%s}' % (slidelink, toc['title']), x=0,
-                      y=0, size=10, color='white',
-                      opacity=selected_opacity, width=group_width)
-            elems += [t1]
-            t2 = None
-            
-        if toc['level'] == 1:
-            if t2 is None:
-                xt = 2
-            else:
-                xt = t2.right+2
-                
-            t2 = circle(x=xt, y=t1.top+15, color=circle_color,
-                        edgecolor='white', opacity=selected_opacity)
-            elems += [t2]
-            
-    if len(elems) > 0:
-        g = group(elems, x=0, y=0, width=group_width)
-        groups += [ g ]
-
-    # Compute the horizontal position for groups
-    # The first element at the same x than the title
-    groups[0].positionner.update_x(THEME['title']['x'])
-    # groups[0].positionner.update_y((rtop.height-groups[0].height)/2)
-    # The last element with the same margin as the first element 
-    groups[-1].positionner.update_x(document._width-(groups[-1].width+THEME['title']['x']).value)
-    groups[-1].positionner.update_y(groups[0].top+0)
-    #Compute the available width
-    available_width = document._width - (groups[-1].width+THEME['title']['x']).value
-
-    for e in groups[1:-1]:
-        e.positionner.update_y(groups[0].top+0)
-        if e.width.value is None or e.height.value is None:
-            e.width.run_render()
-            
-    if len(groups) > 2:
-        distribute(groups[1:-1], 'hspace', available_width,
-                   offset=(groups[0].width+THEME['title']['x']).value)
+    if len(document._TOC) == 0:
+        bluerect = rectangle(x=0, y=0, height=28*1.6,
+                             color=lead_color, edgecolor=lead_color)
+        bluerect.first()
+        # BUG Change the position of the title as we don't have the header bar
+        print('No table of content, their is a bug to set the position of the title dynamically in BeamerFrankfurt Theme')
+        print('''Please add in your file after doc = document
+        doc._theme['title']['y'] -= 35
+        doc._theme['title']['reserved_y'] = '1.8cm'
+        ''')
         
+    else:
+        rtop = rectangle(x=0, y=0, height=35, color='black', edgecolor='black')
+        bluerect = rectangle(x=0, y=rtop.bottom+0, height=28*1.6,
+                             color=lead_color, edgecolor=lead_color)
+        bluerect.first()
+        
+        cpt_title = 0
+        cur_toc = document._slides[document._curentslide].TOCposition
+        visibles_toc_pos = get_visibles_indices(document._curentslide,
+                                                currentsection=True)
+        last_pos = document._TOC.index(cur_toc)
+        last_level1_pos = 0
+        
+        for i, toc in enumerate(document._TOC):
+            if toc['level'] == 0:
+                cpt_title += 1
+            if toc['level'] == 1:
+                if i in visibles_toc_pos and i <= last_pos:
+                    last_level1_pos = i
+        
+        group_width = None
+        groups = [] # store group with toc title and subtitle circle
+        elems = []
+        for i, toc in enumerate(document._TOC):
+            if i in visibles_toc_pos and i <= last_pos:
+                selected_opacity = 1
+            else:
+                selected_opacity = 0.5
+        
+            if i == last_level1_pos:
+                circle_color = 'white'
+            else:
+                circle_color = 'black'
+        
+            if toc['slide'] <= document._global_counter['slide']:
+                slidelink = '#%i-0' % (toc['slide'])
+            else:
+                slidelink = '#%i-0' % (document._global_counter['slide'])
+        
+            if toc['level'] == 0:
+                if len(elems) > 0:
+                    g = group(elems, x=0, y=5, width=group_width)
+                    groups += [g]
+                    elems = []
+                
+                t1 = text(r'\href{%s}{%s}' % (slidelink, toc['title']), x=0,
+                          y=0, size=10, color='white',
+                          opacity=selected_opacity, width=group_width)
+                elems += [t1]
+                t2 = None
+                
+            if toc['level'] == 1:
+                if t2 is None:
+                    xt = 2
+                else:
+                    xt = t2.right+2
+                    
+                t2 = circle(x=xt, y=t1.top+15, color=circle_color,
+                            edgecolor='white', opacity=selected_opacity)
+                elems += [t2]
+                
+        if len(elems) > 0:
+            g = group(elems, x=0, y=0, width=group_width)
+            groups += [ g ]
+        
+        # Compute the horizontal position for groups
+        # The first element at the same x than the title
+        groups[0].positionner.update_x(THEME['title']['x'])
+        # groups[0].positionner.update_y((rtop.height-groups[0].height)/2)
+        # The last element with the same margin as the first element 
+        groups[-1].positionner.update_x(document._width-(groups[-1].width+THEME['title']['x']).value)
+        groups[-1].positionner.update_y(groups[0].top+0)
+        #Compute the available width
+        available_width = document._width - (groups[-1].width+THEME['title']['x']).value
+        
+        for e in groups[1:-1]:
+            e.positionner.update_y(groups[0].top+0)
+            if e.width.value is None or e.height.value is None:
+                e.width.run_render()
+                
+        if len(groups) > 2:
+            distribute(groups[1:-1], 'hspace', available_width,
+                       offset=(groups[0].width+THEME['title']['x']).value)
+            
 # Register the layour function
 THEME['slide']['layout'] = create_header_bar
 

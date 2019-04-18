@@ -32,7 +32,8 @@ except:
 class figure(beampy_module):
     """
     Include a figure to the current slide. Figure formats could be (**svg**,
-    **pdf**, **png**, **jpeg**, **gif**, **matplotib figure**, and **bokeh figure**)
+    **pdf**, **png**, **jpeg**, **gif**, **matplotib figure**, 
+    and **bokeh figure**)
 
     Parameters
     ----------
@@ -42,9 +43,10 @@ class figure(beampy_module):
         For matplotlib and bokeh, `content` is the python object figure of
         either matplotlib or bokeh.
 
-    ext : {'svg','jpeg','png','pdf', 'gif', 'bokeh','matplotlib'} or None, optional
-       Image format defined as string (the default value is None, which implies
-       that the image format is guessed from file or python object name.
+    ext : {'svg','jpeg','png','pdf', 'gif', 'bokeh','matplotlib'} or None, optional 
+       Image format defined as string (the default value is None,
+       which implies that the image format is guessed from file or
+       python object name.
 
     x : int or float or {'center', 'auto'} or str, optional
         Horizontal position for the figure (the default is 'center').
@@ -233,24 +235,24 @@ class figure(beampy_module):
                 # print tmpw, tmph
                 os.remove(tmpname+'.svg')
 
-            svgheight = convert_unit( tmph )
-            svgwidth = convert_unit( tmpw )
+            svgheight = convert_unit(tmph)
+            svgwidth = convert_unit(tmpw)
 
             if svg_viewbox is not None:
                 svgheight = svg_viewbox.split(' ')[3]
                 svgwidth = svg_viewbox.split(' ')[2]
 
-            #SCALE OK need to keep the original viewBox !!!
+            # SCALE OK need to keep the original viewBox !!!
             scale_x = (self.positionner.width/float(svgwidth)).value
-            #print svgwidth, svgheight, scale_x
-            #scale_y = float(convert_unit(args['height']))/float(svgheight)
+            # print svgwidth, svgheight, scale_x
+            # scale_y = float(convert_unit(args['height']))/float(svgheight)
             good_scale = scale_x
 
-            #BS4 get the svg tag content without <svg> and </svg>
-            tmpfig = svgtag.renderContents()
+            # BS4 get the svg tag content without <svg> and </svg>
+            tmpfig = str(svgtag.renderContents())
 
-            #Add the correct first line and last
-            tmphead = '\n<g transform="scale(%0.5f)">'%(good_scale)
+            # Add the correct first line and last
+            tmphead = '\n<g transform="scale(%0.5f)">' % (good_scale)
             output = tmphead + tmpfig + '</g>\n'
 
             figure_height = float(svgheight)*good_scale
@@ -297,15 +299,15 @@ class figure(beampy_module):
                 if self.ext == 'gif':
                     print('Gif are not resized, the original size is taken!')
                     with open(self.content, "rb") as f:
-                        figurein = base64.b64encode(f.read())
+                        figurein = base64.b64encode(f.read()).decode('utf8')
 
                 else:
                     out_img = resize_raster_image(tmp_img)
-                    figurein = base64.b64encode(out_img.read())
+                    figurein = base64.b64encode(out_img.read()).decode('utf8')
                     out_img.close()
             else:
                 with open(self.content, "rb") as f:
-                    figurein = base64.b64encode(f.read())
+                    figurein = base64.b64encode(f.read()).decode('utf8')
 
             tmp_img.close()
 

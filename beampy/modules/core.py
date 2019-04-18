@@ -475,6 +475,7 @@ class beampy_module(object):
 
         # Store svg definitions like FILTERS or ClipPAth see self.add_svgdef method
         self.svgdefs = []
+        self.out_svgdefs = None
         self.svgdefsargs = []
         
         # Add module to his slide
@@ -785,10 +786,6 @@ class beampy_module(object):
                                                                         self.positionner.x['final'],
                                                                         self.positionner.y['final'],
                                                                         self.name)
-        logging.debug(out)
-        logging.debug(type(out))
-        logging.debug(self.svgout)
-        logging.debug(type(self.svgout))
         
         out += self.svgout
 

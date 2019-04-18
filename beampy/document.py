@@ -18,6 +18,8 @@ bppath = os.path.dirname(__file__) + '/'
 basename = os.path.basename(__file__)
 script_file_name = os.path.basename(sys.argv[0]).split('.')[0]
 
+import logging
+_log = logging.getLogger(__name__)
 
 class SourceManager(object):
     """
@@ -148,7 +150,7 @@ class document():
             - resize_raster[True]: Resize raster images (inside svg and for jpeg/png figures)
             - theme: Define the path to your personal THEME dictionnary
         """
-
+        
         if quiet:
             document._quiet = True
             sys.stdout = open(os.devnull, 'w')

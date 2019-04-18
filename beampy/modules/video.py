@@ -21,6 +21,7 @@ from PIL import Image
 import sys
 import subprocess
 
+
 class video(beampy_module):
     """
     Include a figure to the current slide. Figure formats could be (**svg**,
@@ -116,7 +117,7 @@ class video(beampy_module):
         # Read file and convert data to base64 if embedded option is True (default)
         if self.embedded:
             with open(self.content, 'rb') as fin:
-                videob64 = base64.b64encode( fin.read() )
+                videob64 = base64.b64encode( fin.read() ).decode('utf8')
 
         #Get video image
         size, imgframe = self.video_image()
@@ -153,7 +154,7 @@ class video(beampy_module):
         output = output.format(width=width, otherargs=otherargs, ext=self.ext, src=videosrc)
         self.htmlout = output
 
-        imgframe = base64.b64encode(imgframe)
+        imgframe = base64.b64encode(imgframe).decode('utf8')
         output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(str(width), str(height), imgframe)
         self.svgout = output
 
