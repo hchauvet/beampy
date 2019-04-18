@@ -1,5 +1,7 @@
 from beampy import *
-from beampy.utils import box
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 # Remove quiet=True to get Beampy render outputs
 doc = document(cache=False)

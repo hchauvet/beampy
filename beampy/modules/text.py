@@ -166,7 +166,7 @@ class text(beampy_module):
 
         if self.latex_text != '':
             pretex = r"""
-            \documentclass[crop=True]{standalone}
+            \documentclass[crop=true]{standalone}
             \usepackage[utf8x]{inputenc}
             \usepackage{fix-cm}
             \usepackage[hypertex]{hyperref}

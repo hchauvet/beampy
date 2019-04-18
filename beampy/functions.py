@@ -16,7 +16,9 @@ from subprocess import check_call, check_output
 import tempfile
 import time
 import hashlib  # To create uniq id for elements
+
 import logging
+_log = logging.getLogger(__name__)
 
 # Lib to check the source code
 import inspect
@@ -277,8 +279,8 @@ def latex2svg(latexstring, write_tmpsvg=False):
         otherwise the output is read from stdout
     """
 
-    logging.debug('Run latex2svg function')
-    logging.debug(latexstring)
+    _log.debug('Run latex2svg function')
+    _log.debug(latexstring)
     
     dvisvgmcmd = document._external_cmd['dvisvgm']
 
@@ -312,7 +314,8 @@ def latex2svg(latexstring, write_tmpsvg=False):
     output = tex.read()
     tex.close()
     #Run dvi2svgm
-    if 'error' in output:
+    if 'error' in output or '!' in output:
+        print('Latex compilation error')
         print(output)
     else:
         #dvisvgm to convert dvi to svg [old -e option not compatible with linkmark]
@@ -330,8 +333,8 @@ def latex2svg(latexstring, write_tmpsvg=False):
         for f in glob.glob(tmpnam+'*'):
             os.remove(f)
 
-    # logging.debug(outsvg)
-    # logging.debug(type(outsvg))
+    # _log.debug(outsvg)
+    # _log.debug(type(outsvg))
     
     return outsvg
 
@@ -686,7 +689,6 @@ def render_texts(elements_to_render=[], extra_packages=[]):
         if e.cache and document._cache is not None:
             ct_cache = document._cache.is_cached(e.slide_id, e)
             if ct_cache is False:
-
                 # Run the pre_rendering
                 e.pre_render()
 
@@ -702,12 +704,12 @@ def render_texts(elements_to_render=[], extra_packages=[]):
 
             try:
                 latex_pages += [e.latex_text]
-                # logging.debug(e.latex_text)
                 elements_pages += [{"element": e, "page": cpt_page}]
                 cpt_page += 1
             except Exception as e:
                 print(e)
 
+    _log.debug(latex_pages)
     if len(latex_pages) > 0:
         # Write the file to latex
 
@@ -724,15 +726,16 @@ def render_texts(elements_to_render=[], extra_packages=[]):
         #Run Latex using subprocess
         #t = time.time()
         cmd = "cd "+tmppath+" && latex -interaction=nonstopmode --halt-on-error "+tmpname+".tex"
-        logging.debug(cmd)
+        _log.debug(cmd)
         
         tex = os.popen(cmd)
         #print('Latex run in %f'%(time.time()-t))
         tex_outputs = tex.read()
-        # logging.debug(tex_outputs)
+        _log.debug(tex_outputs)
         
-        if 'error' in tex_outputs:
-            print(error)
+        if 'error' in tex_outputs or '!' in tex_outputs:
+            print('Latex compilation error')
+            print(tex_outputs)
             
         tex.close()
 

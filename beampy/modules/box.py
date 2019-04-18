@@ -160,7 +160,7 @@ class box(group):
             self.title_svg.rounded = self.rounded
             self.title_svg.add_svgdef('''
             <clipPath id="boxborder_%s">
-            <rect width="{width}" height="{clipheight}"
+            <rect width="{width}" height="{clipheight}" 
             rx="{rounded}" ry="{rounded}" stroke="{color}" 
             stroke-width="{linewidth}"/>
             </clipPath>

@@ -139,7 +139,7 @@ def background_layout():
     t1 = text('%i/%i'%(cur_slide, N),
               x={"shift": 0.01, "align":"right",
                  "anchor":"right"},
-              y=prog.top-bottom(5), size=13, color='lightblue')
+              y=prog.top-bottom(5), size=13, color='LightBlue')
 
 # Register the layour function
 THEME['slide']['layout'] = background_layout

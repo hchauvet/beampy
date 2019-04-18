@@ -222,13 +222,13 @@ class cache_slides():
     def write_file_cache(self, filename, content):
         
         with gzip.open(self.folder+'/'+filename+'.pklz', 'wb') as f:
-            f.write(content)
+            f.write(content.encode('utf-8'))
 
     def read_file_cache(self, filename):
         output = None
         
         with gzip.open(self.folder+'/'+filename+'.pklz', 'rb') as f:
-            output = f.read()
+            output = f.read().decode('utf-8')
             
         return output
         
@@ -280,7 +280,7 @@ def create_element_id(bp_mod, use_args=True, use_render=True,
     outid = None
     if ct_to_hash != '':
         #print ct_to_hash
-        outid = hashlib.md5( ct_to_hash ).hexdigest()
+        outid = hashlib.md5( ct_to_hash.encode('utf-8') ).hexdigest()
 
         if outid in document._slides[bp_mod.slide_id].element_keys:
             print("Id for this element already exist!")

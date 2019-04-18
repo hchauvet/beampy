@@ -155,11 +155,13 @@ class slide(object):
         self.contents.pop(module_id)
 
     def add_rendered(self, svg=None, svgdefs=None, html=None, js=None, animate_svg=None, layer=0):
-
+        logging.debug('Add rendered')
         if svg is not None:
             self.svgout += [svg]
 
         if svgdefs is not None:
+            logging.debug('svgdefs')
+            #logging.debug(svgdefs)
             self.svgdefout += [svgdefs]
 
         if html is not None:
@@ -683,7 +685,7 @@ class beampy_module(object):
         self.height = self.positionner.height
 
     
-    def add_svgdef(self, svgdef, svgdefsargs=[]):
+    def add_svgdef(self, svgdef, svgdefsargs=None):
         """
         Function to add svg clipPath or filter.
 
@@ -701,6 +703,9 @@ class beampy_module(object):
             The list of arguments as string to format in the svgdef.
         """
 
+        if svgdefsargs is None:
+            svgdefsargs = []
+            
         assert isinstance(svgdefsargs, list)
         
         self.svgdefs += [svgdef]
@@ -713,6 +718,8 @@ class beampy_module(object):
         out_svgdefs = ''
         if len(self.svgdefs) > 0:
 
+            logging.debug('Export svg defs added to module %s' % str(self.name))
+
             for i, svgdef in enumerate(self.svgdefs):
                 out_args = {}
                 for args in self.svgdefsargs[i]:
@@ -723,6 +730,8 @@ class beampy_module(object):
                     
                 out_svgdefs += svgdef
 
+            logging.debug(out_svgdefs)
+            
         if out_svgdefs != '':
             document._slides[self.slide_id].svgdefout += [out_svgdefs]
 

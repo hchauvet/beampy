@@ -3,6 +3,9 @@
 from beampy import *
 import os
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 test_name = 'test_layers'
 doc = document(cache=False, optimize=False, theme='ComplicatedBlue')
 
@@ -29,7 +32,7 @@ with slide('Test s2'):
     text('The text from 3 to the end')[2:]
     text('Only at the end')[3]
 
-    it = itemize([r'test item \<+-\>','with an',r'ugly hacking item\_layers=["2:","3:",4]'],
+    it = itemize([r'test item <+->','with an',r'ugly hacking item\_layers=["2:","3:",4]'],
                  x='center', y='auto', item_layers=['2:','3:',4])
     it.add_border()
 

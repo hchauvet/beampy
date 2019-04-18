@@ -241,7 +241,7 @@ def theme_maketitle(titlein, author = [], affiliation = None, meeting = None, le
 
         if meeting is not None:
             text(meeting, width='90%', y="+1cm",
-                 color='meeting_color', size=args['subtitle_size'],
+                 color=args['meeting_color'], size=args['subtitle_size'],
                  align='center')
 
         if date is not None:
