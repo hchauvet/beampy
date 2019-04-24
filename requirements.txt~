@@ -1,5 +1,0 @@
-# Python libs needed to install beampy
-beautifulsoup4
-        "pillow",
-        "six",
-        "lxml"
