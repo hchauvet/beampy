@@ -788,9 +788,8 @@ def render_texts(elements_to_render=[], extra_packages=[]):
         allsvgs = res.readlines()
         res.close()
 
-        print(allsvgs[:20])        
         allsvgs = clean_ghostscript_warnings(allsvgs)
-        print(allsvgs[:20])
+
         
         #To split the data get the first line which define the <? xml ....?> command
         schema = allsvgs[0]
