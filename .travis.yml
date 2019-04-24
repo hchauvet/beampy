@@ -2,9 +2,7 @@ dist: xenial   # required for Python >= 3.7
 
 before_install:
   - sudo apt-get install -y ffmpeg inkscape texlive-extra-utils texlive-latex-extra pdf2svg
-addons:
-  apt:
-    update: true
+
     
 language: python
 python:
