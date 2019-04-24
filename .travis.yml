@@ -25,5 +25,5 @@ install:
 script:
   - mkdir ./tests/html_out
   - mkdir ./tests/pdf_out
-  - mkdir ./test/pdf_out/tmp
+  - mkdir ./tests/pdf_out/tmp
   - cd ./tests/ && pytest
