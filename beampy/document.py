@@ -21,6 +21,7 @@ script_file_name = os.path.basename(sys.argv[0]).split('.')[0]
 import logging
 _log = logging.getLogger(__name__)
 
+
 class SourceManager(object):
     """
     SourceManager allows to read source file of the script and
@@ -49,15 +50,45 @@ class SourceManager(object):
 
     """
 
-    def __init__(self):
+    def __init__(self, filename=None):
+        """
+        If filename is given, use this name to find the frame in the stack
+        """
+        
+        # Loop over frames
+        all_frames = inspect.stack()
+        cframe = None
+        for f in all_frames:
 
-        cframe = inspect.stack()[-1][0]
+            # If a filename is given check if we find it in the stack
+            if filename is not None:
+                if filename in f[1]:
+                    cframe = f[0]
+                    break
+
+            # Or check if we find module and if this module come from a .py file
+            if  '<module>' in f[3]:
+                _log.debug(f)
+                # Test if the source of the module is a file
+                if '.py' in f[1]:
+                    cframe = f[0]
+                    break
+                
+        if cframe is None:
+            _log.info('No .py found in the stack... some modules will not work properly')
+            for f in all_frames:
+                _log.debug(f)
+            
+            cframe = all_frames[-1][0]
+            
+        #cframe = inspect.stack()[-1][0]
         # cur_frame = inspect.currentframe().f_code
         cur_frame = cframe.f_code
-        # print(cframe)
+        
         guess_filename = cur_frame.co_filename
         self.python_code = None
-        # print(guess_filename)
+        _log.debug(guess_filename)
+        
         # Default
         self.source = self.return_nonesource
         self.join_char = ''
@@ -135,8 +166,9 @@ class document():
     # The TOC format should be TOC = ['title':'Subsublevel title', level:1]
     _TOC = []
 
-
-    def __init__(self, quiet=False, latex_packages=[], globals=globals(), locals=locals(), **kwargs):
+    # REMOVE globals=globals(), locals=locals() they are useless
+    
+    def __init__(self, quiet=False, latex_packages=None, source_filename=None, **kwargs):
         """
             Create document to store slides
             options (see THEME)
@@ -150,7 +182,10 @@ class document():
             - resize_raster[True]: Resize raster images (inside svg and for jpeg/png figures)
             - theme: Define the path to your personal THEME dictionnary
         """
-        
+
+        if latex_packages is None:
+            latex_packages = []
+
         if quiet:
             document._quiet = True
             sys.stdout = open(os.devnull, 'w')
@@ -204,7 +239,7 @@ class document():
         self.link_external_programs()
 
         # Load the source code of the current presentation
-        self.get_source_code()
+        self.get_source_code(source_filename)
 
         # Print the header message
         print("="*20 + " BEAMPY START " + "="*20)
@@ -323,8 +358,8 @@ class document():
         outprint = '\n'.join(['%s:%s'%(k, v) for k, v in document._external_cmd.items()])
         print('Linked external programs\n%s'%outprint)
 
-    def get_source_code(self):
-        document._source_code = SourceManager()
+    def get_source_code(self, sourcefilename=None):
+        document._source_code = SourceManager(sourcefilename)
 
         
 def section(title):

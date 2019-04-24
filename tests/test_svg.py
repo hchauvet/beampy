@@ -1,19 +1,31 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
+import pytest
 from beampy import *
-
-doc = document(cache=False)
 
 test_name = 'test_svg'
 
-with slide('Test rectangle size'):
+@pytest.fixture
+def make_presentation():
+    doc = document(cache=False)
 
-    r1 = rectangle(width=200, height=200, x=5, y='center')
-    r2 = rectangle(width=200, height=200, x=300, y='center',
+
+    with slide('Test rectangle size'):
+
+        r1 = rectangle(width=200, height=200, x=5, y='center')
+        r2 = rectangle(width=200, height=200, x=300, y='center',
                    color='yellow', opacity=0.3, linewidth=30)
 
-    r1.add_border()
-    r2.add_border()
+        r1.add_border()
+        r2.add_border()
+
+    return doc
 
 
-save('./html_out/%s.html'%test_name)
+def test_html(make_presentation):
+    doc = make_presentation
+    save('./html_out/%s.html'%test_name)
+
+def test_pdf(make_presentation):
+    doc = make_presentation
+    save('./pdf_out/%s.pdf'%test_name)

@@ -1,0 +1,10 @@
+# Python libs needed to install beampy
+beautifulsoup4
+pillow
+six
+lxml
+
+# Needed to test
+matplotlib
+bokeh
+pytest
