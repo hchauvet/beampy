@@ -333,10 +333,51 @@ def latex2svg(latexstring, write_tmpsvg=False):
         for f in glob.glob(tmpnam+'*'):
             os.remove(f)
 
+    outsvg = clean_ghostscript_warnings(outsvg)
     _log.debug(outsvg)
     _log.debug(type(outsvg))
     
     return outsvg
+
+
+def clean_ghostscript_warnings(rawsvg):
+    """
+    Function to remove warning that appears in stdout
+
+    The begining of the file is something like:
+
+    *** WARNING - you have selected SAFER, indicating you want Ghostscript
+               to execute in a safer environment, but at the same time
+               have selected WRITESYSTEMDICT. Unless you use this option with
+               care and specifically, remember to execute code like:
+                      "systemdict readonly pop"
+               it is possible that malicious <?xml version='1.0'?>
+    <svg [...]/>
+    """
+
+    
+    if isinstance(rawsvg, list):
+        svg_lines = rawsvg
+    else:
+        svg_lines = rawsvg.splitlines()
+        
+    start_svg = 0
+    for i, line in enumerate(svg_lines):
+        if line.startswith('<svg') or line.startswith('<?xml'):
+            start_svg = i
+            break
+
+    if isinstance(rawsvg, list):
+        good_svg = svg_lines[start_svg:]
+    else:
+        good_svg = '\n'.join(svg_lines[start_svg:])
+
+    if start_svg > 2:
+        _log.debug('SVG have been cleaned from GS warnings, here is the original:')
+        _log.debug(rawsvg)
+        
+    return good_svg
+
 
 def getsvgwidth( svgfile ):
     """
@@ -747,12 +788,16 @@ def render_texts(elements_to_render=[], extra_packages=[]):
         allsvgs = res.readlines()
         res.close()
 
+        print(allsvgs[:20])        
+        allsvgs = clean_ghostscript_warnings(allsvgs)
+        print(allsvgs[:20])
+        
         #To split the data get the first line which define the <? xml ....?> command
         schema = allsvgs[0]
 
         #Join all svg lines and split them each time you find the schema
         svg_list = ''.join(allsvgs[1:]).split(schema)
-
+        
         
         #Process all pages to svg
         for i, ep in enumerate(elements_pages):
