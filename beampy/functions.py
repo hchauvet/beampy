@@ -333,8 +333,8 @@ def latex2svg(latexstring, write_tmpsvg=False):
         for f in glob.glob(tmpnam+'*'):
             os.remove(f)
 
-    # _log.debug(outsvg)
-    # _log.debug(type(outsvg))
+    _log.debug(outsvg)
+    _log.debug(type(outsvg))
     
     return outsvg
 
