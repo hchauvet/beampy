@@ -42,8 +42,14 @@ Code coloration is managed by `Pygments <http://pygments.org/>`_
 
 
 
-.. image:: /auto_examples/images/sphx_glr_plot_code_001.png
-    :align: center
+.. code-block:: pytb
+
+    Traceback (most recent call last):
+      File "/home/hugo/developpement/python/beampy_git/doc-src/examples/plot_code.py", line 32, in <module>
+        display_matplotlib(gcs())
+      File "/home/hugo/developpement/python/libperso/beampy/exports.py", line 410, in display_matplotlib
+        svgout += '<defs>%s</defs>' % (''.join(slide.svgdefout))
+    UnicodeDecodeError: 'ascii' codec can't decode byte 0xc2 in position 1426: ordinal not in range(128)
 
 
 

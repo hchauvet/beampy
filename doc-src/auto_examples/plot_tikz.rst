@@ -95,8 +95,22 @@ You could find great examples here http://www.texample.net/tikz/examples/
 
 
 
-.. image:: /auto_examples/images/sphx_glr_plot_tikz_001.png
-    :align: center
+.. code-block:: pytb
+
+    Traceback (most recent call last):
+      File "/home/hugo/developpement/python/beampy_git/doc-src/examples/plot_tikz.py", line 85, in <module>
+        display_matplotlib(gcs())
+      File "/home/hugo/developpement/python/libperso/beampy/exports.py", line 398, in display_matplotlib
+        slide.newrender()
+      File "/home/hugo/developpement/python/libperso/beampy/modules/core.py", line 321, in newrender
+        elem.run_render()
+      File "/home/hugo/developpement/python/libperso/beampy/modules/core.py", line 585, in run_render
+        self.render()
+      File "/home/hugo/developpement/python/libperso/beampy/modules/tikz.py", line 110, in render
+        svgout = latex2svg(pretex, write_tmpsvg=False)
+      File "/home/hugo/developpement/python/libperso/beampy/functions.py", line 338, in latex2svg
+        outsvg = clean_ghostscript_warnings(outsvg)
+    UnboundLocalError: local variable 'outsvg' referenced before assignment
 
 
 

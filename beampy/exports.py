@@ -378,6 +378,7 @@ def display_matplotlib(slide_id, show=False):
     """
         Display the given slide in a matplotlib figure
     """
+    
     from matplotlib import pyplot
     from PIL import Image
     from numpy import asarray
@@ -408,17 +409,17 @@ def display_matplotlib(slide_id, show=False):
     # join all svg defs (old .decode('utf-8', errors='replace') after join for py2)
     svgout += '<defs>%s</defs>' % (''.join(slide.svgdefout))
 
-    for layer in range(max(slide.svglayers) + 1):
-
+    for layer in range(slide.num_layers + 1):
         # Join all the svg contents (old .decode('utf-8', errors='replace') for py2)
-        svgout += slide.svglayers[layer]
+        if layer in slide.svglayers:
+            svgout += slide.svglayers[layer]
 
     # Add the svgfooter
     svgout += slide.svgfooter
 
     # Write it to a file
     tmpname = './.%s' % slide_id
-    with io.open(tmpname+'.svg', 'w', encoding='utf8') as f:
+    with io.open(tmpname+'.svg', 'w') as f:
         f.write(svgout)
 
     # Reset document format to oldformat

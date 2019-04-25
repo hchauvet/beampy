@@ -317,6 +317,8 @@ def latex2svg(latexstring, write_tmpsvg=False):
     if 'error' in output or '!' in output:
         print('Latex compilation error')
         print(output)
+        sys.exit(1)
+        
     else:
         #dvisvgm to convert dvi to svg [old -e option not compatible with linkmark]
         if write_tmpsvg:
@@ -335,11 +337,12 @@ def latex2svg(latexstring, write_tmpsvg=False):
         for f in glob.glob(tmpnam+'*'):
             os.remove(f)
 
-    outsvg = clean_ghostscript_warnings(outsvg)
-    _log.debug(outsvg)
-    _log.debug(type(outsvg))
+        outsvg = clean_ghostscript_warnings(outsvg)
+        
+        _log.debug(outsvg)
+        _log.debug(type(outsvg))
     
-    return outsvg
+        return outsvg
 
 
 def clean_ghostscript_warnings(rawsvg):

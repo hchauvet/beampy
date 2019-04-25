@@ -54,8 +54,20 @@ A Beampy presentation is based on the **document** class, in which all slides an
 
 
 
-.. image:: /auto_tutorials/images/sphx_glr_first_slide_001.png
-    :align: center
+.. code-block:: pytb
+
+    Traceback (most recent call last):
+      File "/home/hugo/developpement/python/beampy_git/doc-src/tutorials/first_slide.py", line 37, in <module>
+        save('hello.html')
+      File "/home/hugo/developpement/python/libperso/beampy/exports.py", line 68, in save
+        render_texts()
+      File "/home/hugo/developpement/python/libperso/beampy/functions.py", line 733, in render_texts
+        ct_cache = document._cache.is_cached(e.slide_id, e)
+      File "/home/hugo/developpement/python/libperso/beampy/cache.py", line 173, in is_cached
+        elemid = create_element_id(bp_module, use_args=False, add_slide=False, slide_position=False)
+      File "/home/hugo/developpement/python/libperso/beampy/cache.py", line 285, in create_element_id
+        if outid in document._slides[bp_mod.slide_id].element_keys:
+    KeyError: 'slide_1'
 
 
 
@@ -81,14 +93,6 @@ now in the upper-left corner.
     display_matplotlib(gcs())
 
 
-
-
-.. image:: /auto_tutorials/images/sphx_glr_first_slide_002.png
-    :align: center
-
-
-
-
 When value of *x* and *y* are lower than 1.0, they are by default in percent
 of slide (or group) width. So if you set *x=0.5* and *y=0.5x3/4* (as the
 aspect ratio of the theme is 4/3) the text will be anchored (default anchor is
@@ -105,14 +109,6 @@ upper-left) to the center of the slide.
     display_matplotlib(gcs())
 
 
-
-
-.. image:: /auto_tutorials/images/sphx_glr_first_slide_003.png
-    :align: center
-
-
-
-
 Now we could also set fixed position for *x* and *y*. To do so, if *x* and *y*
 are greater than 1.0 and their coordinates will be in pixel.
 
@@ -125,14 +121,6 @@ are greater than 1.0 and their coordinates will be in pixel.
         text('Hello Beampy!', x=100, y=100)
 
     display_matplotlib(gcs())
-
-
-
-
-.. image:: /auto_tutorials/images/sphx_glr_first_slide_004.png
-    :align: center
-
-
 
 
 You could also give coordinates as strings and specify the units (cm, pt),

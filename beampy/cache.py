@@ -222,13 +222,21 @@ class cache_slides():
     def write_file_cache(self, filename, content):
         
         with gzip.open(self.folder+'/'+filename+'.pklz', 'wb') as f:
-            f.write(content.encode('utf-8'))
+            try:
+                f.write(content.encode('utf-8'))
+            except Exception as e:
+                # Py 2 compatibility
+                f.write(content)
 
     def read_file_cache(self, filename):
         output = None
         
         with gzip.open(self.folder+'/'+filename+'.pklz', 'rb') as f:
-            output = f.read().decode('utf-8')
+            try:
+                output = f.read().decode('utf-8')
+            except Exception as e:
+                # Python 2 compatibility
+                output = f.read()
             
         return output
         
