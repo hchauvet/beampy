@@ -27,7 +27,7 @@ script:
   - mkdir ./tests/html_out
   - mkdir ./tests/pdf_out
   - mkdir ./tests/pdf_out/tmp
-  - cd ./tests/ && pytest --cov=beampy
+  - cd ./tests/ && pytest --cov-config=.coveragerc --cov=beampy
 
 after_success:
   - codecov -t 1cb50e38-d33f-4a1c-baf7-b5c53276d2e2

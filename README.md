@@ -1,4 +1,4 @@
-# Beampy [![Build Status](https://travis-ci.com/hchauvet/beampy.svg?branch=dev-python3)](https://travis-ci.com/hchauvet/beampy) 
+# Beampy [![Build Status](https://travis-ci.com/hchauvet/beampy.svg?branch=dev-python3)](https://travis-ci.com/hchauvet/beampy) [![codecov](https://codecov.io/gh/hchauvet/beampy/branch/dev-python3/graph/badge.svg)](https://codecov.io/gh/hchauvet/beampy)
 
 Beampy is in early stage development!
 
