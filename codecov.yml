@@ -1,0 +1,2 @@
+ignore:
+  - "beampy/scour"  # ignore scour in coverage 
