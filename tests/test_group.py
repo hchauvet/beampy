@@ -24,7 +24,7 @@ def make_presentation():
             with group(width = 100, height=50, x = g5.right + 0, y=g5.top+0, background='lightgreen'):
                 text('toto')
 
-            figure('/home/hugo/Documents/Boulo/00252.jpg')
+            figure('./test.gif')
 
         e0 = text('toto', x=g2.left + 0, y=g2.top - bottom(0.01))
 

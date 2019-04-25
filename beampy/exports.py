@@ -121,7 +121,7 @@ def pdf_export(name_out):
     output_svg_names = []
     for islide in range(document._global_counter['slide']+1):
         print('slide %i'%islide)
-        for layer in range(max(document._slides['slide_%i'%islide].svglayers) + 1):
+        for layer in range(document._slides['slide_%i'%islide].num_layers + 1):
             print('layer %i'%layer)
             #Use inkscape to render svg to pdf
             res = os.popen(svgcmd%(bdir+'/tmp/slide_%i-%i.svg'%(islide, layer),
@@ -174,13 +174,16 @@ def svg_export(dir_name, quiet=False):
 
         # join all svg defs (old .decode('utf-8', errors='replace') after the join for py2)
         def_svg = '<defs>%s</defs>'%(''.join(slide.svgdefout))
-        for layer in range(max(slide.svglayers) + 1):
+        for layer in range(slide.num_layers + 1):
 
             # save the list of rendered svg to a new dict as a string
             tmp = slide.svgheader + glyphs_svg + def_svg
 
             # Join all the svg contents (old .decode('utf-8', errors='replace') for py2)
-            tmp += slide.svglayers[layer]
+            if layer in slide.svglayers:
+                tmp += slide.svglayers[layer]
+            else:
+                tmp += '' #empty slide (when no svg are defined on slides)
 
             # Add the svgfooter
             tmp += slide.svgfooter

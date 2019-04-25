@@ -11,6 +11,8 @@ test_name = 'test_figures'
 
 @pytest.fixture
 def make_presentation():
+    import matplotlib
+    matplotlib.use('agg')
     import pylab as p
     doc = document(cache=False)
 
