@@ -324,7 +324,11 @@ def html5_export():
         output += glyphs_svg
 
     # Add the svg content
-    output += u"".join( global_store )    
+    try:
+        output += "".join( global_store )
+    except Exception as e:
+        #Python 2 backcompatibility
+        output += "".join( global_store ).decode('utf8')
     
     
     # Create store divs for each slides

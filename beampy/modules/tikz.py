@@ -106,8 +106,8 @@ class tikz(beampy_module):
         \\end{document}
         """%(extra_tex_packages, tikz_fig_opts, tikzcommands)
 
-        #latex2svg
-        svgout = latex2svg(pretex, write_tmpsvg=True)
+        #latex2svg 
+        svgout = latex2svg(pretex, write_tmpsvg=False)
 
         if svgout != '':
 

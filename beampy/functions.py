@@ -328,9 +328,8 @@ def latex2svg(latexstring, write_tmpsvg=False):
             with open(tmpnam+'.svg') as svgf:
                 outsvg = svgf.read()
         else:
-            res = os.popen( dvisvgmcmd+' -n -s -a --linkmark=none -v0 '+tmpnam+'.dvi' )
-            outsvg = res.read()
-            res.close()
+            cmd = dvisvgmcmd+' -n -s -a --linkmark=none -v0 '+tmpnam+'.dvi'
+            outsvg = check_output(cmd, shell=True).decode('utf8')
 
         #Remove temp files
         for f in glob.glob(tmpnam+'*'):
@@ -787,12 +786,16 @@ def render_texts(elements_to_render=[], extra_packages=[]):
         dvisvgmcmd = document._external_cmd['dvisvgm']
 
         t = time.time()
-        res = os.popen(dvisvgmcmd+' -n -s -p1- --linkmark=none -v0 '+tmpname+'.dvi')
-        allsvgs = res.readlines()
-        res.close()
+        cmd = dvisvgmcmd+' -n -s -p1- --linkmark=none -v0 '+tmpname+'.dvi'
+        allsvgs = check_output(cmd, shell=True).decode('utf8')
+        allsvgs = allsvgs.splitlines()
+        #res = os.popen(cmd)
+        #allsvgs = res.readlines()
+        #res.close()
 
+        # Check if their is warning emitted by dvisvgm inside the svgfile
         allsvgs = clean_ghostscript_warnings(allsvgs)
-
+        
         
         #To split the data get the first line which define the <? xml ....?> command
         schema = allsvgs[0]

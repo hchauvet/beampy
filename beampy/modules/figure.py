@@ -181,8 +181,9 @@ class figure(beampy_module):
             else:
                 #Check if a filename is given for a svg file or directly read the content value
                 if os.path.isfile(self.content):
-                    with open(self.content) as f:
+                    with open(self.content, 'r') as f:
                         figurein = f.read()
+  
                 else:
                     figurein = self.content
 
@@ -211,7 +212,7 @@ class figure(beampy_module):
                             tmp_img = Image.open(in_img)
                             #print(tmp_img)
                             out_img = resize_raster_image( tmp_img )
-                            out_b64 = base64.b64encode( out_img.read() )
+                            out_b64 = base64.b64encode( out_img.read() ).decode('utf8')
 
                             #replace the resized image into the svg
                             img['xlink:href'] = 'data:image/%s;base64, %s'%(tmp_img.format.lower(), out_b64)
@@ -228,8 +229,12 @@ class figure(beampy_module):
             if tmph is None or tmpw is None:
                 fmpf, tmpname = tempfile.mkstemp(prefix="beampytmp")
                 with open(tmpname+'.svg', 'w') as f:
-                    f.write(figurein)
-                    
+                    try:
+                        f.write(figurein)
+                    except Exception as e:
+                        #python 2
+                        f.write(figurein.encode('utf8'))
+                        
                 tmph = getsvgheight(tmpname+'.svg')
                 tmpw = getsvgwidth(tmpname+'.svg')
                 # print tmpw, tmph
