@@ -1,4 +1,4 @@
-# Beampy
+# Beampy [![Build Status](https://travis-ci.com/hchauvet/beampy.svg?branch=dev-python3)](https://travis-ci.com/hchauvet/beampy) 
 
 Beampy is in early stage development!
 
