@@ -4,7 +4,3 @@ pillow
 six
 lxml
 
-# Needed to test
-matplotlib
-bokeh
-pytest
