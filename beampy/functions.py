@@ -320,9 +320,12 @@ def latex2svg(latexstring, write_tmpsvg=False):
     else:
         #dvisvgm to convert dvi to svg [old -e option not compatible with linkmark]
         if write_tmpsvg:
+            _log.debug('Write dvisvgm output as an svg file')
             res = os.popen( dvisvgmcmd+' -n -a --linkmark=none -o '+tmpnam+'.svg --verbosity=0 '+tmpnam+'.dvi' )
+            resp = res.read()
             res.close()
-            with open(tmpnam+'.svg', 'w') as svgf:
+            
+            with open(tmpnam+'.svg') as svgf:
                 outsvg = svgf.read()
         else:
             res = os.popen( dvisvgmcmd+' -n -s -a --linkmark=none -v0 '+tmpnam+'.dvi' )
