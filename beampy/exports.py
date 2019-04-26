@@ -98,7 +98,7 @@ def save(output_file=None, format=None):
                 f.write(output)
             except Exception as e:
                 print('Encode output as utf-8, for python2 compatibility')
-                f.write(output.encode('utf8'))
+                f.write(output.encode('utf8', 'replace'))
 
     # write cache file
     if document._cache is not None:
@@ -194,12 +194,12 @@ def svg_export(dir_name, quiet=False):
             # Add the svgfooter
             tmp += slide.svgfooter
 
-            with io.open(dir_name+'slide_%i-%i.svg'%(islide, layer), 'w') as f:
+            with io.open(dir_name+'slide_%i-%i.svg'%(islide, layer), 'w', encoding='utf8') as f:
                 try:
                     f.write(tmp)
                 except Exception as e:
                     # For python 2
-                    f.write(tmp.encode('utf8'))
+                    f.write(tmp.decode('utf8', 'replace'))
 
     return "saved to "+dir_name
 
