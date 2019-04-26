@@ -29,20 +29,8 @@ Add video to your slide.
 
 
 
-.. code-block:: pytb
-
-    Traceback (most recent call last):
-      File "/home/hugo/developpement/python/beampy_git/doc-src/examples/plot_video.py", line 18, in <module>
-        save('./examples_html_outputs/video.html')
-      File "/home/hugo/developpement/python/libperso/beampy/exports.py", line 68, in save
-        render_texts()
-      File "/home/hugo/developpement/python/libperso/beampy/functions.py", line 733, in render_texts
-        ct_cache = document._cache.is_cached(e.slide_id, e)
-      File "/home/hugo/developpement/python/libperso/beampy/cache.py", line 173, in is_cached
-        elemid = create_element_id(bp_module, use_args=False, add_slide=False, slide_position=False)
-      File "/home/hugo/developpement/python/libperso/beampy/cache.py", line 285, in create_element_id
-        if outid in document._slides[bp_mod.slide_id].element_keys:
-    KeyError: 'slide_1'
+.. image:: /auto_examples/images/sphx_glr_plot_video_001.png
+    :align: center
 
 
 

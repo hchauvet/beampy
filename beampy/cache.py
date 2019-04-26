@@ -286,7 +286,11 @@ def create_element_id(bp_mod, use_args=True, use_render=True,
     outid = None
     if ct_to_hash != '':
         #print ct_to_hash
-        outid = hashlib.md5( ct_to_hash.encode('utf-8') ).hexdigest()
+        try:
+            outid = hashlib.md5( ct_to_hash.encode('utf-8') ).hexdigest()
+        except:
+            # for python 2
+            outid = hashlib.md5( ct_to_hash ).hexdigest()
 
         if outid in document._slides[bp_mod.slide_id].element_keys:
             print("Id for this element already exist!")

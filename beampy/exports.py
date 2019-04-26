@@ -195,7 +195,11 @@ def svg_export(dir_name, quiet=False):
             tmp += slide.svgfooter
 
             with io.open(dir_name+'slide_%i-%i.svg'%(islide, layer), 'w', encoding='utf8') as f:
-                f.write(tmp)
+                try:
+                    f.write(tmp)
+                except Exception as e:
+                    # For python 2
+                    f.write(tmp.encode('utf8'))
 
     return "saved to "+dir_name
 
@@ -487,7 +491,7 @@ def get_bokeh_includes():
         # Test if the css is stored in cache
         if document._cache is not None and document._cache.is_file_cached(cssname):
             csst = document._cache.get_cached_file(cssname)
-            css_out += csst.decode('utf8') + '\n'
+            css_out += csst.decode('utf8', errors='replace') + '\n'
         else:
             try:
                 print('Download %s' % cssurl)
@@ -496,7 +500,7 @@ def get_bokeh_includes():
                 if document._cache is not None:
                     document._cache.add_file(cssname, csst)
                 # Don't forget to add a newline !
-                css_out += csst.decode('utf8') + '\n'
+                css_out += csst.decode('utf8', errors='replace') + '\n'
 
             except URLError as e:
                 print('Error in download: %s' % e)
@@ -508,7 +512,7 @@ def get_bokeh_includes():
         jsname = jsurl[jsurl.rfind("/") + 1:]
         if document._cache is not None and document._cache.is_file_cached(jsname):
             jst = document._cache.get_cached_file(jsname)
-            js_out += jst.decode('utf8') + '\n'
+            js_out += jst.decode('utf8', errors='replace') + '\n'
         else:
             try:
                 print('Download %s' % jsurl)
@@ -516,7 +520,7 @@ def get_bokeh_includes():
                 jst = response.read()
                 if document._cache is not None:
                     document._cache.add_file(jsname, jst)
-                js_out += jst.decode('utf8') + '\n'
+                js_out += jst.decode('utf8', errors='replace') + '\n'
             except URLError as e:
                 print('Error in download: %s' % e)
 

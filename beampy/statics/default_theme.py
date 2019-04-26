@@ -123,6 +123,7 @@ THEME['tikz'] = {
     'y': 0,
     'tikz_header': None,
     'tex_packages': None,
+    'latex_pre_tikzpicture': None,
     'figure_options': None,
     'figure_anchor': 'top_left'
 }

@@ -316,7 +316,6 @@ class document():
 
         document._global_store = {}
         document._external_cmd = {}
-        document._quiet = False
         document._latex_packages = []
 
         

@@ -771,7 +771,7 @@ def render_texts(elements_to_render=None, extra_packages=None):
 
         with open( tmpname + '.tex','w') as f:
             f.write(latex_header)
-            f.write(r'\newpage'.join(latex_pages))
+            f.write('\n \\newpage \n'.join(latex_pages))
             f.write(latex_footer)
 
         print('Latex file writen in %f'%(time.time()-t))
@@ -787,8 +787,9 @@ def render_texts(elements_to_render=None, extra_packages=None):
         _log.debug(tex_outputs)
         
         if 'error' in tex_outputs or '!' in tex_outputs:
-            print('Latex compilation error')
             print(tex_outputs)
+            print('Latex compilation error')
+            sys.exit(1)
             
         tex.close()
 
@@ -799,31 +800,19 @@ def render_texts(elements_to_render=None, extra_packages=None):
         cmd = dvisvgmcmd+' -n -s -p1- --linkmark=none -v0 '+tmpname+'.dvi'
         allsvgs = check_output(cmd, shell=True).decode('utf8')
         allsvgs = allsvgs.splitlines()
-        #res = os.popen(cmd)
-        #allsvgs = res.readlines()
-        #res.close()
 
         # Check if their is warning emitted by dvisvgm inside the svgfile
         allsvgs = clean_ghostscript_warnings(allsvgs)
         
-        
         #To split the data get the first line which define the <? xml ....?> command
         schema = allsvgs[0]
-
+        
         #Join all svg lines and split them each time you find the schema
         svg_list = ''.join(allsvgs[1:]).split(schema)
-        
-        
+
         #Process all pages to svg
         for i, ep in enumerate(elements_pages):
             #Loop over content in the slide
-            cpt_page = ep['page']
-            #tmpcmd = dvisvgmcmd+' -n -s -p '+str(cpt_page)+' --linkmark=none -v0 '+tmpname+'.dvi'
-            #res = os.popen( tmpcmd )
-            #tmpres = res.read()
-            #res.close()
-            #print(document._slides[ep['slide']].contents[ep['element']])
-            #document._slides[ep['slide']].contents[ep['element']].svgtext = tmpres
             ep['element'].svgtext = schema + svg_list[i]
             
         print('DVI -> SVG in %f'%(time.time()-t))

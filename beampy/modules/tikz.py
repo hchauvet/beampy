@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 
 
 class tikz(beampy_module):
-    """
+    r"""
     Add Tikz/pgf graphic to the slide. 
 
     Parameters
@@ -21,7 +21,7 @@ class tikz(beampy_module):
 
     tikzcmd : string
         String containing the main Tikz commands contained between
-        \\begin{tikzpicture} and \\end{}tikzpicture}.
+        \begin{tikzpicture} and \end{}tikzpicture}.
 
     x : int or float or {'center', 'auto'} or str, optional
         Horizontal position for the Tikz graphic (the default theme set this to
@@ -32,16 +32,23 @@ class tikz(beampy_module):
         See positioning system of Beampy.
 
     tikz_header : str or None, optional
-        Add extra Tiks/pgf libraries and style (Tiks commands \\usetikzlibrary
-        and \\tickstyle), everything that is included befor \begin{document}
+        Add extra Tiks/pgf libraries and style (Tiks commands \usetikzlibrary
+        and \tickstyle), everything that is included before \begin{document}
         (the default theme sets this to None).
 
     tex_packages : list of string or None, optional
-        Add extra Tex packages that are included using the \\usepackages (the
-        default theme set this to None). The list should only contains the name
+        Add extra Tex packages that are included using the \usepackages (the
+        default theme sets this to None). The list should only contains the name
         of tex packages as strings.
 
         >>> tex_packages = ['xolors','tikz-3dplot']
+
+    latex_pre_tikzpicture: str or None, optional
+        Add extra latex commands that will be added between
+        \begin{document} and \begin{tikzpicture} (the default theme
+        sets this to None)
+
+        >>> latex_pre_tikzpicture = r'\newcounter{mycounter}\setcounter{mycounter}{10}'
 
     figure_options : string or None,
         Tikz options added just after: \begin{tikzpicture}[options] (the default
@@ -58,7 +65,7 @@ class tikz(beampy_module):
         self.check_args_from_theme(kwargs)
 
         # Special args for cache id (when do we need to re-run latex render)
-        self.args_for_cache_id = ['figure_options', 'tex_packages', 'tikz_header']
+        self.args_for_cache_id = ['figure_options', 'tex_packages', 'tikz_header', 'latex_pre_tikzpicture']
 
         self.register()
 
@@ -78,7 +85,7 @@ class tikz(beampy_module):
 
         #Include extrac packages for tex
         if getattr(self, 'tex_packages', False):
-            extra_tex_packages = '\n'.join(['\\usepackages{%s}'%pkg for pkg in self.tex_packages])
+            extra_tex_packages = '\n'.join(['\\usepackage{%s}'%pkg for pkg in self.tex_packages])
         else:
             extra_tex_packages = ''
 
@@ -92,6 +99,12 @@ class tikz(beampy_module):
         else:
             tikz_fig_opts = ''
 
+        #Do we have some latex command to include between begin{document} and \begin{tikzpicture}
+        if getattr(self, 'latex_pre_tikzpicture', False):
+            pre_latex = self.latex_pre_tikzpicture
+        else:
+            pre_latex = ''
+            
         # Render to a dvi file
         pretex = """
         \\documentclass[tikz,svgnames]{standalone}
@@ -100,11 +113,13 @@ class tikz(beampy_module):
         %s
 
         \\begin{document}
+        %s
             \\begin{tikzpicture}%s
             %s
             \\end{tikzpicture}
         \\end{document}
-        """%(extra_tex_packages, tikz_fig_opts, tikzcommands)
+        """%(extra_tex_packages, pre_latex,
+             tikz_fig_opts, tikzcommands)
 
         #latex2svg 
         svgout = latex2svg(pretex, write_tmpsvg=False)

@@ -22,8 +22,8 @@ By default text is processed by Latex and accept Latex syntax.
     doc = document(quiet=True)
 
     with slide('Text module'):
-        text(r'A simple text with $\LaTeX$ syntax so you could write equation:')
-        text(r'\sqrt{\frac{x}{y}}')
+        text(r'A simple text with \LaTeX syntax so you could write equation:')
+        text(r'$$\sqrt{\frac{x}{y}}$$')
 
         t = text(r'You could align text to center by using the \textbf{align} parameter',
              align='center', width=350)
@@ -37,16 +37,8 @@ By default text is processed by Latex and accept Latex syntax.
 
 
 
-.. code-block:: pytb
-
-    Traceback (most recent call last):
-      File "/home/hugo/developpement/python/beampy_git/doc-src/examples/plot_text.py", line 26, in <module>
-        display_matplotlib(gcs())
-      File "/home/hugo/developpement/python/libperso/beampy/exports.py", line 403, in display_matplotlib
-        render_texts([slide.contents[eid] for eid in slide.element_keys if slide.contents[eid].type == 'text'])
-      File "/home/hugo/developpement/python/libperso/beampy/functions.py", line 827, in render_texts
-        ep['element'].svgtext = schema + svg_list[i]
-    IndexError: list index out of range
+.. image:: /auto_examples/images/sphx_glr_plot_text_001.png
+    :align: center
 
 
 
