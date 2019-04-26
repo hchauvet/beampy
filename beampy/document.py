@@ -381,7 +381,6 @@ class document():
 
 
     def __repr__(self):
-
         output = '''
         Document class infos:
         %s
@@ -403,7 +402,30 @@ class document():
     
     @classmethod
     def print_variables(cls):
-        return cls.__repr__(cls)
+        """
+        Print information on the document class and the content of its
+        private data and methods.
+        """
+        
+        # Calling cls.__repr__(cls) works for python 3.x but not for
+        # python 2.7
+        
+        output = '''Document class infos:
+        %s
+        '''
+
+        allvars = vars(cls)
+        private = ''
+        other = ''
+        
+        for k in allvars:
+            fmt = '%s: %s\n' % (k, str(allvars[k]))
+            if k.startswith('_'):
+                private += fmt
+            else:
+                other += fmt
+                
+        return output % (private+'\n\n'+other)
     
 def section(title):
     """

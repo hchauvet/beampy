@@ -37,9 +37,9 @@ Create a list or an enumeration of items from an input python list of strings.
     Traceback (most recent call last):
       File "/home/hugo/developpement/python/beampy_git/doc-src/examples/plot_itemize.py", line 22, in <module>
         display_matplotlib(gcs())
-      File "/home/hugo/developpement/python/libperso/beampy/exports.py", line 395, in display_matplotlib
+      File "/home/hugo/developpement/python/libperso/beampy/exports.py", line 403, in display_matplotlib
         render_texts([slide.contents[eid] for eid in slide.element_keys if slide.contents[eid].type == 'text'])
-      File "/home/hugo/developpement/python/libperso/beampy/functions.py", line 820, in render_texts
+      File "/home/hugo/developpement/python/libperso/beampy/functions.py", line 827, in render_texts
         ep['element'].svgtext = schema + svg_list[i]
     IndexError: list index out of range
 
