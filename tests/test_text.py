@@ -11,7 +11,7 @@ test_name = 'test_text'
 @pytest.fixture
 def make_presentation():
     
-    doc = document(cache=False, source_filename=__name__)
+    doc = document(cache=True, source_filename=__name__)
     
     def my_funct():
 
@@ -60,6 +60,8 @@ def test_html(make_presentation):
     doc = make_presentation
     save('./html_out/%s.html'%test_name)
 
+"""
 def test_pdf(make_presentation):
     doc = make_presentation
     save('./pdf_out/%s.pdf'%test_name)
+"""

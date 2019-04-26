@@ -8,7 +8,7 @@ test_name = 'test_box'
 
 @pytest.fixture
 def make_presentation():
-    doc = document(cache=False)
+    doc = document(cache=False, optimize=False)
 
     with slide('Add nice boxes to group'):
 

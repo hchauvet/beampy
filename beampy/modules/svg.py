@@ -7,7 +7,7 @@ Module to write raw svg commands in slides
 
 from beampy import document
 from beampy.functions import (getsvgwidth, getsvgheight)
-from beampy.modules.core import beampy_module
+from beampy.modules.core import beampy_module, group
 from beampy.geometry import convert_unit
 
 import logging
@@ -367,16 +367,19 @@ def grid(dx, dy, **kwargs):
     assert dx > 0
     assert dy > 0
 
-    # create horizontal line
-    cur_x = 0
-    while (cur_x <= document._height):
-        hline('%spx'%cur_x, **kwargs)
-        cur_x += dx
+    with group(x=0, y=0, width=document._width, height=document._height) as g:
+        # create horizontal line
+        cur_x = 0
+        while (cur_x <= document._height):
+            hline('%spx'%cur_x, **kwargs)
+            cur_x += dx
 
-    cur_y = 0
-    while (cur_y <= document._width):
-        vline('%spx'%cur_y, **kwargs)
-        cur_y += dy
+        cur_y = 0
+        while (cur_y <= document._width):
+            vline('%spx'%cur_y, **kwargs)
+            cur_y += dy
+
+    return g
 
         
 # TODO: Improve grid rendering to not loop over beampy elements but create a true grid

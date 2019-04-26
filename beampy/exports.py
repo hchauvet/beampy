@@ -18,6 +18,9 @@ import os
 import time
 import io
 
+import logging
+_log = logging.getLogger(__name__)
+
 # Get the beampy folder
 curdir = os.path.dirname(__file__) + '/'
 
@@ -50,6 +53,9 @@ def save(output_file=None, format=None):
 
     """
 
+    _log.debug('Document at the begining of save method')
+    _log.debug(document.print_variables())
+    
     if document._quiet:
         sys.stdout = open(os.devnull, 'w')
 
@@ -378,6 +384,8 @@ def display_matplotlib(slide_id, show=False):
     """
         Display the given slide in a matplotlib figure
     """
+    import matplotlib
+    matplotlib.use('agg')
     
     from matplotlib import pyplot
     from PIL import Image
@@ -407,7 +415,11 @@ def display_matplotlib(slide_id, show=False):
         svgout += glyphs_svg
 
     # join all svg defs (old .decode('utf-8', errors='replace') after join for py2)
-    svgout += '<defs>%s</defs>' % (''.join(slide.svgdefout))
+    try:
+        svgout += '<defs>%s</defs>' % (''.join(slide.svgdefout))
+    except Exception as e:
+        # For py 2
+        svgout += '<defs>%s</defs>' % (''.join(slide.svgdefout)).decode('utf-8', errors='replace')
 
     for layer in range(slide.num_layers + 1):
         # Join all the svg contents (old .decode('utf-8', errors='replace') for py2)
@@ -430,8 +442,10 @@ def display_matplotlib(slide_id, show=False):
     inkscapecmd = document._external_cmd['inkscape']
     # use inkscape to translate svg to pdf
     svgcmd = inkscapecmd+" --without-gui  --file='%s' --export-png='%s' -b='white' -d=300"
-    os.popen(svgcmd % (tmpname+'.svg', tmpname+'.png'))
-
+    res = os.popen(svgcmd % (tmpname+'.svg', tmpname+'.png'))
+    tmp = res.read()
+    res.close()
+    
     img = asarray(Image.open(tmpname+'.png'))
 
     # Remove files

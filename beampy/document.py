@@ -170,7 +170,8 @@ class document():
     
     def __init__(self, quiet=False, latex_packages=None, source_filename=None, **kwargs):
         """
-            Create document to store slides
+  
+          Create document to store slides
             options (see THEME)
             -------
             - width[800]: with of slides
@@ -199,6 +200,7 @@ class document():
         # To store different counters
         self.global_counter = self._global_counter
 
+        self.source_filename = source_filename
         
         # Check if we want to load a new theme
         if 'theme' in kwargs:
@@ -241,6 +243,12 @@ class document():
         # Load the source code of the current presentation
         self.get_source_code(source_filename)
 
+
+        # Output the storage of slide etc... in debug logger
+        _log.debug('Document class before adding slides')
+        _log.debug('From classmethod (class not instantiated)')
+        _log.debug(document.print_variables())
+        
         # Print the header message
         print("="*20 + " BEAMPY START " + "="*20)
 
@@ -278,10 +286,14 @@ class document():
         document._resize_raster = good_values['resize_raster']
         document._output_format = good_values['format']
         
-        if document._cache == False:
+        if not document._cache:
             document._cache = None
         else:
-            cache_file = './.beampy_cache_%s' % (script_file_name)
+            if self.source_filename is not None:
+                cache_file = './.beampy_cache_%s' % (self.source_filename)
+            else:
+                cache_file = './.beampy_cache_%s' % (script_file_name)
+                
             print("\nChache file to %s" % (cache_file))
             document._cache = cache_slides(cache_file, self)
 
@@ -301,6 +313,12 @@ class document():
         document._resize_raster = True
         document._output_format = 'html5'
         document._TOC = []
+
+        document._global_store = {}
+        document._external_cmd = {}
+        document._quiet = False
+        document._latex_packages = []
+
         
     def dict_deep_update(self, original, update):
 
@@ -361,7 +379,32 @@ class document():
     def get_source_code(self, sourcefilename=None):
         document._source_code = SourceManager(sourcefilename)
 
+
+    def __repr__(self):
+
+        output = '''
+        Document class infos:
+        %s
+        '''
+
+        allvars = vars(self)
+        private = ''
+        other = ''
         
+        for k in allvars:
+            fmt = '%s: %s\n' % (k, str(allvars[k]))
+            if k.startswith('_'):
+                private += fmt
+            else:
+                other += fmt
+                
+        return output % (private+'\n\n'+other)
+
+    
+    @classmethod
+    def print_variables(cls):
+        return cls.__repr__(cls)
+    
 def section(title):
     """
     Function to add a section in the TOC.

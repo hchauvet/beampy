@@ -6,7 +6,8 @@ test_name = 'test_theme_beamerFrankfurt'
 @pytest.fixture
 def make_presentation():
     doc = document(cache=True,
-                   theme='BeamerFrankfurt')
+                   theme='BeamerFrankfurt',
+                   source_filename = __name__)
 
     with slide():
         maketitle('Beampy a tool to make simple or complex presentation from python to SVG/HTML',

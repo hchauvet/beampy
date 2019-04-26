@@ -8,7 +8,7 @@ test_name = 'test_exports'
 
 @pytest.fixture
 def make_one_slide():
-    doc = document(source_filename=__name__)
+    doc = document(cache=False, source_filename=__name__)
 
     with slide('A test slide'):
         rectangle(width=50, height=50)

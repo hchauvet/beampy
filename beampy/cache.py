@@ -19,6 +19,8 @@ import copy
 import hashlib
 import tempfile
 import glob
+import logging
+_log = logging.getLogger(__name__)
 
 class cache_slides():
 
@@ -177,11 +179,6 @@ class cache_slides():
                 cacheelem = self.data[elemid]
                 out = True
 
-                #Content check OLD TO REMOVE if no bugs
-                #the content is now used to generate the elemid 
-                #if bp_module.content == cacheelem['content']:
-                #    out = True
-
                 #If it's from a file check if the file as changed
                 if 'file_id' in cacheelem:
                     try:
@@ -248,7 +245,8 @@ def create_element_id(bp_mod, use_args=True, use_render=True,
     from beampy.document import document
 
     ct_to_hash = ''
-
+    _log.debug('Create id for %s on slide %s' % (str(bp_mod.name), bp_mod.slide_id))
+    
     if add_slide:
         ct_to_hash += bp_mod.slide_id
 

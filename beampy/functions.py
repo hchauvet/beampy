@@ -677,7 +677,7 @@ def guess_file_type(file_name, file_type=None):
 
 
 # Function to render texts in document
-def render_texts(elements_to_render=[], extra_packages=[]):
+def render_texts(elements_to_render=None, extra_packages=None):
     r"""
     Function to merge all text in the document to run latex only once
     This function build the .tex file and then call two external programs
@@ -687,7 +687,7 @@ def render_texts(elements_to_render=[], extra_packages=[]):
     -----------
 
     elements_to_render, list of beampy_module (optional):
-        List of beampy_module object to render (the default is empty,
+        List of beampy_module object to render (the default is None,
         which render all text module in all slides).
 
     extra_packages, list of string (optional):
@@ -695,7 +695,13 @@ def render_texts(elements_to_render=[], extra_packages=[]):
         template. Latex packages should be given as follow:
         [r'\usepackage{utf8x}{inputenc}']
     """
-    
+
+    if elements_to_render is None:
+        elements_to_render = []
+
+    if extra_packages is None:
+        extra_packages = []
+        
     print('Render texts of slides with latex')
     latex_header = r"""
     \documentclass[crop=true, multi=true]{standalone}
@@ -733,6 +739,7 @@ def render_texts(elements_to_render=[], extra_packages=[]):
                     
     for e in elements_to_render:
         if e.cache and document._cache is not None:
+            _log.debug('Render_texts test cache for element %s(id=%s) on slide: %s' % (e.name, e.id, e.slide_id))
             ct_cache = document._cache.is_cached(e.slide_id, e)
             if ct_cache is False:
                 # Run the pre_rendering

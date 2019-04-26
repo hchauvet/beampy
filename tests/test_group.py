@@ -9,7 +9,7 @@ test_name = 'test_group'
 
 @pytest.fixture
 def make_presentation():
-    doc = document(cache=False)
+    doc = document(cache=False, optimize=False)
     videofile = '../examples/test.webm'
 
     with slide('TEST'):

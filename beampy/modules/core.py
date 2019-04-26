@@ -15,8 +15,9 @@ from beampy.geometry import positionner, distribute
 import sys
 import time
 import inspect
-import logging
 
+import logging
+_log = logging.getLogger(__name__)
 
 class slide(object):
     """
@@ -124,7 +125,7 @@ class slide(object):
         # Check if it's a new group or not
         # print(self.groupsid, self.cur_group_level)
         if module_content.type != 'group':
-            logging.debug('Module added to group %s' % self.cur_group_id)
+            _log.debug('Module %s added to group %s' % (str(module_content.name), self.cur_group_id))
             self.contents[self.cur_group_id].add_elements_to_group(module_id, module_content)
             # Add the id of the group to the module
             self.contents[module_id].group_id = self.cur_group_id
@@ -134,7 +135,7 @@ class slide(object):
             if module_content.grouplevel > 0:
                 # Add this group id to the previous group
                 if module_content.parentid is not None:
-                    logging.debug("add parent %s"%module_content.parentid)
+                    _log.debug("Add parent (id=%s) for %s(%s)" % (module_content.parentid, module_content.name, module_id))
                     self.contents[module_content.parentid].add_elements_to_group(module_id, module_content)
 
                 # Record group tree in groupsid dict
@@ -477,8 +478,11 @@ class beampy_module(object):
         # Ajout du nom du module
         self.name = self.get_name()
 
+                   
         # Create a unique id for this element 
         self.id = create_element_id( self )
+        
+        _log.debug('%s(id=%s) store the slide id: %s' % (self.name, self.id, self.slide_id))
         
         # Store the layers where this module should be printed
         self.layers = [0]
@@ -568,7 +572,7 @@ class beampy_module(object):
 
         # Get the current slide object
         slide = document._slides[self.slide_id]
-        # print("Render: with height: %s and width: %s" % (self.height, self.width))
+        _log.debug("Render %s(id=%s): with height: %s and width: %s on slide: %s" % (self.name, self.id, self.height, self.width, slide.num))
         
         if self.cache and document._cache is not None:
             ct_cache = document._cache.is_cached('slide_%i'%slide.num, self)
@@ -583,6 +587,7 @@ class beampy_module(object):
                 #print("element %i not cached"%ct['positionner'].id)
                 if not self.rendered:
                     self.render()
+                    _log.debug('Add %s(id=%s) cache for slide_id: %s' % (self.name, self.id, slide.num))
                     document._cache.add_to_cache('slide_%i'%slide.num, self)
                     try:
                         print("Elem [%s ...] rendered"%self.call_cmd.strip()[:20])

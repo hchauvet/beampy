@@ -35,8 +35,8 @@ class title( text ):
             self.width = document._width
         self.height = None
 
-        #Add the title to the slide
-        document._slides[gcs()].title = self
-
         #Register this module
         self.register()
+        
+        #Add the title to the slide
+        document._slides[self.slide_id].title = self
