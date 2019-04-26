@@ -194,7 +194,7 @@ def svg_export(dir_name, quiet=False):
             # Add the svgfooter
             tmp += slide.svgfooter
 
-            with io.open(dir_name+'slide_%i-%i.svg'%(islide, layer), 'w', encoding='utf8') as f:
+            with io.open(dir_name+'slide_%i-%i.svg'%(islide, layer), 'w') as f:
                 try:
                     f.write(tmp)
                 except Exception as e:
