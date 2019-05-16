@@ -1,6 +1,4 @@
-# Beampy [![Build Status](https://travis-ci.com/hchauvet/beampy.svg?branch=dev-python3)](https://travis-ci.com/hchauvet/beampy) [![codecov](https://codecov.io/gh/hchauvet/beampy/branch/dev-python3/graph/badge.svg)](https://codecov.io/gh/hchauvet/beampy)
-
-Beampy is in early stage development!
+# Beampy [![Build Status](https://travis-ci.com/hchauvet/beampy.svg?branch=dev-python3)](https://travis-ci.com/hchauvet/beampy) [![codecov](https://codecov.io/gh/hchauvet/beampy/branch/dev-python3/graph/badge.svg)](https://codecov.io/gh/hchauvet/beampy) ![pypi python version](https://img.shields.io/pypi/pyversions/beampy-slideshow.svg) ![pypi licence](https://img.shields.io/pypi/l/beampy-slideshow.svg) ![pypi download](https://img.shields.io/pypi/dm/beampy-slideshow.svg) ![pypi beampy version](https://img.shields.io/pypi/v/beampy-slideshow.svg)
 
 Beampy is a python tool to create slide-show in svg that can be displayed with HTML5
 (tested on Firefox and Chromium)
