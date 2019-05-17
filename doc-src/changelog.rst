@@ -3,6 +3,16 @@
 Change-log
 ==========
 
+0.5.4
+-----
+
+Major version update, Beampy is now compatible with python 3 (tested on 3.7)
+
+* Python 3 compatible 
+* Fix multi format output duplication of texts `(issue #13) <https://github.com/hchauvet/beampy/issues/13>`_.
+* Introduce integrative tests using pytest framework (still no unit-tests for the core functions)
+* Improve logging.debug outputs
+* Add option to specify the location of the presentation source file ( doc = document(source_filename=__name__) )
 
 0.5.3
 -----

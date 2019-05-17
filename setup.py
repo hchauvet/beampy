@@ -25,6 +25,7 @@ setup(
     ],
     classifiers=[
         'Programming Language :: Python :: 2 ',
+        'Programming Language :: Python :: 3 ',
         'Topic :: Multimedia :: Graphics :: Presentation',
         'Topic :: Multimedia :: Graphics :: Editors :: Vector-Based ',
         'Topic :: Text Processing :: Markup :: LaTeX',
