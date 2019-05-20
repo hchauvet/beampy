@@ -14,8 +14,8 @@ from beampy import *
 doc = document(quiet=True)
 
 with slide('Text module'):
-    text(r'A simple text with $\LaTeX$ syntax so you could write equation:')
-    text(r'\sqrt{\frac{x}{y}}')
+    text(r'A simple text with \LaTeX syntax so you could write equation:')
+    text(r'$$\sqrt{\frac{x}{y}}$$')
 
     t = text(r'You could align text to center by using the \textbf{align} parameter',
          align='center', width=350)

@@ -14,7 +14,7 @@ doc = document(quiet=True)
 with slide('Itemize'):
     itemize(['''This is a long text inside an item. 
              It will crop at the given itemize width''',
-             r'\sqrt{1+10} \times \frac{x}{y}',
+             r'$\sqrt{1+10} \times \frac{x}{y}$',
              'tata'],
             width=400
     )

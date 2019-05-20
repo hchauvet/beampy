@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>tikz &#8212; Beampy 0.5.3 documentation</title>
+    <title>tikz &#8212; Beampy 0.5.4 documentation</title>
     
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.5.3',
+        VERSION:     '0.5.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -51,7 +51,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           Beampy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.3</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.4</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -152,72 +152,27 @@
 <span class="c1"># Remove quiet=True to get beampy compilation outputs</span>
 <span class="n">doc</span> <span class="o">=</span> <span class="n">document</span><span class="p">(</span><span class="n">quiet</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
-<span class="n">tkz_options</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;scale=1.4, every node/.style={minimum size=1cm},on grid&quot;</span>
+<span class="n">latex_cmd</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;\newcounter{density}\setcounter{density}{10}&quot;</span>
+<span class="n">tex_packages</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ifthen&#39;</span><span class="p">]</span>
 
 <span class="k">with</span> <span class="n">slide</span><span class="p">(</span><span class="s1">&#39;A tikz figure&#39;</span><span class="p">):</span>
     <span class="n">tikz</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">\begin{scope}[</span>
-<span class="s2">           yshift=-83,every node/.append style={</span>
-<span class="s2">           yslant=0.5,xslant=-1},yslant=0.5,xslant=-1</span>
-<span class="s2">           ]</span>
-<span class="s2">       \draw[step=4mm, black] (0,0) grid (5,5);</span>
-<span class="s2">       \draw[black,thick] (0,0) rectangle (5,5);%borders</span>
-<span class="s2">       \fill[greenMW] (2.05,2.05) rectangle (2.35,2.35); </span><span class="si">% c</span><span class="s2">enter pixel</span>
-<span class="s2">       \fill[greenMW] (1.65,2.05) rectangle (1.95,2.35); </span><span class="si">%le</span><span class="s2">ft</span>
-<span class="s2">       \fill[greenMW] (2.45,2.05) rectangle (2.75,2.35); </span><span class="si">%r</span><span class="s2">ight</span>
-<span class="s2">       \fill[greenMW] (2.05,2.45) rectangle (2.35,2.75); %top</span>
-<span class="s2">       \fill[greenMW] (2.05,1.95) rectangle (2.35,1.65); %bottom</span>
-<span class="s2">% 8 -pixel setting</span>
-<span class="s2">       \fill[greenMW] (1.65,2.45) rectangle (1.95,2.75); %top-left</span>
-<span class="s2">       \fill[greenMW] (2.45,2.45) rectangle (2.75,2.75); %top-right</span>
-<span class="s2">       \fill[greenMW] (2.75,1.95) rectangle (2.45,1.65); %bottom-right</span>
-<span class="s2">       \fill[greenMW] (1.65,1.95) rectangle (1.95,1.65); %bottom-left</span>
-<span class="s2">% 2. ring</span>
-<span class="s2">       \fill[greenMW] (1.25,1.55) rectangle (1.55,1.25); %bottom-left</span>
-<span class="s2">       \fill[greenMW] (0.85,1.55) rectangle (1.15,1.25); %bottom-left</span>
-<span class="s2">       \fill[greenMW] (0.85,1.15) rectangle (1.15,0.85); %bottom-left</span>
-<span class="s2">       \fill[greenMW] (1.25,0.75) rectangle (1.55,0.45); %bottom-left</span>
-<span class="s2">   \end{scope}</span>
-<span class="s2">%</span>
-<span class="s2">   \begin{scope}[</span>
-<span class="s2">           yshift=0,every node/.append style={</span>
-<span class="s2">           yslant=0.5,xslant=-1},yslant=0.5,xslant=-1</span>
-<span class="s2">           ]</span>
-<span class="s2">       \fill[white,fill opacity=0.9] (0,0) rectangle (5,5);</span>
-<span class="s2">       \draw[step=4mm, black] (0,0) grid (5,5); </span><span class="si">%g</span><span class="s2">rid definition</span>
-<span class="s2">       \draw[black,thick] (0,0) rectangle (5,5);%borders</span>
-<span class="s2">       \fill[greenMW] (2.05,2.05) rectangle (2.35,2.35); </span><span class="si">% c</span><span class="s2">enter pixel</span>
-<span class="s2">       \fill[greenMW] (1.65,2.05) rectangle (1.95,2.35); </span><span class="si">%le</span><span class="s2">ft</span>
-<span class="s2">       \fill[greenMW] (2.45,2.05) rectangle (2.75,2.35); </span><span class="si">% r</span><span class="s2">ight</span>
-<span class="s2">       \fill[greenMW] (2.05,2.45) rectangle (2.35,2.75); % top</span>
-<span class="s2">       \fill[greenMW] (2.05,1.95) rectangle (2.35,1.65); % bottom</span>
-<span class="s2">% 4 -pixel setting</span>
-<span class="s2">       \fill[greenMW] (1.65,2.45) rectangle (1.95,2.75); %top-left</span>
-<span class="s2">       \fill[greenMW] (2.45,2.45) rectangle (2.75,2.75); %top-right</span>
-<span class="s2">       \fill[greenMW] (2.75,1.95) rectangle (2.45,1.65); %bottom-right</span>
-<span class="s2">       \fill[greenMW] (1.65,1.95) rectangle (1.95,1.65); %bottom-left</span>
-<span class="s2">% 2. ring</span>
-<span class="s2">       \fill[orange] (1.25,1.55) rectangle (1.55,1.25);</span>
-<span class="s2">       \fill[orange] (0.85,1.55) rectangle (1.15,1.25);</span>
-<span class="s2">       \fill[orange] (0.85,1.15) rectangle (1.15,0.85);</span>
-<span class="s2">       \fill[blue] (1.25,0.75) rectangle (1.55,0.45);</span>
-<span class="s2">   \end{scope}</span>
-<span class="s2">%</span>
-<span class="si">% d</span><span class="s2">raw annotations</span>
-<span class="s2">%</span>
-<span class="s2">   \draw[-latex,thick,orange](-3,5)node[left]{ }</span>
-<span class="s2">       to[out=0,in=90] (-.4,1.4);</span>
-<span class="s2">   \draw[-latex,thick,blue](-3,5)node[left]{ }</span>
-<span class="s2">       to[out=0,in=90] (0.8,1.15);</span>
-<span class="s2">   \draw[-latex,thick,greenMW](-3,5)node[left]{3 patches}</span>
-<span class="s2">       to[out=0,in=90] (0,2.8);</span>
-<span class="s2">%</span>
-<span class="s2">   \draw[-latex,thick,greenMW](-3,-2)node[left]{1 patch}</span>
-<span class="s2">       to[out=0,in=200] (-1,-.9);</span>
-<span class="s2">   \draw[thick,gray!70!black](6,4) node {4 neighbourhood rule};</span>
-<span class="s2">   \draw[thick,gray!70!black](6,-2) node {8 neighbourhood rule};</span>
-<span class="s2">%</span>
-<span class="s2">    &quot;&quot;&quot;</span><span class="p">,</span> <span class="n">figure_options</span><span class="o">=</span><span class="n">tkz_options</span><span class="p">,</span>
+<span class="s2">    \def\couleur{SeaGreen}</span>
+<span class="s2">    \path[coordinate] (0,0)  coordinate(A)</span>
+<span class="s2">                ++( 60:12cm) coordinate(B)</span>
+<span class="s2">                ++(-60:12cm) coordinate(C);</span>
+<span class="s2">    \draw[fill=\couleur!\thedensity] (A) -- (B) -- (C) -- cycle;</span>
+<span class="s2">    \foreach \x in {1,...,15}{%</span>
+<span class="s2">        \pgfmathsetcounter{density}{\thedensity+10}</span>
+<span class="s2">        \setcounter{density}{\thedensity}</span>
+<span class="s2">        \path[coordinate] coordinate(X) at (A){};</span>
+<span class="s2">        \path[coordinate] (A) -- (B) coordinate[pos=.15](A)</span>
+<span class="s2">                            -- (C) coordinate[pos=.15](B)</span>
+<span class="s2">                            -- (X) coordinate[pos=.15](C);</span>
+<span class="s2">        \draw[fill=\couleur!\thedensity] (A)--(B)--(C)--cycle;</span>
+<span class="s2">    }</span>
+<span class="s2">    &quot;&quot;&quot;</span><span class="p">,</span> <span class="n">latex_pre_tikzpicture</span><span class="o">=</span><span class="n">latex_cmd</span><span class="p">,</span>
+         <span class="n">tex_packages</span><span class="o">=</span><span class="n">tex_packages</span><span class="p">,</span>
          <span class="n">x</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
 
 
@@ -244,16 +199,23 @@ begin{tikzpicture} and end{}tikzpicture}.</li>
 <li><strong>y</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>{'center'</em><em>, </em><em>'auto'}</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Vertical position for the Tikz graphic (the default theme sets this to 0).
 See positioning system of Beampy.</li>
 <li><strong>tikz_header</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Add extra Tiks/pgf libraries and style (Tiks commands usetikzlibrary
-and tickstyle), everything that is included befor egin{document}
+and tickstyle), everything that is included before begin{document}
 (the default theme sets this to None).</li>
 <li><strong>tex_packages</strong> (<em>list of string</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – <p>Add extra Tex packages that are included using the usepackages (the
-default theme set this to None). The list should only contains the name
+default theme sets this to None). The list should only contains the name
 of tex packages as strings.</p>
 <pre class="literal-block">
 &gt;&gt;&gt; tex_packages = [‘xolors’,’tikz-3dplot’]
 </pre>
 </li>
-<li><strong>figure_options</strong> (<em>string</em><em> or </em><em>None</em><em>,</em>) – Tikz options added just after: egin{tikzpicture}[options] (the default
+<li><strong>latex_pre_tikzpicture</strong> (<em>str</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – <p>Add extra latex commands that will be added between
+begin{document} and begin{tikzpicture} (the default theme
+sets this to None)</p>
+<pre class="literal-block">
+&gt;&gt;&gt; latex_pre_tikzpicture = r’\newcounter{mycounter}\setcounter{mycounter}{10}’
+</pre>
+</li>
+<li><strong>figure_options</strong> (<em>string</em><em> or </em><em>None</em><em>,</em>) – Tikz options added just after: begin{tikzpicture}[options] (the default
 theme sets this to None).</li>
 <li><strong>figure_anchor</strong> (<em>{'top_left'</em><em> or </em><em>'top_right'</em><em> or </em><em>'bottom_left'</em><em> or </em><em>'bottom_right' }</em><em>, </em><em>optional</em>) – Anchor of the svg produced by Tikz.</li>
 </ul>

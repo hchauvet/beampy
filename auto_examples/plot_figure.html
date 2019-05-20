@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>figure &#8212; Beampy 0.5.3 documentation</title>
+    <title>figure &#8212; Beampy 0.5.4 documentation</title>
     
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.5.3',
+        VERSION:     '0.5.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -51,7 +51,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           Beampy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.3</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.4</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -241,7 +241,8 @@ html file of the prensetation</p>
 <dt>
 <em class="property">class </em><code class="descclassname">beampy.</code><code class="descname">figure</code><span class="sig-paren">(</span><em>content</em>, <em>ext=None</em>, <em>**kwargs</em><span class="sig-paren">)</span></dt>
 <dd><p>Include a figure to the current slide. Figure formats could be (<strong>svg</strong>,
-<strong>pdf</strong>, <strong>png</strong>, <strong>jpeg</strong>, <strong>gif</strong>, <strong>matplotib figure</strong>, and <strong>bokeh figure</strong>)</p>
+<strong>pdf</strong>, <strong>png</strong>, <strong>jpeg</strong>, <strong>gif</strong>, <strong>matplotib figure</strong>,
+and <strong>bokeh figure</strong>)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -250,8 +251,9 @@ html file of the prensetation</p>
 <li><strong>content</strong> (<em>str</em><em> or </em><em>matplotlib.figure</em><em> or </em><em>bokeh.figure</em>) – Figure input source. To load file, <cite>content</cite> is the path to the file.
 For matplotlib and bokeh, <cite>content</cite> is the python object figure of
 either matplotlib or bokeh.</li>
-<li><strong>ext</strong> (<em>{'svg'</em><em>,</em><em>'jpeg'</em><em>,</em><em>'png'</em><em>,</em><em>'pdf'</em><em>, </em><em>'gif'</em><em>, </em><em>'bokeh'</em><em>,</em><em>'matplotlib'}</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Image format defined as string (the default value is None, which implies
-that the image format is guessed from file or python object name.</li>
+<li><strong>ext</strong> (<em>{'svg'</em><em>,</em><em>'jpeg'</em><em>,</em><em>'png'</em><em>,</em><em>'pdf'</em><em>, </em><em>'gif'</em><em>, </em><em>'bokeh'</em><em>,</em><em>'matplotlib'}</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Image format defined as string (the default value is None,
+which implies that the image format is guessed from file or
+python object name.</li>
 <li><strong>x</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>{'center'</em><em>, </em><em>'auto'}</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Horizontal position for the figure (the default is ‘center’).</li>
 <li><strong>y</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>{'center'</em><em>, </em><em>'auto'}</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – Vertical position for the figure (the default is ‘auto’, which implies
 equal blank width between ‘auto’ positioned elements)</li>

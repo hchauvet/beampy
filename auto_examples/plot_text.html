@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>text &#8212; Beampy 0.5.3 documentation</title>
+    <title>text &#8212; Beampy 0.5.4 documentation</title>
     
     <link rel="stylesheet" href="../_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.5.3',
+        VERSION:     '0.5.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -51,7 +51,7 @@
         </button>
         <a class="navbar-brand" href="../index.html">
           Beampy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.3</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.4</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -153,8 +153,8 @@
 <span class="n">doc</span> <span class="o">=</span> <span class="n">document</span><span class="p">(</span><span class="n">quiet</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 <span class="k">with</span> <span class="n">slide</span><span class="p">(</span><span class="s1">&#39;Text module&#39;</span><span class="p">):</span>
-    <span class="n">text</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;A simple text with $\LaTeX$ syntax so you could write equation:&#39;</span><span class="p">)</span>
-    <span class="n">text</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\sqrt{\frac{x}{y}}&#39;</span><span class="p">)</span>
+    <span class="n">text</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;A simple text with \LaTeX syntax so you could write equation:&#39;</span><span class="p">)</span>
+    <span class="n">text</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$$\sqrt{\frac{x}{y}}$$&#39;</span><span class="p">)</span>
 
     <span class="n">t</span> <span class="o">=</span> <span class="n">text</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;You could align text to center by using the \textbf{align} parameter&#39;</span><span class="p">,</span>
          <span class="n">align</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">350</span><span class="p">)</span>
@@ -192,8 +192,8 @@ positioning system of Beampy.</li>
 <li><strong>width</strong> (<em>int</em><em> or </em><em>float</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – Width of the text container (the default is None, which implies that the
 width is the parent group with).</li>
 <li><strong>size</strong> (<em>int</em><em>, </em><em>optional</em>) – The font size (the default theme sets this value to 20).</li>
-<li><strong>font</strong> (<em>str</em><em>, </em><em>optional</em>) – The Tex font (the default theme sets this value to ‘CMR’). <strong>THIS IS NOT
-YET IMPLEMENTED!</strong></li>
+<li><strong>font</strong> (<em>str</em><em>, </em><em>optional</em>) – The Tex font (the default theme sets this value to
+‘CMR’). <strong>THIS IS NOT YET IMPLEMENTED!</strong></li>
 <li><strong>color</strong> (<em>str</em><em>, </em><em>optional</em>) – The text color (the default theme set this value to ‘#000000’). Color
 could be html hex values or SVG-COLOR-NAMES.</li>
 <li><strong>usetex</strong> (<em>bool</em><em>, </em><em>optional</em>) – Use latex to render text (the default value is true). Latex render

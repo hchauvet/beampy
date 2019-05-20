@@ -6,12 +6,9 @@ List of tasks to improve Beampy. See also the issues open on github.
 Core
 ----
 
-* Python 3.x !!!
 * Add margin system to group (with global and local easy settings)
 * Clean Javascrip code of the HTML viewver
 * Add multi-slide viewver to HTML to quickly select a slide
-* Write Tests (for each modules)
-* Add more Theme
 * Finish documentation of all functions :ref:`API`
 * Rewrite export function as class
 * Add compatibility with Jupiter Notebook
