@@ -21,6 +21,7 @@ from beampy.modules.code import *
 from beampy.modules.svg import *
 from beampy.modules.box import *
 from beampy.modules.toc import tableofcontents
+from beampy.modules.iframe import iframe
 
 #Small functions
 from beampy.modules.biblio import cite

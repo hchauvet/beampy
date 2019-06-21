@@ -93,10 +93,10 @@ def save(output_file=None, format=None):
     if output_file is not None:
         with open(output_file, 'w') as f:
             # old py2 .encode('utf8')
-            try:
+           try:
                 # Python 3 way to write output
                 f.write(output)
-            except Exception as e:
+           except Exception as e:
                 print('Encode output as utf-8, for python2 compatibility')
                 f.write(output.encode('utf8', 'replace'))
 
@@ -173,13 +173,23 @@ def svg_export(dir_name, quiet=False):
         # The global svg glyphs need also to be added to the html5 page
         if 'glyphs' in document._global_store:
             # OLD .decode('utf-8',errors='replace') after the join for py2
-            glyphs_svg = '<defs>%s</defs>' % (
-                ''.join([glyph['svg'] for glyph in document._global_store['glyphs'].values()]))
+            try:
+                _log.debug('Encode output as utf-8, for python2 compatibility')
+                glyphs_svg = '<defs>%s</defs>' % (
+                    ''.join([glyph['svg'] for glyph in document._global_store['glyphs'].values()]).decode('utf-8', errors='replace'))
+            except Exception as e:
+                glyphs_svg = '<defs>%s</defs>' % (
+                    ''.join([glyph['svg'] for glyph in document._global_store['glyphs'].values()]))
         else:
             glyphs_svg = ''
 
         # join all svg defs (old .decode('utf-8', errors='replace') after the join for py2)
-        def_svg = '<defs>%s</defs>'%(''.join(slide.svgdefout))
+        try:
+            _log.debug('Encode output as utf-8, for python2 compatibility')
+            def_svg = '<defs>%s</defs>'%(''.join(slide.svgdefout).decode('utf-8', errors='replace'))
+        except Exception as e:
+            def_svg = '<defs>%s</defs>'%(''.join(slide.svgdefout))
+            
         for layer in range(slide.num_layers + 1):
 
             # save the list of rendered svg to a new dict as a string
@@ -187,7 +197,11 @@ def svg_export(dir_name, quiet=False):
 
             # Join all the svg contents (old .decode('utf-8', errors='replace') for py2)
             if layer in slide.svglayers:
-                tmp += slide.svglayers[layer]
+                try:
+                    _log.debug('Encode output as utf-8, for python2 compatibility')
+                    tmp += slide.svglayers[layer].decode('utf-8', errors='replace')
+                except Exception as e:
+                    tmp += slide.svglayers[layer]
             else:
                 tmp += '' #empty slide (when no svg are defined on slides)
 
@@ -279,7 +293,12 @@ def html5_export():
         # save the list of rendered svg to a new dict as a string that is loaded globally in the html
         # tmp = ''.join(slide.svgout).decode('utf-8', errors='replace')
         # OLD .decode('utf-8', errors='replace') after join for py2
-        modulessvgdefs = ''.join(slide.svgdefout)
+        try:
+            _log.debug('Encode output as utf-8, for python2 compatibility')
+            modulessvgdefs = ''.join(slide.svgdefout).decode('utf-8', errors='replace')
+        except Exception as e:
+            modulessvgdefs = ''.join(slide.svgdefout)
+
         global_store += "<svg><defs>" + modulessvgdefs
 
         for layer in range(slide.num_layers+1):
