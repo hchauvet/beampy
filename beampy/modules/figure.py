@@ -227,18 +227,19 @@ class figure(beampy_module):
             tmph = svgtag.get("height")
             tmpw = svgtag.get("width")
             if tmph is None or tmpw is None:
-                fmpf, tmpname = tempfile.mkstemp(prefix="beampytmp")
-                with open(tmpname+'.svg', 'w') as f:
+                with tempfile.NamedTemporaryFile(mode='w', prefix='beampytmp', suffix='.svg') as f:
                     try:
                         f.write(figurein)
                     except Exception as e:
                         #python 2
                         f.write(figurein.encode('utf8'))
-                        
-                tmph = getsvgheight(tmpname+'.svg')
-                tmpw = getsvgwidth(tmpname+'.svg')
-                # print tmpw, tmph
-                os.remove(tmpname+'.svg')
+
+                    # force to write file content to disk
+                    f.file.flush()
+
+                    # get svg size using inkscape
+                    tmph = getsvgheight(f.name)
+                    tmpw = getsvgwidth(f.name)
 
             svgheight = convert_unit(tmph)
             svgwidth = convert_unit(tmpw)

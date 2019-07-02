@@ -68,15 +68,17 @@ class svg( beampy_module ):
 
             tmpsvg += ' %s</svg>' % (self.content)
 
-            tmpfile, tmpname = tempfile.mkstemp(prefix='beampytmp')
-            with open(tmpname + '.svg', 'w') as f:
+            # Use NamedTemporaryFile, that automatically remove the file on close by default
+            with tempfile.NamedTemporaryFile(mode='w', prefix='beampytmp', suffix='.svg') as f:
                 f.write(tmpsvg)
 
-            svg_width = getsvgwidth(tmpname + '.svg')
-            svg_height = getsvgheight(tmpname + '.svg')
+                # Need to flush the file to make it's content updated on disk
+                f.file.flush()
+                
+                # Get the dimension of the svg using inkscape
+                svg_width = getsvgwidth(f.name)
+                svg_height = getsvgheight(f.name)
 
-            # remove the svg
-            os.remove(tmpname + '.svg')
         else:
             svg_width = convert_unit(self.width.value)
             svg_height = convert_unit(self.height.value)

@@ -289,8 +289,8 @@ class text(beampy_module):
                 g['opacity'] = self.opacity
                 #g['viewBox'] = svgsoup.get('viewBox')
 
-            output = str(svgsoup.renderContents())
-
+            output = svgsoup.renderContents().decode('utf8', errors='replace')
+                
             #Add red box around the text
             if document._text_box:
                 boxed = '''<g transform="translate(%0.1f,%0.1f)">
@@ -320,14 +320,15 @@ class text(beampy_module):
             tmpsvg = '<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny" xmlns:xlink="http://www.w3.org/1999/xlink">%s</svg>'%output
 
             #Need to create a temp file
-            tmpfile, tmpnam = tempfile.mkstemp(prefix='beampytmp')
-            with open( tmpnam + '.svg', 'w' ) as f:
-                f.write( tmpsvg )
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.svt', prefix='beampytmp') as f:
 
-            text_width =  getsvgwidth(tmpnam + '.svg')
-            text_height = getsvgheight(tmpnam + '.svg')
-
-            os.remove(tmpnam + '.svg')
+                f.write(tmpsvg)
+                # update file content to disk
+                
+                f.file.flush()
+                # Get width and height
+                text_width =  getsvgwidth(f.name)
+                text_height = getsvgheight(f.name)
 
             # print(text_width, text_height)
 
@@ -375,7 +376,7 @@ def parse_dvisvgm_svg( soup_data ):
         #check if the glyph is in the store or add it
         if hash_id not in document._global_store['glyphs']:
             #Add the glyph to the store and create a new uniq id for it
-            uniq_id = "g_"+str( len(document._global_store['glyphs']) )
+            uniq_id = "g_"+str(len(document._global_store['glyphs']))
             new_svg = "<path d='%s' id='%s'/>"%(path_d, uniq_id)
             document._global_store['glyphs'][ hash_id ] = {"old_id": path_id, "d": path_d, "id": uniq_id, 'svg':new_svg}
 

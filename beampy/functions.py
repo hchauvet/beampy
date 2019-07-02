@@ -166,7 +166,7 @@ def make_global_svg_defs(svg_soup):
         document._global_counter['svg_id'] = 0  #init the counter
 
     #str_svg to replace modified id in all the svg content
-    strsvg = str(svg_soup)
+    strsvg = svg_soup.decode('utf8')
 
     #Find defs
     svgdefs = svg_soup.find('defs')
@@ -176,7 +176,7 @@ def make_global_svg_defs(svg_soup):
 
     #Create unique_id_ with time
     text_id =  ("%0.4f"%time.time()).split('.')[-1]
-    if svgdefs != None:
+    if svgdefs is not None:
         for tag in svgdefs.findAll(lambda x: x!=None and x.has_attr('id')):
             oldid = tag['id']
             newid = "%s_%i"%(text_id,document._global_counter['svg_id'])
@@ -284,57 +284,76 @@ def latex2svg(latexstring, write_tmpsvg=False):
     
     dvisvgmcmd = document._external_cmd['dvisvgm']
 
-    #Write the document to a tmp file
-    tmpfile, tmpnam = tempfile.mkstemp(prefix='beampytmp')
-    #print tmpnam
-    tmppath = tmpnam.replace(os.path.basename(tmpnam), '')
-    #print tmppath
-    with open( tmpnam + '.tex', 'w' ) as f:
+    # Create variable to store name of the created temp file
+    tmpname = None
+    tex_outputs = None
+    
+    # Get the temporary dir location
+    tmppath = tempfile.gettempdir()
+    
+    with tempfile.NamedTemporaryFile(mode='w', prefix='beampytmp', suffix='.tex') as f:
+        # Get the name of the file
+        tmpname, tmpextension = os.path.splitext(f.name)
+
+        # Write latex commands to the file
         f.write( latexstring )
 
-    #Run Latex
-    #t = time.time()
-    tex = os.popen( "cd "+tmppath+" && latex -interaction=nonstopmode "+tmpnam+".tex" )
-    #print('latex run in %f'%(time.time()-t))
-    #print tex.read() #To print tex output
-    """
-    This is a test to get the base line from latex output
-    \\newlength\\x
-    \\newlength\\y
-    \\x=1em
-    \\y=1ex
-    \\showthe\\x
-    \\showthe\\y
-    """
-    #find_size = re.compile(r'> \d.*?.pt.')
-    #tex_em, tex_ex = find_size.findall(tex.read())
-    #Convert latex pt to cm (1pt = 28.4cm)
-    #tex_em = "%0.5fcm"%(float(tex_em[2:-3]) * 1/28.4)
-    #convert to pixel
-    output = tex.read()
-    tex.close()
+        # Flush file content, so that it is available for latex command
+        f.file.flush()
+
+        #Run Latex
+        #t = time.time()
+        tex = os.popen("cd "+tmppath+" && latex -interaction=nonstopmode "+f.name)
+        #print('latex run in %f'%(time.time()-t))
+        #print tex.read() #To print tex output
+        """
+        This is a test to get the base line from latex output
+        \\newlength\\x
+        \\newlength\\y
+        \\x=1em
+        \\y=1ex
+        \\showthe\\x
+        \\showthe\\y
+        """
+        #find_size = re.compile(r'> \d.*?.pt.')
+        #tex_em, tex_ex = find_size.findall(tex.read())
+        #Convert latex pt to cm (1pt = 28.4cm)
+        #tex_em = "%0.5fcm"%(float(tex_em[2:-3]) * 1/28.4)
+        #convert to pixel
+        tex_outputs = tex.read()
+        tex.close() # close the os.popen
+        
     #Run dvi2svgm
-    if 'error' in output or '!' in output:
+    if tex_outputs is None or 'error' in tex_outputs or '!' in tex_outputs:
         print('Latex compilation error')
-        print(output)
+        print(tex_outputs)
+        #Remove temp files
+        for f in glob.glob(tmpname+'*'):
+            os.remove(f)
+
+        # Stop beampy compilation
         sys.exit(1)
         
     else:
         #dvisvgm to convert dvi to svg [old -e option not compatible with linkmark]
         if write_tmpsvg:
             _log.debug('Write dvisvgm output as an svg file')
-            res = os.popen( dvisvgmcmd+' -n -a --linkmark=none -o '+tmpnam+'.svg --verbosity=0 '+tmpnam+'.dvi' )
+            cmd = dvisvgmcmd
+            cmd += ' -n -a -n -a --linkmark=none -o {filename}.svg --verbosity=0 {filename}.dvi'
+            cmd = cmd.format(filename=tmpname)
+            res = os.popen(cmd)
             resp = res.read()
             res.close()
             
-            with open(tmpnam+'.svg') as svgf:
+            with open(tmpname + '.svg') as svgf:
                 outsvg = svgf.read()
         else:
-            cmd = dvisvgmcmd+' -n -s -a --linkmark=none -v0 '+tmpnam+'.dvi'
+            cmd = dvisvgmcmd+' -n -s -a --linkmark=none -v0 {filename}.dvi'
+            cmd = cmd.format(filename=tmpname)
             outsvg = check_output(cmd, shell=True).decode('utf8')
 
         #Remove temp files
-        for f in glob.glob(tmpnam+'*'):
+        for f in glob.glob(tmpname+'*'):
             os.remove(f)
 
         outsvg = clean_ghostscript_warnings(outsvg)
@@ -763,60 +782,80 @@ def render_texts(elements_to_render=None, extra_packages=None):
                 print(e)
 
     _log.debug(latex_pages)
+    # Write the file to latex
     if len(latex_pages) > 0:
-        # Write the file to latex
-
-        tmpfile, tmpname = tempfile.mkstemp(prefix='beampytmp')
-        tmppath = tmpname.replace(os.path.basename(tmpname), '')
-
-        with open( tmpname + '.tex','w') as f:
+        # get the location of tempdir
+        tmppath = tempfile.gettempdir()
+        
+        # Create a None tempory filename
+        tmpname = None
+        
+        # Create a variable to store the latex output
+        tex_outputs = None
+        
+        # Use tempfile.NamedTemporaryFile to create a text file with .tex suffix and beampytmp prefix
+        # NamedTemporaryFile automaticly close the file at the end of the context by default
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.tex', prefix='beampytmp') as f:
+            # Get the name of the file
+            tmpname, extension = os.path.splitext(f.name)
+            
+            # Write down the latex code to this file
             f.write(latex_header)
             f.write('\n \\newpage \n'.join(latex_pages))
             f.write(latex_footer)
 
-        print('Latex file writen in %f'%(time.time()-t))
+            print('Latex file writen in %f'%(time.time()-t))
 
-        #Run Latex using subprocess
-        #t = time.time()
-        cmd = "cd "+tmppath+" && latex -interaction=nonstopmode --halt-on-error "+tmpname+".tex"
-        _log.debug(cmd)
+            # Flush the file content so that latex can see it
+            f.file.flush()
+            
+            #Run Latex using subprocess
+            #t = time.time()
+            cmd = "cd "+tmppath+" && latex -interaction=nonstopmode --halt-on-error "+f.name
+            _log.debug(cmd)
         
-        tex = os.popen(cmd)
-        #print('Latex run in %f'%(time.time()-t))
-        tex_outputs = tex.read()
-        _log.debug(tex_outputs)
+            tex = os.popen(cmd)
+            #print('Latex run in %f'%(time.time()-t))
+            tex_outputs = tex.read()
+            _log.debug(tex_outputs)
+            tex.close() # close os.popen
         
-        if 'error' in tex_outputs or '!' in tex_outputs:
+        if tex_outputs is None or 'error' in tex_outputs or '!' in tex_outputs:
             print(tex_outputs)
             print('Latex compilation error')
+            #Remove temp files generated by latex
+            for f in glob.glob(tmpname+'*'):
+                os.remove(f)
+
+            # Stop Beampy compilation
             sys.exit(1)
-            
-        tex.close()
 
         #Upload svg to each elements
         dvisvgmcmd = document._external_cmd['dvisvgm']
 
         t = time.time()
-        cmd = dvisvgmcmd+' -n -s -p1- --linkmark=none -v0 '+tmpname+'.dvi'
-        allsvgs = check_output(cmd, shell=True).decode('utf8')
-        allsvgs = allsvgs.splitlines()
+        if tmpname is not None:
+            cmd = dvisvgmcmd+' -n -s -p1- --linkmark=none -v0 '+tmpname+'.dvi'
+            allsvgs = check_output(cmd, shell=True).decode('utf8')
+            allsvgs = allsvgs.splitlines()
 
-        # Check if their is warning emitted by dvisvgm inside the svgfile
-        allsvgs = clean_ghostscript_warnings(allsvgs)
+            # Check if their is warning emitted by dvisvgm inside the svgfile
+            allsvgs = clean_ghostscript_warnings(allsvgs)
         
-        #To split the data get the first line which define the <? xml ....?> command
-        schema = allsvgs[0]
+            #To split the data get the first line which define the <? xml ....?> command
+            schema = allsvgs[0]
         
-        #Join all svg lines and split them each time you find the schema
-        svg_list = ''.join(allsvgs[1:]).split(schema)
+            #Join all svg lines and split them each time you find the schema
+            svg_list = ''.join(allsvgs[1:]).split(schema)
 
-        #Process all pages to svg
-        for i, ep in enumerate(elements_pages):
-            #Loop over content in the slide
-            ep['element'].svgtext = schema + svg_list[i]
+            #Process all pages to svg
+            for i, ep in enumerate(elements_pages):
+                #Loop over content in the slide
+                ep['element'].svgtext = schema + svg_list[i]
             
-        print('DVI -> SVG in %f'%(time.time()-t))
-        #Remove temp files
+            print('DVI -> SVG in %f'%(time.time()-t))
+            
+        #Remove temp files generated by latex
         for f in glob.glob(tmpname+'*'):
             os.remove(f)
 

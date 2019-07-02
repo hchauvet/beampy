@@ -60,8 +60,8 @@ def test_html(make_presentation):
     doc = make_presentation
     save('./html_out/%s.html'%test_name)
 
-"""
+
 def test_pdf(make_presentation):
     doc = make_presentation
     save('./pdf_out/%s.pdf'%test_name)
-"""
+

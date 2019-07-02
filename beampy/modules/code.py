@@ -101,18 +101,19 @@ class code(beampy_module):
         #Convert code to svgfile
         svgcode = highlight(codein, lexer, SvgFormatter(fontsize=self.font_size, style='tango'))
 
-        #Create a tmpfile
-        tmpfile, tmpname = tempfile.mkstemp(prefix='beampytmp_CODE')
-        #tmppath = tmpname.replace(os.path.basename(tmpname),'')
-
-        with open( tmpname+'.svg', 'w' ) as f:
+        # Use tempfile.NamedTemporaryFile, that automaticly delete the file on close by default
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.svg', prefix='beampytmp_CODE') as f:
+            tmpname, tmpext = os.path.splitext(f.name)
             f.write(svgcode)
 
-        #Convert svgfile with inkscape to transform text to path
-        cmd = inkscapecmd + ' -z -T -l=%s %s'%(tmpname+'_good.svg', tmpname+'.svg')
-
-        req = os.popen(cmd)
-        req.close()
+            # Need to flush the file to write it to disk
+            f.file.flush()
+            
+            #Convert svgfile with inkscape to transform text to path
+            cmd = inkscapecmd + ' -z -T -l=%s %s'%(tmpname+'_good.svg', f.name)
+            
+            req = os.popen(cmd)
+            req.close()
 
         f = figure(tmpname+'_good.svg', width=self.width.value, height=self.height.value)
         f.positionner = self.positionner
@@ -126,10 +127,9 @@ class code(beampy_module):
         f.delete()
 
         #remove files
-        os.remove(tmpname+'.svg')
         os.remove(tmpname+'_good.svg')
-        os.remove(tmpname)
-
+        
+        
     def render(self):
         self.code2svg()
         self.rendered = True
