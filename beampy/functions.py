@@ -857,11 +857,15 @@ def render_texts(elements_to_render=None, extra_packages=None):
 
             #To split the data get the first line which define the <? xml ....?> command
             # Hard code the schame for splitting svg
-            schema = "<?xml version='1.0'?>"
-
+            schema = get_xml_tag(allsvgs)
+            _log.debug(schema)
+            
             #Join all svg lines and split them each time you find the schema
-            svg_list = ''.join(allsvgs[1:]).split(schema)
+            svg_list = ''.join(allsvgs).split(schema)
+            if svg_list[0] == '':
+                svg_list = svg_list[1:]
 
+            
             #Process all pages to svg
             for i, ep in enumerate(elements_pages):
                 #Loop over content in the slide
@@ -873,7 +877,33 @@ def render_texts(elements_to_render=None, extra_packages=None):
         for f in glob.glob(tmpname+'*'):
             os.remove(f)
 
-            
+
+PYTHON_XMLFIND_REGEX = re.compile(r'<\?xml[^>]+>')
+def get_xml_tag(rawsvg):
+    """
+    Function to find the xml tag in a file this tag could be 
+    <?xml version='1.0'?>
+    or
+    <?xml version='1.0' encoding='UTF-8'?>
+    or other (depends on dvisvgm version
+
+    """
+
+    
+    if isinstance(rawsvg, list):
+        svg_lines = rawsvg
+    else:
+        svg_lines = rawsvg.splitlines()
+
+    xmltag = None
+    for l in svg_lines:
+        search_re = PYTHON_XMLFIND_REGEX.search(l)
+        if search_re:
+            xmltag = search_re.group(0)
+            break
+
+    return xmltag
+
 # How do we split inputs paragraphs (all type of python strings)
 PYTHON_COMMENT_REGEX = re.compile('"{3}?|"|\'{3}?|\'', re.MULTILINE)
 
