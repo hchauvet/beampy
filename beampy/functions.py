@@ -856,7 +856,8 @@ def render_texts(elements_to_render=None, extra_packages=None):
             allsvgs = clean_ghostscript_warnings(allsvgs)
 
             #To split the data get the first line which define the <? xml ....?> command
-            schema = allsvgs[0]
+            # Hard code the schame for splitting svg
+            schema = "<?xml version='1.0'?>"
 
             #Join all svg lines and split them each time you find the schema
             svg_list = ''.join(allsvgs[1:]).split(schema)
