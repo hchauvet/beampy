@@ -63,10 +63,10 @@ from decimal import Context, Decimal, InvalidOperation, getcontext
 import six
 from six.moves import range, urllib
 
-from scour.svg_regex import svg_parser
-from scour.svg_transform import svg_transform_parser
-from scour.yocto_css import parseCssString
-from scour import __version__
+from beampy.scour.svg_regex import svg_parser
+from beampy.scour.svg_transform import svg_transform_parser
+from beampy.scour.yocto_css import parseCssString
+from beampy.scour import __version__
 
 
 APP = u'scour'
