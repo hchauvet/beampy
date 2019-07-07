@@ -852,19 +852,21 @@ def render_texts(elements_to_render=None, extra_packages=None):
             allsvgs = check_output(cmd, shell=True).decode('utf8', errors='replace')      
             allsvgs = allsvgs.splitlines()
 
+            #To split the data get the xml syntax <? xml ....?> 
+            schema = get_xml_tag(allsvgs)
+            _log.debug('Schema to cut svg %s'%(str(schema)))
+            assert schema is not None
+            
             # Check if their is warning emitted by dvisvgm inside the svgfile
             allsvgs = clean_ghostscript_warnings(allsvgs)
-
-            #To split the data get the first line which define the <? xml ....?> command
-            # Hard code the schame for splitting svg
-            schema = get_xml_tag(allsvgs)
-            _log.debug(schema)
             
             #Join all svg lines and split them each time you find the schema
             svg_list = ''.join(allsvgs).split(schema)
             if svg_list[0] == '':
                 svg_list = svg_list[1:]
-
+                
+            _log.debug('Size of svg %i and size of latex pages %i'%(len(svg_list), len(elements_pages)))
+            assert len(svg_list) == len(elements_pages)
             
             #Process all pages to svg
             for i, ep in enumerate(elements_pages):
