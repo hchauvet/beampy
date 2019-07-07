@@ -44,13 +44,19 @@ Out[5]: [('M', [(100.0, -200.0)])]
 from __future__ import absolute_import
 
 import re
-from decimal import *
+from decimal import Decimal, getcontext
 from functools import partial
 
+
 # Sentinel.
+
+
 class _EOF(object):
+
     def __repr__(self):
         return 'EOF'
+
+
 EOF = _EOF()
 
 lexicon = [
@@ -70,6 +76,7 @@ class Lexer(object):
 
         http://www.gooli.org/blog/a-simple-lexer-in-python/
     """
+
     def __init__(self, lexicon):
         self.lexicon = lexicon
         parts = []
@@ -91,6 +98,7 @@ class Lexer(object):
                     yield (name, m)
                     break
         yield (EOF, None)
+
 
 svg_lexer = Lexer(lexicon)
 
@@ -239,16 +247,24 @@ class SVGPathParser(object):
             axis_rotation = Decimal(token[1]) * 1
 
             token = next_val_fn()
-            if token[1] not in ('0', '1'):
+            if token[1][0] not in ('0', '1'):
                 raise SyntaxError("expecting a boolean flag; got %r" % (token,))
-            large_arc_flag = Decimal(token[1]) * 1
+            large_arc_flag = Decimal(token[1][0]) * 1
 
-            token = next_val_fn()
-            if token[1] not in ('0', '1'):
+            if len(token[1]) > 1:
+                token = list(token)
+                token[1] = token[1][1:]
+            else:
+                token = next_val_fn()
+            if token[1][0] not in ('0', '1'):
                 raise SyntaxError("expecting a boolean flag; got %r" % (token,))
-            sweep_flag = Decimal(token[1]) * 1
+            sweep_flag = Decimal(token[1][0]) * 1
 
-            token = next_val_fn()
+            if len(token[1]) > 1:
+                token = list(token)
+                token[1] = token[1][1:]
+            else:
+                token = next_val_fn()
             if token[0] not in self.number_tokens:
                 raise SyntaxError("expecting a number; got %r" % (token,))
             x = Decimal(token[1]) * 1
@@ -269,7 +285,6 @@ class SVGPathParser(object):
         x = getcontext().create_decimal(token[1])
         token = next_val_fn()
         return x, token
-
 
     def rule_coordinate_pair(self, next_val_fn, token):
         # Inline these since this rule is so common.

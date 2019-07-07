@@ -211,7 +211,7 @@ class slide(object):
         """
 
         # Get the max layers
-        for mid in self.contents:
+        for mid in self.element_keys:
             module = self.contents[mid]
 
             # When the range of layer is defined as a string (usual
@@ -228,7 +228,7 @@ class slide(object):
 
         # Resolve 'range(0, max, 1)'
         layers_in_slide = []
-        for mid in self.contents:
+        for mid in self.element_keys:
             module = self.contents[mid]
 
             # Resolve string args 'max' in layers
@@ -251,7 +251,7 @@ class slide(object):
                                                                                        str(list(range(0, self.num_layers+1)))))
 
         # Propagate layer of modules inside groups
-        for mid in self.contents:
+        for mid in self.element_keys:
             if self.contents[mid].type == 'group':
                 logging.debug('Run propagate layer for %s' % str(self.contents[mid].name))
                 self.contents[mid].propagate_layers()
@@ -737,8 +737,9 @@ class beampy_module(object):
         if len(self.svgdefs) > 0:
 
             logging.debug('Export svg defs added to module %s' % str(self.name))
-
+            # print('Svgdefs type for ', str(self.name)) 
             for i, svgdef in enumerate(self.svgdefs):
+                # print(type(svgdef))
                 out_args = {}
                 for args in self.svgdefsargs[i]:
                     out_args[args] = getattr(self, args)
@@ -805,7 +806,7 @@ class beampy_module(object):
                                                                         self.name)
         
         out += self.svgout
-
+        
         if document._text_box:
             out +="""<rect x="0"  y="0" width="%s" height="%s"
             style="stroke:#009900;stroke-width: 1;stroke-dasharray: 10 5;
@@ -818,6 +819,8 @@ class beampy_module(object):
 
         out += '</g>'
 
+        logging.debug(str(self.name), type(out))
+        
         return out
 
     def export_html(self):

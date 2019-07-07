@@ -165,7 +165,7 @@ class document():
 
     # The TOC format should be TOC = ['title':'Subsublevel title', level:1]
     _TOC = []
-
+    
     # REMOVE globals=globals(), locals=locals() they are useless
     
     def __init__(self, quiet=False, latex_packages=None, source_filename=None, **kwargs):
@@ -181,7 +181,7 @@ class document():
             - optimize[True]: Optimize svg using scour python script. This reduce the size but increase compilation time
             - cache[True]: Use cache system to not compile slides each times if nothing changed!
             - resize_raster[True]: Resize raster images (inside svg and for jpeg/png figures)
-            - theme: Define the path to your personal THEME dictionnary
+            - theme: Define the path to your personal THEME dictionnaryXS
         """
 
         if latex_packages is None:

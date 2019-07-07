@@ -211,7 +211,7 @@ class figure(beampy_module):
                             in_img =  BytesIO( base64.b64decode(b64content.split(';base64,')[1]) )
                             tmp_img = Image.open(in_img)
                             #print(tmp_img)
-                            out_img = resize_raster_image( tmp_img )
+                            out_img = resize_raster_image( tmp_img, max_width=self.positionner.width.value )
                             out_b64 = base64.b64encode( out_img.read() ).decode('utf8')
 
                             #replace the resized image into the svg
@@ -255,7 +255,7 @@ class figure(beampy_module):
             good_scale = scale_x
 
             # BS4 get the svg tag content without <svg> and </svg>
-            tmpfig = str(svgtag.renderContents())
+            tmpfig = svgtag.renderContents().decode('utf8')
 
             # Add the correct first line and last
             tmphead = '\n<g transform="scale(%0.5f)">' % (good_scale)
@@ -308,7 +308,7 @@ class figure(beampy_module):
                         figurein = base64.b64encode(f.read()).decode('utf8')
 
                 else:
-                    out_img = resize_raster_image(tmp_img)
+                    out_img = resize_raster_image(tmp_img, max_width=self.positionner.width.value)
                     figurein = base64.b64encode(out_img.read()).decode('utf8')
                     out_img.close()
             else:
@@ -343,7 +343,7 @@ class figure(beampy_module):
         self.rendered = True
 
 
-def resize_raster_image(PILImage, max_width=document._width, jpegqual=95):
+def resize_raster_image(PILImage, max_width=document._width, jpegqual=96):
     """
     Function to reduce the size of a given image keeping it's aspect ratio
     """
@@ -351,9 +351,9 @@ def resize_raster_image(PILImage, max_width=document._width, jpegqual=95):
     img_ratio = img_h/float(img_w)
 
     if (img_w > document._width):
-        print('Image resized from (%ix%i)px to (%ix%i)px'%(img_w, img_h, document._width, document._width*img_ratio))
-        width = int(document._width)
-        height = int(document._width * img_ratio)
+        print('Image resized from (%ix%i)px to (%ix%i)px'%(img_w, img_h, max_width, max_width*img_ratio))
+        width = int(max_width)
+        height = int(max_width * img_ratio)
         tmp_resized = PILImage.resize((width, height), Image.ANTIALIAS )
     else:
         tmp_resized = PILImage

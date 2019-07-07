@@ -59,15 +59,19 @@ Out[12]: [('translate', [30.0, -30.0]), ('rotate', [36.0])]
 from __future__ import absolute_import
 
 import re
-from decimal import *
-from six.moves import range
+from decimal import Decimal
 from functools import partial
+
+from six.moves import range
 
 
 # Sentinel.
 class _EOF(object):
+
     def __repr__(self):
         return 'EOF'
+
+
 EOF = _EOF()
 
 lexicon = [
@@ -89,6 +93,7 @@ class Lexer(object):
 
         http://www.gooli.org/blog/a-simple-lexer-in-python/
     """
+
     def __init__(self, lexicon):
         self.lexicon = lexicon
         parts = []
@@ -110,6 +115,7 @@ class Lexer(object):
                     yield (name, m)
                     break
         yield (EOF, None)
+
 
 svg_lexer = Lexer(lexicon)
 
@@ -154,8 +160,8 @@ class SVGTransformationParser(object):
         commands = []
         token = next_val_fn()
         while token[0] is not EOF:
-         command, token = self.rule_svg_transform(next_val_fn, token)
-         commands.append(command)
+            command, token = self.rule_svg_transform(next_val_fn, token)
+            commands.append(command)
         return commands
 
     def rule_svg_transform(self, next_val_fn, token):

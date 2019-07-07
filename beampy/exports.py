@@ -307,7 +307,13 @@ def html5_export():
             modulessvgdefs = ''.join(slide.svgdefout)
         else:
             _log.debug('Encode output as utf-8, for python2 compatibility')
-            modulessvgdefs = ''.join(slide.svgdefout).decode('utf-8', errors='replace')
+            modulessvgdefs = ''
+            for svgdef in slide.svgdefout:
+                if isinstance(svgdef, unicode):
+                    _log.debug('convert unicode')
+                    modulessvgdefs += svgdef.encode('utf-8', errors='replace')
+                else:
+                    modulessvgdefs += svgdef
 
 
         global_store += "<svg><defs>" + modulessvgdefs
@@ -347,9 +353,20 @@ def html5_export():
             
         if slide.htmlout is not None:
             for layer in slide.htmlout:
-                global_store += '<div id="html_store_slide_%i-%i">%s</div>'%(islide, layer,
-                                                                             ''.join(slide.htmlout[layer]))
+                if py3:
+                    global_store += '<div id="html_store_slide_%i-%i">%s</div>'%(islide, layer,
+                                                                                 ''.join(slide.htmlout[layer]))
+                else:
+                    tmphtmlout = ''
+                    for hout in slide.htmlout[layer]:
+                        if isinstance(hout, unicode):
+                            tmphtmlout += hout.encode('utf-8', errors='replace')
+                        else:
+                            tmphtmlout += hout
+                            
+                    global_store += '<div id="html_store_slide_%i-%i">%s</div>'%(islide, layer, tmphtmlout)
 
+                    
         print("Done in %0.3f seconds"%(time.time()-tnow))
 
         
