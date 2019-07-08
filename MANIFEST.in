@@ -2,5 +2,7 @@ include README.md
 include LICENSE
 include *.py
 recursive-include beampy *
-recursive-include examples *
-recursive-include tests *
+global-exclude examples
+global-exclude tests
+global-exclude __pycache__
+global-exclude *.py[co]

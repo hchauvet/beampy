@@ -14,7 +14,8 @@ setup(
     description="A python tool to create simple HTML5 presentation slideshow",
     long_description_content_type="text/markdown",
     url="https://github.com/hchauvet/beampy",
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests', 'examples',
+                                    'doc-src', '*.pyc']),
     include_package_data=True,
     zip_safe=False,
     install_requires=[
