@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Beampy API &#8212; Beampy 0.5.4 documentation</title>
+    <title>Beampy API &#8212; Beampy 0.5.5 documentation</title>
     
     <link rel="stylesheet" href="_static/bootstrap-sphinx.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.5.4',
+        VERSION:     '0.5.5',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -51,7 +51,7 @@
         </button>
         <a class="navbar-brand" href="index.html">
           Beampy</a>
-        <span class="navbar-text navbar-version pull-left"><b>0.5.4</b></span>
+        <span class="navbar-text navbar-version pull-left"><b>0.5.5</b></span>
       </div>
 
         <div class="collapse navbar-collapse nav-collapse">
@@ -560,6 +560,16 @@ used as alignment reference (baseline-left).</li>
 <dd><p>Function to render only on text of this module.</p>
 <p>It’s slower than writing all texts to one latex file and then
 render it to dvi then svg.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="beampy.text.parse_dvisvgm_svg">
+<code class="descname">parse_dvisvgm_svg</code><span class="sig-paren">(</span><em>soup_data</em><span class="sig-paren">)</span><a class="headerlink" href="#beampy.text.parse_dvisvgm_svg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to transform the svg produced by dvisvgm.
+Make a global glyph store to use them as defs in svg
+to reduce the size off the global presentation.</p>
+<p>soup_data: BeautifulSoup parsed svg</p>
+<p>return: soup_data (without the defs part)</p>
 </dd></dl>
 
 <dl class="method">
