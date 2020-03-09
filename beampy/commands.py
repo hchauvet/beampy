@@ -24,8 +24,9 @@ from beampy.modules.toc import tableofcontents
 from beampy.modules.iframe import iframe
 
 #Small functions
-from beampy.modules.biblio import cite
 from beampy.modules.arrow import arrow
 from beampy.modules.itemize import itemize
 from beampy.modules.maketitle import *
 
+# Minor classes
+from beampy.modules.biblio import bibliography
