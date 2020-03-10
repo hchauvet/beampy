@@ -11,6 +11,7 @@ from beampy.document import (document, section,
                              subsection, subsubsection)
 
 #Specific commands with their renders
+from beampy.modules.biblio import cite
 from beampy.modules.text import *
 from beampy.modules.title import *
 from beampy.modules.figure import *

@@ -8,15 +8,14 @@ from beampy import document
 from beampy.modules.text import text
 from beampy.functions import check_function_args
 
-default_bibtex_style = {
-    "max_author" : 3,
-    "initials" : False,
-    "journal" : False,
-    "and" : r'\&',
-    'et_al' : 'et al.',
-    'initial_delimiter' : '.',
-    'reference_delimiter' : ';',
-}
+# default_bibtex_style = {
+#     "max_author" : 3,
+#     "initials" : False,
+#     "journal" : False,
+#     "and" : r'\&',
+#     'et_al' : 'et al.',
+#     'initial_delimiter' : '.',
+# }
 
 ##########################
 #
@@ -37,18 +36,16 @@ class bibliography :
         '''
 
         self.references = {}
-        self.sources = []
 
         if not bibtex_source is None :
-            self.add_source( bibtex_source )
+            self.add_from_source( bibtex_source )
 
         if bibtex_style is None :
             bibtex_style = {}
 
-        self.bibtex_style = default_bibtex_style
-        self.bibtex_style.update( bibtex_style )
+        self.bibtex_style = check_function_args( bibliography, bibtex_style, lenient = False )
 
-    def add_source( self, bibtex_source ) :
+    def add_from_source( self, bibtex_source ) :
         '''
         Add source to bibliography.
 
@@ -61,34 +58,25 @@ class bibliography :
         else :
             bibtex_sources = bibtex_source
 
-        new_sources = []
 
         for bibtex_source in bibtex_sources :
 
             new_references = bibtexparser_to_references( bibtexparser.loads( bibtex_source ) )
 
-            if len( new_references ) > 0 :
-                new_sources += [ bibtex_source ]
-
-            else :
+            if len( new_references ) == 0 :
                 try :
                     with open( bibtex_source ) as source_file :
                         new_references = bibtexparser_to_references( bibtexparser.load( source_file ) )
                 except :
                     pass
 
-                if len( new_references )  > 0 :
-                    new_sources += [ bibtex_source ]
-
-                else :
+                if len( new_references )  == 0 :
 
                     for source_file_name in glob( bibtex_source + '*.bib' ) :
 
                         with open( source_file_name ) as source_file :
                             new_references = bibtexparser_to_references( bibtexparser.load( source_file )  )
 
-                            if len( new_references ) > 0 :
-                                new_sources += [ source_file_name ]
 
             if len(new_references) > 0 :
                 self.references.update( new_references )
@@ -96,8 +84,6 @@ class bibliography :
             else :
                 warn( 'Cannot load bibliography.' )
                 print( 'Bibliography source : ' + bibtex_source   )
-
-        self.sources += new_sources
 
 
     def cite( self, reference, **kwargs ):
@@ -109,27 +95,21 @@ class bibliography :
             reference (str or list) : either a bibtex ID, or the reference itself
         '''
 
+        cite_kwargs = self.bibtex_style.copy()
+        cite_kwargs.update( kwargs )
+
         if type(reference) is type('') :
             references = [ reference ]
 
         else :
             references = reference
 
-        ref_str = ''
+        refs_str_list = []
 
         for i, reference in enumerate( references ) :
+            refs_str_list += [ bibtex_to_str( self.get_reference( reference ), bibtex_style = cite_kwargs ) ]
 
-            try : # reference is a bibtex ID
-                ref_str += bibtex_to_str( self.get_reference( reference ), bibtex_style = self.bibtex_style )
-            except : # raw reference
-                warn( 'Could not find reference.')
-                print( 'Missing reference: ' + reference )
-                ref_str += reference
-
-            if i < len( references ) - 1 :
-                ref_str += ' ' + self.bibtex_style['reference_delimiter'] + ' '
-
-        text( ref_str, **check_function_args( self.cite, kwargs ) )
+        cite( refs_str_list, **cite_kwargs )
 
 
     def get_reference( self, ID ) :
@@ -146,14 +126,47 @@ class bibliography :
 
         try :
             return self.references[ID]
+
         except :
-            pass
+            warn( 'Could not find reference.')
+            print( 'Missing reference: ' + reference )
+            return ID
 
 ##########################
 #
 # USEFUL FUNCTIONS
 #
 ##########################
+
+def cite( reference, **kwargs ):
+
+    """
+    Add citation on slide.
+
+    Arguments :
+        reference (str or list): python list of authors
+    """
+
+    kwargs = check_function_args( cite, kwargs, lenient = True )
+
+    if type(reference) == type( 'this_is_a_string' ) :
+        references = [ reference ]
+    else :
+        references = reference
+
+    cite_str = kwargs['brackets'][0]
+
+    for i, reference in enumerate( references ) :
+
+        cite_str += reference
+
+        if i < len( references ) - 1 :
+            cite_str += ' ' + kwargs['reference_delimiter'] + ' '
+        else :
+            cite_str += kwargs['brackets'][1]
+
+    text( cite_str, **check_function_args( text, kwargs, lenient = True ) )
+
 
 def bibtexparser_to_references( bib_database ) :
 
