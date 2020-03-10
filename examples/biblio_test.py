@@ -1,7 +1,9 @@
-import sys
-sys.path.append('./../')
+import sys, os
+sys.path.insert(0, './../')
+
 
 from beampy import *
+
 
 doc = document()
 
@@ -14,7 +16,7 @@ text('Any serious consideration of a physical theory must take into account the 
 cite('Einstein 1935', y = '+1cm')
 bib.cite('einstein1935can', y = '+1cm' )
 bib.cite('einstein1935can', y = '+1cm', initials = True )
-bib.cite('einstein1935can', y = '+1cm', max_author = 1, journal = True )
-bib.cite(['einstein1935can']*3, y = '+1cm', max_author = 1)
+b1 = bib.cite('einstein1935can', y = '+1cm', max_author = 1, journal = True )
+bib.cite(['einstein1935can']*3, y = b1.bottom+'1cm', max_author = 1)
 
 save( 'biblio_test.html')

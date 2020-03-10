@@ -135,16 +135,14 @@ THEME['figure'] = {
     'height':None
 }
 
-THEME['cite'] = THEME['text'].copy()
-
-THEME['cite'].update({
+THEME['cite'] = {
     'x':'center',
     'y':{'shift':0.9, 'unit':'height'},
     'color':THEME['title']['color'],
     'size':16,
     'reference_delimiter' : ';',
     'brackets' : ('[',']'),
-    })
+}
 
 THEME['bibliography'] = {
     "max_author" : 3,
