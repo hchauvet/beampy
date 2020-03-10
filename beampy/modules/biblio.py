@@ -25,7 +25,7 @@ from beampy.functions import check_function_args
 
 class bibliography :
 
-    def __init__( self, bibtex_source = None, bibtex_style = None ) :
+    def __init__( self, bibtex_source = None, **bibtex_style ) :
 
         '''
         Bibliography object for Beampy.
