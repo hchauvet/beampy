@@ -74,7 +74,7 @@ def convert_unit(value, ppi=72):
     # mm to cm
     if 'mm' in value:
         value = "%fcm" % (float(value.replace('mm',''))*10**-1)
-        
+
     # cm to inch
     if "cm" in value:
         value = "%fin" % (float(value.replace('cm', ''))*(1/2.54))
@@ -82,7 +82,7 @@ def convert_unit(value, ppi=72):
     # pc to inch
     if 'pc' in value:
         value = '%fin' % (float(value.replace('pc','')*12))
-                             
+
     # pt to inch
     if "pt" in value:
         value = "%fin" % (float(value.replace('pt', ''))*(1/72.0))
@@ -118,13 +118,13 @@ def pre_cache_svg_image(svg_frames):
 
 def make_global_svg_defs_new_but_buggy(svg_soup):
     """
-        Function to change svg refs and id to a global counter 
+        Function to change svg refs and id to a global counter
         to avoid miss-called elements in slides
 
         Input -> svg_soup: beautifulsoup object of the svg
     """
 
-    
+
     # Test if it exist a svg_id global counter
     if 'svg_id' not in document._global_counter:
         document._global_counter['svg_id'] = 0  # init the counter
@@ -138,11 +138,11 @@ def make_global_svg_defs_new_but_buggy(svg_soup):
         for cpt, tag in enumerate(tags_to_replace):
             #print(tag)
             #print({'xlink:href': '#%s'%tag})
-            #Some use of this defs 
+            #Some use of this defs
             new_tag = "%s_%i"%(base_name, document._global_counter['svg_id'])
             for elem in svg_soup.find_all(attrs={'xlink:href': '#%s'%tag}):
                 elem['xlink:href'] = "#%s"%new_tag
-    
+
             #Inside defs get the good one to change
             for elem in svg_soup.find_all(attrs={'id': tag}):
                 elem['id'] = new_tag
@@ -150,7 +150,7 @@ def make_global_svg_defs_new_but_buggy(svg_soup):
             document._global_counter['svg_id'] += 1
 
     #print('Svg refs changed in %0.4fs'%(time.time() - tps))
-    
+
     return svg_soup
 
 
@@ -191,7 +191,7 @@ def make_global_svg_defs(svg_soup):
     #Reparse the new svg
     soup = BeautifulSoup(strsvg, 'xml')
     #print('Svg refs changed in %0.4fs'%(time.time() - tps))
-    
+
     return soup
 
 
@@ -282,16 +282,16 @@ def latex2svg(latexstring, write_tmpsvg=False):
 
     _log.debug('Run latex2svg function')
     _log.debug(latexstring)
-    
+
     dvisvgmcmd = document._external_cmd['dvisvgm']
 
     # Create variable to store name of the created temp file
     tmpname = None
     tex_outputs = None
-    
+
     # Get the temporary dir location
     tmppath = tempfile.gettempdir()
-    
+
     with tempfile.NamedTemporaryFile(mode='w', prefix='beampytmp', suffix='.tex') as f:
         # Get the name of the file
         tmpname, tmpextension = os.path.splitext(f.name)
@@ -323,7 +323,7 @@ def latex2svg(latexstring, write_tmpsvg=False):
         #convert to pixel
         tex_outputs = tex.read()
         tex.close() # close the os.popen
-        
+
     #Run dvi2svgm
     if tex_outputs is None or 'error' in tex_outputs or '!' in tex_outputs:
         print('Latex compilation error')
@@ -334,7 +334,7 @@ def latex2svg(latexstring, write_tmpsvg=False):
 
         # Stop beampy compilation
         sys.exit(1)
-        
+
     else:
         #dvisvgm to convert dvi to svg [old -e option not compatible with linkmark]
         if write_tmpsvg:
@@ -345,7 +345,7 @@ def latex2svg(latexstring, write_tmpsvg=False):
             res = os.popen(cmd)
             resp = res.read()
             res.close()
-            
+
             with open(tmpname + '.svg') as svgf:
                 outsvg = svgf.read()
         else:
@@ -358,10 +358,10 @@ def latex2svg(latexstring, write_tmpsvg=False):
             os.remove(f)
 
         outsvg = clean_ghostscript_warnings(outsvg)
-        
+
         _log.debug(outsvg)
         _log.debug(type(outsvg))
-    
+
         return outsvg
 
 
@@ -380,12 +380,12 @@ def clean_ghostscript_warnings(rawsvg):
     <svg [...]/>
     """
 
-    
+
     if isinstance(rawsvg, list):
         svg_lines = rawsvg
     else:
         svg_lines = rawsvg.splitlines()
-        
+
     start_svg = 0
     for i, line in enumerate(svg_lines):
         if line.startswith('<svg') or line.startswith('<?xml'):
@@ -400,7 +400,7 @@ def clean_ghostscript_warnings(rawsvg):
     if start_svg > 2:
         _log.debug('SVG have been cleaned from GS warnings, here is the original:')
         _log.debug(rawsvg)
-        
+
     return good_svg
 
 
@@ -517,7 +517,7 @@ def load_args_from_theme(function_name, args):
                 print("[Beampy] No theme propertie for %s in %s" % (key, element_id))
 
 
-def check_function_args(function, arg_values_dict):
+def check_function_args( function, arg_values_dict, lenient = False ):
     """
         Function to check input function args.
 
@@ -528,14 +528,19 @@ def check_function_args(function, arg_values_dict):
     function_name = function.__name__
     default_dict = document._theme[function_name]
     outdict = {}
+
     for key, value in arg_values_dict.items():
         #Check if this arguments exist for this function
+
         if key in default_dict:
             outdict[key] = value
+
         else:
-            print("Error the key %s is not defined for %s module"%(key, function_name))
-            print_function_args(function_name)
-            sys.exit(1)
+            if not lenient :
+                print("Error the key %s is not defined for %s module"%(key, function_name))
+                print_function_args( function_name )
+                sys.exit(1)
+
 
     #Check if their is ommited arguments that need to be loaded by default
     for key, value in default_dict.items():
@@ -560,6 +565,7 @@ def inherit_function_args(function_name, args_dict):
     return args_dict
 
 def color_text( textin, color ):
+
     '''
     Adds Latex color to a string.
     '''
@@ -610,7 +616,7 @@ def create_element_id(bpmod, use_args=True, use_name=True,
 
     if use_content and bpmod.content is not None:
         ct_to_hash += str(bpmod.content)
-            
+
     if slide_position:
         ct_to_hash += str(len(document._slides[bpmod.slide_id].element_keys))
 
@@ -666,7 +672,7 @@ def get_command_line(func_name):
 
     # Remove tab and space from source
     source = remove_tabnewline.sub(' ', source)
-    
+
     return (start, nline-1, source)
 
 
@@ -682,11 +688,11 @@ def guess_file_type(file_name, file_type=None):
         'jpeg': ['jpg', 'jpeg'],
         'gif': ['gif']
         }
-    
+
     if file_type is None:
         try:
             ext = file_name.lower().split('.')[-1]
-            
+
             for file_type in file_extensions:
                 if ext in file_extensions[file_type]:
                     break
@@ -721,7 +727,7 @@ def render_texts(elements_to_render=None, extra_packages=None):
 
     if extra_packages is None:
         extra_packages = []
-        
+
     print('Render texts of slides with latex')
     latex_header = r"""
     \documentclass[crop=true, multi=varwidth]{standalone}
@@ -758,7 +764,7 @@ def render_texts(elements_to_render=None, extra_packages=None):
                 if e.type == 'text' and e.usetex and not e.rendered:
                     elements_to_render += [e]
 
-                    
+
     for e in elements_to_render:
         if e.cache and document._cache is not None:
             _log.debug('Render_texts test cache for element %s(id=%s) on slide: %s' % (e.name, e.id, e.slide_id))
@@ -774,7 +780,7 @@ def render_texts(elements_to_render=None, extra_packages=None):
                 except Exception as e:
                     print(e)
         else:
-            
+
             e.pre_render()
 
             try:
@@ -784,25 +790,25 @@ def render_texts(elements_to_render=None, extra_packages=None):
             except Exception as e:
                 print(e)
 
-    
+
     _log.debug(latex_header+'\n \\newpage \n'.join(latex_pages)+latex_footer)
     # Write the file to latex
     if len(latex_pages) > 0:
         # get the location of tempdir
         tmppath = tempfile.gettempdir()
-        
+
         # Create a None tempory filename
         tmpname = None
-        
+
         # Create a variable to store the latex output
         tex_outputs = None
-        
+
         # Use tempfile.NamedTemporaryFile to create a text file with .tex suffix and beampytmp prefix
         # NamedTemporaryFile automaticly close the file at the end of the context by default
         with tempfile.NamedTemporaryFile(mode='w', suffix='.tex', prefix='beampytmp') as f:
             # Get the name of the file
             tmpname, extension = os.path.splitext(f.name)
-            
+
             # Write down the latex code to this file
             f.write(latex_header)
             f.write('\n \\newpage \n'.join(latex_pages))
@@ -812,19 +818,19 @@ def render_texts(elements_to_render=None, extra_packages=None):
 
             # Flush the file content so that latex can see it
             f.file.flush()
-            
+
             #Run Latex using subprocess
             #t = time.time()
             cmd = "cd "+tmppath+" && latex -interaction=nonstopmode --halt-on-error "+f.name
             _log.debug(cmd)
-        
+
             tex = os.popen(cmd)
             #print('Latex run in %f'%(time.time()-t))
             tex_outputs = tex.read()
             _log.debug(tex_outputs)
             tex.close() # close os.popen
 
-        
+
         # to test the output of latex file
         """
         with open('test_text_py2.tex', 'w') as f:
@@ -832,7 +838,7 @@ def render_texts(elements_to_render=None, extra_packages=None):
             f.write('\n \\newpage \n'.join(latex_pages))
             f.write(latex_footer)
         """
-        
+
         if tex_outputs is None or 'error' in tex_outputs or '!' in tex_outputs:
             print(tex_outputs)
             print('Latex compilation error')
@@ -845,29 +851,29 @@ def render_texts(elements_to_render=None, extra_packages=None):
 
         #Upload svg to each elements
         dvisvgmcmd = document._external_cmd['dvisvgm']
-    
+
         t = time.time()
         if tmpname is not None:
             cmd = dvisvgmcmd+' -n -s -p1- --linkmark=none -v0 '+tmpname+'.dvi'
-            allsvgs = check_output(cmd, shell=True).decode('utf8', errors='replace')      
+            allsvgs = check_output(cmd, shell=True).decode('utf8', errors='replace')
             allsvgs = allsvgs.splitlines()
 
-            #To split the data get the xml syntax <? xml ....?> 
+            #To split the data get the xml syntax <? xml ....?>
             schema = get_xml_tag(allsvgs)
             _log.debug('Schema to cut svg %s'%(str(schema)))
             assert schema is not None
-            
+
             # Check if their is warning emitted by dvisvgm inside the svgfile
             allsvgs = clean_ghostscript_warnings(allsvgs)
-            
+
             #Join all svg lines and split them each time you find the schema
             svg_list = ''.join(allsvgs).split(schema)
             if svg_list[0] == '':
                 svg_list = svg_list[1:]
-                
+
             _log.debug('Size of svg %i and size of latex pages %i'%(len(svg_list), len(elements_pages)))
             assert len(svg_list) == len(elements_pages)
-            
+
             #Process all pages to svg
             for i, ep in enumerate(elements_pages):
                 #Loop over content in the slide
@@ -883,7 +889,7 @@ def render_texts(elements_to_render=None, extra_packages=None):
 PYTHON_XMLFIND_REGEX = re.compile(r'<\?xml[^>]+>')
 def get_xml_tag(rawsvg):
     """
-    Function to find the xml tag in a file this tag could be 
+    Function to find the xml tag in a file this tag could be
     <?xml version='1.0'?>
     or
     <?xml version='1.0' encoding='UTF-8'?>
@@ -891,7 +897,7 @@ def get_xml_tag(rawsvg):
 
     """
 
-    
+
     if isinstance(rawsvg, list):
         svg_lines = rawsvg
     else:
@@ -917,7 +923,7 @@ def small_comment_parser(src):
 
     Parameters
     ----------
-    
+
     src : str
         The source code to parse.x
     """

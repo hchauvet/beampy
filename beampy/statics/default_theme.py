@@ -29,8 +29,8 @@ THEME['document'] = {
 THEME['slide'] = {
     'background': "white",
     'layout': None, #Could be changed to a function that will decorate the current slide with elements
-                    #this can be used to create a specific layout for a theme 
-                    #Could also be a string that refer to the key of the LAYOUT[key] dict if you need several layouts 
+                    #this can be used to create a specific layout for a theme
+                    #Could also be a string that refer to the key of the LAYOUT[key] dict if you need several layouts
                     #for a presentation
 }
 
@@ -139,7 +139,18 @@ THEME['cite'] = {
     'x':'center',
     'y':{'shift':0.9, 'unit':'height'},
     'color':THEME['title']['color'],
-    'size':10
+    'size':16,
+    'reference_delimiter' : ';',
+    'brackets' : ('[',']'),
+}
+
+THEME['bibliography'] = {
+    "max_author" : 3,
+    "initials" : False,
+    "journal" : False,
+    "and" : r'\&',
+    'et_al' : 'et al.',
+    'initial_delimiter' : '.',
 }
 
 THEME['itemize'] = {
