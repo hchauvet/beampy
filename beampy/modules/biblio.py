@@ -149,12 +149,8 @@ class bibliography:
 
 
 class cite(text):
-
     """
     Add citation on slide.
-
-    Arguments :
-        reference (str or list): python list of authors
 
     Parameters
     ----------
@@ -198,7 +194,7 @@ class cite(text):
 
     extra_packages : list of string, optional
         Add latex packages to render the text, like
-        [r'\usepackage{name1}', r'\usepackage{name2}']
+        ['\\usepackage{name1}', '\\usepackage{name2}']
 
     reference_delimiter: string, optional
         Add a delimiter between citations (default theme sets this to ';')
