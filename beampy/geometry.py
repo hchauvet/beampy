@@ -92,8 +92,8 @@ class positionner():
         # Create and id (positition in the dict of this element)
         self.id = elem_id
         self.slideid = slideid
-        
-        
+
+
         try:
             self.id_index = document._slides[self.slideid].element_keys.index(self.id)
         except IndexError:
@@ -151,7 +151,7 @@ class positionner():
             self.y = y
 
         self.convert_position()
-        
+
     def update_size(self, width, height):
         """
             Update width and height to computed ones by the element render.
@@ -163,15 +163,15 @@ class positionner():
         if isinstance(width, Length):
             if width.value is None:
                 width.run_render()
-                
+
             width = width.value
-            
+
         if isinstance(height, Length):
             if height.value is None:
                 height.run_render()
-                
+
             height = height.value
-            
+
         # Convert width height if they are given in % of the current width
         if isinstance(width, str):
             if '%' in width:
@@ -179,7 +179,7 @@ class positionner():
                 width = document._slides[self.slideid].curwidth  * ratio
             else:
                 width = float(convert_unit(width))
-            
+
         if isinstance(height, str):
             if '%' in height:
                 ratio = float(height.replace('%', ''))/100.0
@@ -187,7 +187,7 @@ class positionner():
             else:
                 height = float(convert_unit(height))
 
-        # Convert string to float 
+        # Convert string to float
         # Convert width height to % if they are given as a float number less than one
         if width is not None and width < 1:
             ratio = width/100.0
@@ -199,7 +199,7 @@ class positionner():
 
         self.width.value = width
         self.height.value = height
-        
+
     def compute_anchors(self):
         """
             Compute the anchors for the element self.left self.right self.top and self.bottom
@@ -276,14 +276,14 @@ class positionner():
                 except:
                     print('[Error] x position is incorect string format')
                     print(self.x)
-                    
+
         elif isinstance(self.x, Length):
             if self.x.value is None:
                 self.x.run_render()
-                
+
             tmpx['shift'] = self.x.value
             tmpx['unit'] = 'px'
-            
+
         else:
             print("[Error] x position need to be a float or a dict")
 
@@ -331,14 +331,14 @@ class positionner():
                 except:
                     print('[Error] y position is incorect string format')
                     print(self.y)
-                                
+
         elif isinstance(self.y, Length):
             if self.y.value is None:
                 self.y.run_render()
 
             tmpy['shift'] = self.y.value
             tmpy['unit'] = 'px'
-            
+
         else:
             print("[Error] y position need to be a float or an int or a dict")
 
@@ -403,7 +403,7 @@ class positionner():
                                                 available_height - ytop,
                                                 pos_init=ytop) + self.y['shift']
 
-        #Place element that are aligned left 
+        #Place element that are aligned left
         if self.x['reference'] == 'slide':
             if self.x['align'] == 'left':
                 self.x['final'] = self.x['shift']
@@ -536,7 +536,7 @@ class anchor:
             new_value.process_value()
             self.position['shift'] = float(new_value.value)
             self.position['unit'] = 'px'
-            
+
         else:
             print('Invalid relative coordinate type!')
 
@@ -611,13 +611,13 @@ def relative_placement(prev_element_id, curpos, axis):
         oldpos_final = oldpos['final']
 
     # Do we need to compute element width or height to do relative placement
-    
+
     oldwidth = document._slides[prev_slide].contents[prev_elem].positionner.width
     if oldwidth.value is None:
         oldwidth.run_render()
 
     oldwidth = oldwidth.value
-    
+
     oldheight = document._slides[prev_slide].contents[prev_elem].positionner.height
     if oldheight.value is None:
         oldheight.run_render()
@@ -658,7 +658,7 @@ def relative_placement(prev_element_id, curpos, axis):
         else:
             print('bottom anchor only works for y coordinate')
             sys.exit(1)
-            
+
     return newpos
 
 
@@ -715,19 +715,17 @@ def distribute(element_list, mode, available_size, offset=0, curslide=None):
             all_height = [curslide.contents[elemk].positionner.height for elemk in element_list]
 
         # print(all_height)
-        sumheight = 0
-        for h in all_height:
-            sumheight = h + sumheight
-
+        sumheight = sum(all_height)
         sumheight = sumheight.value
-        
+
         if sumheight > available_size:
             print('Warning alignement elements overflow given height %s'%(available_size))
 
         available_space = (available_size - offset) - sumheight
-        dy = available_space/float(len(all_height)+1)
+        dy = available_space/float( len(all_height) + 1 )
 
         curpos = dy + offset
+
         for elemt in element_list:
 
             if curslide is None:
@@ -743,6 +741,7 @@ def distribute(element_list, mode, available_size, offset=0, curslide=None):
 
             curpos += dy + H
 
+
     elif mode == 'hspace':
 
         if curslide is None:
@@ -750,9 +749,7 @@ def distribute(element_list, mode, available_size, offset=0, curslide=None):
         else:
             all_width = [curslide.contents[elemk].positionner.width for elemk in element_list]
 
-        sumwidth = 0
-        for w in all_width:
-            sumwidth = w + sumwidth
+        sumwidth = sum(all_width)
         sumwidth = sumwidth.value
 
         if sumwidth > available_size:
@@ -779,9 +776,9 @@ def distribute(element_list, mode, available_size, offset=0, curslide=None):
 
 
 class Length(object):
-    """Define the length for complexe operation. 
+    """Define the length for complexe operation.
 
-    Allow operation like None + '12cm', where None will be transformed to the elem_id Length 
+    Allow operation like None + '12cm', where None will be transformed to the elem_id Length
     (render the module to get his size) and convert the '12cm' to pixels.
 
     Parameters:
@@ -794,7 +791,7 @@ class Length(object):
         the id of the slide where the module is registered
 
     """
-    
+
     def __init__(self, elem_id, slide_id, value=None):
         self.elem_id = elem_id
         self.slide_id = slide_id
@@ -811,17 +808,17 @@ class Length(object):
                     print("Need to render elem %s in group to get its size" % gelem.name)
                     gelem.pre_render()
                     gelem.run_render()
-                    
-                    
+
+
             # Compute the size of the group
             elem.compute_group_size()
-            
+
         else:
             print('Run render to get length of %s' % (elem.name))
             if elem.rendered is False:
                 # Run the pre_render
                 elem.pre_render()
-                # Run the render 
+                # Run the render
                 elem.run_render()
 
         assert elem.width.value is not None
@@ -835,17 +832,17 @@ class Length(object):
         if isinstance(self.value, str):
             self.value = float(convert_unit(self.value))
 
-        
+
     @staticmethod
     def process_right_value(right_value):
         """
         Process the right value of the operation (could be another element Length or string with length + unit or pixels)
         """
-        
+
         if isinstance(right_value, Length):
             if right_value.value is None:
                 right_value.run_render()
-            
+
             tmp_rvalue = float(right_value.value)
 
         if isinstance(right_value, str):
@@ -858,7 +855,7 @@ class Length(object):
 
     def __add__(self, right_value):
 
-        # Process the incomming value 
+        # Process the incomming value
         rvalue = self.process_right_value(right_value)
         # Process the element value
         self.process_value()
@@ -866,12 +863,12 @@ class Length(object):
         sumv = self.value + rvalue
 
         assert sumv >= 0
-        
+
         return Length(None, None, sumv)
 
     def __sub__(self, right_value):
 
-        # Process the incomming value 
+        # Process the incomming value
         rvalue = self.process_right_value(right_value)
         # Process the element value
         self.process_value()
@@ -879,11 +876,11 @@ class Length(object):
         subv = self.value - rvalue
 
         assert subv >= 0
-        
+
         return Length(None, None, subv)
 
     def __mul__(self, right_value):
-        # Process the incomming value 
+        # Process the incomming value
         rvalue = self.process_right_value(right_value)
         # Process the element value
         self.process_value()
@@ -891,7 +888,7 @@ class Length(object):
         mulv = self.value * rvalue
 
         assert mulv >= 0
-        
+
         return Length(None, None, mulv)
 
     def __rmul__(self, left_value):
@@ -923,9 +920,9 @@ class Length(object):
         assert diffv >= 0
 
         return Length(None, None, diffv)
-    
+
     def __truediv__(self, right_value):
-        # Process the incomming value 
+        # Process the incomming value
         rvalue = self.process_right_value(right_value)
         # Process the element value
         self.process_value()
@@ -935,11 +932,11 @@ class Length(object):
         divv = self.value / rvalue
 
         assert divv >= 0
-        
+
         return Length(None, None, divv)
 
     def __rtruediv__(self, left_value):
-        
+
         lvalue = self.process_right_value(left_value)
         self.process_value()
 

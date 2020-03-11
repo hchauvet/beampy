@@ -137,7 +137,7 @@ THEME['figure'] = {
 
 THEME['cite'] = {
     'x':'center',
-    'y':{'shift':0.9, 'unit':'height'},
+    'y':'auto',
     'color':THEME['title']['color'],
     'size':16,
     'reference_delimiter' : ';',

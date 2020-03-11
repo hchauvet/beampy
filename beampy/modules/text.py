@@ -107,13 +107,13 @@ class text(beampy_module):
             auto_render = True
         else:
             auto_render = False
-            
+
         # Register the function to the current slide
         self.register(auto_render=auto_render)
 
     def process_with(self):
         """
-        Process the text inside the width
+        Process the text inside the with
         """
         source = document._source_code.source(start=self.start_line,
                                               stop=self.stop_line)
@@ -123,7 +123,7 @@ class text(beampy_module):
 
     def pre_render(self):
         """
-        Prepare the latex render of the text 
+        Prepare the latex render of the text
         """
 
         if self.usetex:
@@ -153,12 +153,12 @@ class text(beampy_module):
                                           textin)
             # fontsize{size}{interlinear_size}
             #96/72.27 pt_to_px for latex
-            
+
         else:
             self.latex_text = ''
-            
+
     def local_render(self):
-        """Function to render only on text of this module. 
+        """Function to render only on text of this module.
 
         It's slower than writing all texts to one latex file and then
         render it to dvi then svg.
@@ -182,13 +182,13 @@ class text(beampy_module):
             pretex += r'\begin{document}'
             pretex += self.latex_text
             pretex += r'\end{document}'
-            
+
             #latex2svg
             self.svgtext = latex2svg( pretex )
-            
+
         else:
             self.svgtext = ''
-            
+
     #Define the render
     def render(self):
         """
@@ -225,7 +225,7 @@ class text(beampy_module):
 
             #New method with a global glyph store
             svgsoup = self.parse_dvisvgm_svg( svgsoup )
-            
+
             #Change id in svg defs to use the global id system
             #soup = make_global_svg_defs(soup)
 
@@ -290,7 +290,7 @@ class text(beampy_module):
                 #g['viewBox'] = svgsoup.get('viewBox')
 
             output = svgsoup.renderContents().decode('utf8', errors='replace')
-                
+
             #Add red box around the text
             if document._text_box:
                 boxed = '''<g transform="translate(%0.1f,%0.1f)">
@@ -324,7 +324,7 @@ class text(beampy_module):
 
                 f.write(tmpsvg)
                 # update file content to disk
-                
+
                 f.file.flush()
                 # Get width and height
                 text_width =  getsvgwidth(f.name)
@@ -334,7 +334,6 @@ class text(beampy_module):
 
         #Update positionner with the correct width and height of the final svg
         self.update_size(text_width, text_height)
-
         #Store the output svg
         logging.debug(type(output))
         self.svgout = output
@@ -345,8 +344,8 @@ class text(beampy_module):
 
     def parse_dvisvgm_svg(self, soup_data):
         """
-        Function to transform the svg produced by dvisvgm. 
-        Make a global glyph store to use them as defs in svg 
+        Function to transform the svg produced by dvisvgm.
+        Make a global glyph store to use them as defs in svg
         to reduce the size off the global presentation.
 
         soup_data: BeautifulSoup parsed svg
