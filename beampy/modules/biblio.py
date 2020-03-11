@@ -218,6 +218,7 @@ class cite(text):
 
         self.type = 'text'
         self.check_args_from_theme(kwargs, lenient=True)
+        # self.check_args_from_theme(kwargs)
         self.load_extra_args('text')
         self.svgtext = ''  # To store the svg produced by latex
 
@@ -239,16 +240,17 @@ class cite(text):
 
         self.content = cite_str
 
+        self.height = None
+        # Check width
+        if self.width is None:
+            self.width = document._slides[gcs()].curwidth
+
         # Add special args for cache id
         # Cite need to be re-rendered from latex if with, color, size,  are changed
         self.initial_width = self.width
         self.args_for_cache_id = ['initial_width', 'color', 'size',
                                   'align', 'opacity']
 
-        self.height = None
-        # Check width
-        if self.width is None:
-            self.width = document._slides[gcs()].curwidth
 
         # Initialise the global store on document._content to store letter
         if 'svg_glyphs' not in document._contents:
