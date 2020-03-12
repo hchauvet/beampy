@@ -2,7 +2,7 @@
 
 # Beampy 
 
-![beampy logo](https://github.com/hchauvet/beampy/doc-src/_static/logo.svg)
+![beampy logo](https://raw.githubusercontent.com/hchauvet/beampy/dev/doc-src/_static/logo.svg)
 
 Beampy is a python tool to create slide-show in svg that can be displayed with HTML5
 (tested on Firefox and Chromium)
