@@ -208,5 +208,7 @@ THEME['box'] = {
     'title_color': 'white',
     'title_align': 'left',
     'title_xoffset': 10,
-    'auto_height_margin': 15
+    'title_size': THEME['text']['size'],
+    'auto_height_margin': 15,
+    'title_height_margin': 10
 }

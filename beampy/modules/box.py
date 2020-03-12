@@ -77,9 +77,21 @@ class box(group):
         The horizontal offset in pixel from the box border of the
         title (the default value is 10).
 
+    title_size : int, optional
+        The size of the box title font (the default theme set this
+        value the size of main text).
+
+    title_background_color: svg color name as string, optional
+        The color of the background below the title (The default theme
+        set this to the same color as the contour line).
+
+    title_height_margin: int, optional
+        Set the space between the bottom and the top of the title (the default theme sets this value to 10)
+
     auto_height_margin : int, optional
         The vertical margin in pixel (top and bottom) to use when box height is not specified 
         (the default theme sets this value to 15).
+
 
     """
 
@@ -107,15 +119,15 @@ class box(group):
     def build_title(self):
         
         self.title_xpos = self.title_xoffset
-        self.title_ypos = 5
+        self.title_ypos = self.title_height_margin/2
 
         self.bp_title = text(self.title, x=self.title_xpos,
                              y=self.title_ypos, color=self.title_color,
-                             width=self.width-20)
+                             width=self.width-20, size=self.title_size)
 
         # Add y offset to the group (the height taken by the title)
         if self.head_height is None:
-            self.head_height = (self.bp_title.height + 10).value
+            self.head_height = (self.bp_title.height + self.title_height_margin).value
 
         # print(self.height, self.width)
         # self.remove_element_in_group(self.bp_title.id)
@@ -230,7 +242,7 @@ class box(group):
             if self.title_align == 'right':
                 title_xpos = self.right - (self.bp_title.width + self.title_xpos)
 
-            self.bp_title.positionner.update_y(self.top + 5)
+            self.bp_title.positionner.update_y(self.top + self.title_ypos)
             self.bp_title.positionner.update_x(title_xpos)
 
         set_lastslide()

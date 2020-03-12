@@ -19,6 +19,7 @@ import inspect
 import logging
 _log = logging.getLogger(__name__)
 
+
 class slide(object):
     """
     Add a slide to the presentation.
