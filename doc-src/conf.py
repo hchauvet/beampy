@@ -153,7 +153,9 @@ html_theme_options = {
     # Note that this is served off CDN, so won't be available offline.
     'bootswatch_theme': 'readable',
     'navbar_sidebarrel': False,
-    'navbar_site_name': 'Documentation'
+    'navbar_site_name': 'Documentation',
+    'bootstrap_version': "3"
+
 }
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -181,7 +183,7 @@ html_theme_options = {
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = './_static/logo.svg'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -228,13 +230,13 @@ html_sidebars = {'**': ['localtoc.html', 'sourcelink.html', 'searchbox.html']}
 #html_domain_indices = True
 
 # If false, no index is generated.
-#html_use_index = True
+html_use_index = True
 
 # If true, the index is split into individual pages for each letter.
-#html_split_index = False
+html_split_index = False
 
 # If true, links to the reST sources are added to the pages.
-#html_show_sourcelink = True
+html_show_sourcelink = True
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
 #html_show_sphinx = True

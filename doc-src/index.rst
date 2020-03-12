@@ -1,7 +1,12 @@
 =================================
-Welcome to Beampy's documentation
+Beampy: a python slideshow system
 =================================
 
+.. raw:: html
+         
+   <img src="_static/logo.svg"
+    alt="Beampy Logo v0.5"
+    style="float:left; margin-right:20px; width:160px;" />
 
 Beampy is a Python tool to create slide-show. It's inspired by *Latex-Beamer*
 but generates HTML5 documents instead of PDF. HTML format allows to includes a

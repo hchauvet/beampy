@@ -1,5 +1,9 @@
 :orphan:
 
+
+
+.. _sphx_glr_auto_examples:
+
 .. _beampy_modules:
 
 ==============
@@ -19,9 +23,9 @@ slides.
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_svganimate_thumb.png
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_svganimate_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_svganimate.py`
+     :ref:`sphx_glr_auto_examples_plot_svganimate.py`
 
 .. raw:: html
 
@@ -39,9 +43,9 @@ slides.
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_arrow_thumb.png
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_arrow_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_arrow.py`
+     :ref:`sphx_glr_auto_examples_plot_arrow.py`
 
 .. raw:: html
 
@@ -59,9 +63,9 @@ slides.
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_box_thumb.png
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_box_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_box.py`
+     :ref:`sphx_glr_auto_examples_plot_box.py`
 
 .. raw:: html
 
@@ -79,9 +83,9 @@ slides.
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_code_thumb.png
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_code_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_code.py`
+     :ref:`sphx_glr_auto_examples_plot_code.py`
 
 .. raw:: html
 
@@ -99,9 +103,9 @@ slides.
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_figure_thumb.png
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_figure_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_figure.py`
+     :ref:`sphx_glr_auto_examples_plot_figure.py`
 
 .. raw:: html
 
@@ -119,9 +123,9 @@ slides.
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_grid_thumb.png
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_grid_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_grid.py`
+     :ref:`sphx_glr_auto_examples_plot_grid.py`
 
 .. raw:: html
 
@@ -139,9 +143,9 @@ slides.
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_group_thumb.png
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_group_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_group.py`
+     :ref:`sphx_glr_auto_examples_plot_group.py`
 
 .. raw:: html
 
@@ -159,9 +163,9 @@ slides.
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_itemize_thumb.png
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_itemize_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_itemize.py`
+     :ref:`sphx_glr_auto_examples_plot_itemize.py`
 
 .. raw:: html
 
@@ -179,9 +183,9 @@ slides.
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_line_thumb.png
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_line_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_line.py`
+     :ref:`sphx_glr_auto_examples_plot_line.py`
 
 .. raw:: html
 
@@ -199,9 +203,9 @@ slides.
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_title_thumb.png
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_title_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_title.py`
+     :ref:`sphx_glr_auto_examples_plot_title.py`
 
 .. raw:: html
 
@@ -219,9 +223,9 @@ slides.
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_rectangle_thumb.png
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_rectangle_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_rectangle.py`
+     :ref:`sphx_glr_auto_examples_plot_rectangle.py`
 
 .. raw:: html
 
@@ -239,9 +243,9 @@ slides.
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_svg_thumb.png
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_svg_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_svg.py`
+     :ref:`sphx_glr_auto_examples_plot_svg.py`
 
 .. raw:: html
 
@@ -259,9 +263,9 @@ slides.
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_TOC_thumb.png
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_TOC_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_TOC.py`
+     :ref:`sphx_glr_auto_examples_plot_TOC.py`
 
 .. raw:: html
 
@@ -279,9 +283,9 @@ slides.
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_text_thumb.png
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_text_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_text.py`
+     :ref:`sphx_glr_auto_examples_plot_text.py`
 
 .. raw:: html
 
@@ -299,9 +303,9 @@ slides.
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_tikz_thumb.png
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_tikz_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_tikz.py`
+     :ref:`sphx_glr_auto_examples_plot_tikz.py`
 
 .. raw:: html
 
@@ -319,9 +323,9 @@ slides.
 
 .. only:: html
 
-    .. figure:: /auto_examples/images/thumb/sphx_glr_plot_video_thumb.png
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_video_thumb.png
 
-        :ref:`sphx_glr_auto_examples_plot_video.py`
+     :ref:`sphx_glr_auto_examples_plot_video.py`
 
 .. raw:: html
 
@@ -334,28 +338,29 @@ slides.
    /auto_examples/plot_video
 .. raw:: html
 
-    <div style='clear:both'></div>
+    <div class="sphx-glr-clear"></div>
 
 
 
 .. only :: html
 
  .. container:: sphx-glr-footer
+    :class: sphx-glr-footer-gallery
 
 
   .. container:: sphx-glr-download
 
-    :download:`Download all examples in Python source code: auto_examples_python.zip <//home/hugo/developpement/python/beampy_git/doc-src/auto_examples/auto_examples_python.zip>`
+    :download:`Download all examples in Python source code: auto_examples_python.zip <//home/hugo/Developpement/python/beampy_git/doc-src/auto_examples/auto_examples_python.zip>`
 
 
 
   .. container:: sphx-glr-download
 
-    :download:`Download all examples in Jupyter notebooks: auto_examples_jupyter.zip <//home/hugo/developpement/python/beampy_git/doc-src/auto_examples/auto_examples_jupyter.zip>`
+    :download:`Download all examples in Jupyter notebooks: auto_examples_jupyter.zip <//home/hugo/Developpement/python/beampy_git/doc-src/auto_examples/auto_examples_jupyter.zip>`
 
 
 .. only:: html
 
  .. rst-class:: sphx-glr-signature
 
-    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.readthedocs.io>`_
+    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_
