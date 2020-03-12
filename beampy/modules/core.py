@@ -616,13 +616,14 @@ class beampy_module(object):
 
         return name
 
-    def check_args_from_theme(self, arg_values_dict, parent=None):
+    def check_args_from_theme(self, arg_values_dict, parent=None,
+                              lenient=False):
         """
-            Function to check input function keyword args.
+        Function to check input function keyword args.
 
-            Functions args are defined in the default_theme.py or if a
-            theme is added the new value is taken rather than the
-            default one
+        Functions args are defined in the default_theme.py or if a
+        theme is added the new value is taken rather than the
+        default one.
 
         Parameters
         ----------
@@ -632,6 +633,10 @@ class beampy_module(object):
         parent: string optional
             The name of the parent beampy_module to also load args 
 
+        lenient: boolean optional
+            When True, allows check function to not stop Beampy
+            compilation when the argument is not defined in the THEME
+            dictionary (default value is False)
         """
 
         # Add args value to the module
@@ -650,9 +655,12 @@ class beampy_module(object):
                 outdict[key] = value
                 setattr(self, key, value)
             else:
-                print("Error the key %s is not defined for %s module"%(key, function_name))
-                print_function_args(function_name)
-                sys.exit(1)
+                if not lenient:
+                    print("Error the key %s is not defined for %s module"%(key, function_name))
+                    print_function_args(function_name)
+                    sys.exit(1)
+                else:
+                    _log.debug('Your argument %s is not defined in the Theme' % (key))
 
         # Check if their is ommited arguments that need to be loaded by default
         for key, value in default_dict.items():

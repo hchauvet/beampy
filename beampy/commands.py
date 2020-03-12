@@ -11,6 +11,7 @@ from beampy.document import (document, section,
                              subsection, subsubsection)
 
 #Specific commands with their renders
+from beampy.modules.biblio import cite
 from beampy.modules.text import *
 from beampy.modules.title import *
 from beampy.modules.figure import *
@@ -24,8 +25,9 @@ from beampy.modules.toc import tableofcontents
 from beampy.modules.iframe import iframe
 
 #Small functions
-from beampy.modules.biblio import cite
 from beampy.modules.arrow import arrow
 from beampy.modules.itemize import itemize
 from beampy.modules.maketitle import *
 
+# Minor classes
+from beampy.modules.biblio import bibliography

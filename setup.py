@@ -23,6 +23,7 @@ setup(
         "pillow",
         "six",
         "lxml",
+        "bibtexparser"
     ],
     classifiers=[
         'Programming Language :: Python :: 2 ',
