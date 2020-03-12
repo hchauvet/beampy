@@ -2,9 +2,9 @@
 
 # Beampy
 
-| <!-- --> | <!-- --> |
-| -------- | -------- |
-| ![beampy logo](./doc-src/_static/logo.svg) | Beampy is a python tool to create slide-show in svg that can be displayed with HTML5 (tested on Firefox and Chromium) The size of slides is fixed, like in a Latex Beamer document. |
+![beampy logo](./doc-src/_static/logo.svg)
+
+Beampy is a python tool to create slide-show in svg that can be displayed with HTML5 (tested on Firefox and Chromium) The size of slides is fixed, like in a Latex Beamer document.
 
 Beampy presentation output only one html file with every contents embedded.
 
