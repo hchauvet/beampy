@@ -29,6 +29,26 @@
 
 .. raw:: html
 
+    <div class="sphx-glr-thumbcontainer" tooltip="Beampy allows to fragment the apparition of modules in your slide. The syntax uses the python &quot;...">
+
+.. only:: html
+
+ .. figure:: /auto_tutorials/images/thumb/sphx_glr_animating_slide_thumb.png
+
+     :ref:`sphx_glr_auto_tutorials_animating_slide.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_tutorials/animating_slide
+
+.. raw:: html
+
     <div class="sphx-glr-thumbcontainer" tooltip="Beampy allows to group your module to move operate them as a group (a bit like minipage in beam...">
 
 .. only:: html

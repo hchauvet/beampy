@@ -14,6 +14,10 @@ Beampy allows to group your module to move operate them as a group (a
 bit like minipage in beamer). Group could be used to create margins,
 columns layout for instance.
 
+If you want to know all the option of the group module you can look at
+the :ref:`sphx_glr_auto_examples_plot_group.py` module inside the
+beampy modules section.
+
 Let's play with group to see how it works.
 
 Create a simple group
@@ -154,12 +158,22 @@ blank spaces with a width 2% of the presentation width).
 
 
 
+
+
 .. image:: /auto_tutorials/images/sphx_glr_grouping_elements_004.png
     :class: sphx-glr-single-img
 
 
 
 
+
+Now that you know how to group beampy modules together, you can have
+a look to the next tutorial on how to fragment the apparition of you
+module on you slide
+:ref:`sphx_glr_auto_tutorials_animating_slide.py`. Or if you did
+not remain you how to place the beampy module on your slide go back
+to the previous tutorial
+:ref:`sphx_glr_auto_tutorials_positioning_system.py`.
 
 
 .. _sphx_glr_download_auto_tutorials_grouping_elements.py:
