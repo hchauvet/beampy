@@ -167,3 +167,26 @@ save('./tuto_html_outputs/animation6.html')
 #
 #   <iframe src="../_static/tuto_html_outputs/animation6.html" width="100%" height="500px"></iframe>
 #
+#How to animate elements in itemize
+#----------------------------------
+#
+#The itemize module has a special way to create animation of each
+#item. The "iterable" parameters (int, ':', '0:', '1:2', etc...) are
+#passed inside a list to the item_layers parameter of the itemize
+#function.
+#
+doc = document(quiet=True, cache=False)
+
+with slide():
+    itemize(['item1 on all layers',
+             'item2 on layer 1',
+             'item3 on layer 3'],
+            item_layers=[':', 1, 2])
+
+save('./tuto_html_outputs/animation7.html')
+
+#####################################################
+#.. raw:: html
+#
+#   <iframe src="../_static/tuto_html_outputs/animation7.html" width="100%" height="500px"></iframe>
+#

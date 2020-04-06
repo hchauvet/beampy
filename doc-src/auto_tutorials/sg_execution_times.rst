@@ -5,10 +5,10 @@
 
 Computation times
 =================
-**00:01.345** total execution time for **auto_tutorials** files:
+**00:03.293** total execution time for **auto_tutorials** files:
 
 +----------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_tutorials_animating_slide.py` (``animating_slide.py``)       | 00:01.345 | 0.0 MB |
+| :ref:`sphx_glr_auto_tutorials_animating_slide.py` (``animating_slide.py``)       | 00:03.293 | 0.0 MB |
 +----------------------------------------------------------------------------------+-----------+--------+
 | :ref:`sphx_glr_auto_tutorials_first_slide.py` (``first_slide.py``)               | 00:00.000 | 0.0 MB |
 +----------------------------------------------------------------------------------+-----------+--------+
