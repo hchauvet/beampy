@@ -6,20 +6,24 @@ Created on Fri May 15 16:48:01 2015
 """
 
 from beampy.commands import document
-from beampy.functions import render_texts
+from beampy.functions import (render_texts, get_attr)
+from beampy.modules.text import (force_nofont, restore_nofont)
 import json
 try:
     from cStringIO import StringIO
 except:
-    from io import StringIO
+    from io import StringIO, BytesIO
 
 import sys
 import os
 import time
 import io
+from fontTools import merge
+import base64
 
 import logging
 _log = logging.getLogger(__name__)
+
 
 # Get the beampy folder
 curdir = os.path.dirname(__file__) + '/'
@@ -29,6 +33,7 @@ if (sys.version_info > (3, 0)):
     py3 = True
 else:
     py3 = False
+
 
 def save_layout():
     for islide in range(document._global_counter['slide']+1):
@@ -49,7 +54,6 @@ def reset_module_rendered_flag():
             # document._slides[slide].contents[ct].exported = False
             # document._slides[slide].contents[ct].svgout = None
             # document._slides[slide].contents[ct].htmlout = None
-
 
 
 def save(output_file=None, format=None):
@@ -82,18 +86,22 @@ def save(output_file=None, format=None):
 
     elif 'svg' in file_ext or format == "svg":
         document._output_format = 'svg'
+        force_nofont()
         render_texts()
         save_layout()
         output = svg_export(bdir+'/tmp')
         output_file = None
-
+        restore_nofont()
+        
     elif 'pdf' in file_ext or format == 'pdf':
         document._output_format = 'pdf'
+        # Need to change all text to path
+        force_nofont()
         render_texts()
         save_layout()
         output = pdf_export(output_file)
-
         output_file = None
+        restore_nofont()
 
     if output_file is not None:
         with open(output_file, 'w') as f:
@@ -178,27 +186,32 @@ def svg_export(dir_name, quiet=False):
         slide.newrender()
 
         # The global svg glyphs need also to be added to the html5 page
-        if 'glyphs' in document._global_store:
-            # OLD .decode('utf-8',errors='replace') after the join for py2
+        if 'svg_glyphs' in document._global_store:
+            elems = [('slide_%i' % islide, eid) for eid in slide.element_keys]
+            # The global svg glyphs need also to be added to the html5 page
+            glysid = get_attr('svg_glyphsids', elems, 'text', unique=True)
+            glyphsvgs = [g['svg'] for g in document._global_store['svg_glyphs'].values() if g['id'] in glysid]
+            if len(glyphsvgs) > 0:
+                # OLD .decode('utf-8',errors='replace') after the join for py2
+                if py3:
+                    glyphs_svg = '<defs>%s</defs>' % (''.join(glyphsvgs))
+                else:
+                    _log.debug('Encode output as utf-8, for python2 compatibility')
+                    glyphs_svg = '<defs>%s</defs>' % (
+                        ''.join(glyphsvgs).decode('utf-8', errors='replace'))
+            else:
+                glyphs_svg = ''
+
+            # join all svg defs (old .decode('utf-8', errors='replace') after the join for py2)
             if py3:
-                glyphs_svg = '<defs>%s</defs>' % (
-                    ''.join([glyph['svg'] for glyph in document._global_store['glyphs'].values()]))
+                def_svg = '<defs>%s</defs>'%(''.join(slide.svgdefout))
             else:
                 _log.debug('Encode output as utf-8, for python2 compatibility')
-                glyphs_svg = '<defs>%s</defs>' % (
-                    ''.join([glyph['svg'] for glyph in document._global_store['glyphs'].values()]).decode('utf-8', errors='replace'))
-                
-
+                def_svg = '<defs>%s</defs>'%(''.join(slide.svgdefout).decode('utf-8', errors='replace'))
         else:
+            def_svg = ''
             glyphs_svg = ''
 
-        # join all svg defs (old .decode('utf-8', errors='replace') after the join for py2)
-        if py3:
-            def_svg = '<defs>%s</defs>'%(''.join(slide.svgdefout))
-        else:
-            _log.debug('Encode output as utf-8, for python2 compatibility')
-            def_svg = '<defs>%s</defs>'%(''.join(slide.svgdefout).decode('utf-8', errors='replace'))
-            
         for layer in range(slide.num_layers + 1):
 
             # save the list of rendered svg to a new dict as a string
@@ -234,49 +247,8 @@ def html5_export():
         jquery = f.read()
 
     with open(curdir+'statics/header_V2.html','r') as f:
-        output = f.read()%jquery
+        output = f.read()
 
-    # Add the style
-    htmltheme = document._theme['document']['html']
-    output += """
-    <!-- Default Style -->
-    <style>
-      * { margin: 0; padding: 0;
-        -moz-box-sizing: border-box; -webkit-box-sizing: border-box;
-        box-sizing: border-box; outline: none; border: none;
-        }
-
-      body {
-        width: """+str(document._width)+"""px;
-        height: """+str(document._height)+"""px;
-        margin-left: -"""+str(int(document._width/2))+"""px; margin-top: -"""+str(int(document._height/2))+"""px;
-        position: absolute; top: 50%; left: 50%;
-        overflow: hidden;
-        display: none;
-        background-color: #ffffff;
-
-      }
-
-      section {
-        position: absolute;
-        width: 100%; height: 100%;
-      }
-
-
-      html { background-color: """+str(htmltheme['background_color'])+""";
-        height: 100%;
-        width: 100%;
-      }
-
-      video {
-        visibility: hidden;
-      }
-
-
-      body.loaded { display: block;}
-    </style>
-
-    """
     # Loop over slides in the document
     # If we directly want to charge the content in pure html
     tmpout = {}
@@ -314,7 +286,6 @@ def html5_export():
                     modulessvgdefs += svgdef.encode('utf-8', errors='replace')
                 else:
                     modulessvgdefs += svgdef
-
 
         global_store += "<svg><defs>" + modulessvgdefs
 
@@ -369,25 +340,72 @@ def html5_export():
                     
         print("Done in %0.3f seconds"%(time.time()-tnow))
 
-        
+    # Add the style
+    htmltheme = document._theme['document']['html']
+    # Add fonts to output
+    cssf = ''
+    if 'css_fonts' in document._global_store:
+        if len(document._global_store['css_fonts']) > 0:
+            cssf = fonts_merge()
+
+    output = output % (jquery, """
+      * { margin: 0; padding: 0;
+        -moz-box-sizing: border-box; -webkit-box-sizing: border-box;
+        box-sizing: border-box; outline: none; border: none;
+        }
+
+      body {
+        width: """+str(document._width)+"""px;
+        height: """+str(document._height)+"""px;
+        margin-left: -"""+str(int(document._width/2))+"""px; margin-top: -"""+str(int(document._height/2))+"""px;
+        position: absolute; top: 50%; left: 50%;
+        overflow: hidden;
+        display: none;
+        background-color: #ffffff;
+
+      }
+
+      section {
+        position: absolute;
+        width: 100%; height: 100%;
+      }
+
+
+      html { background-color: """+str(htmltheme['background_color'])+""";
+        height: 100%;
+        width: 100%;
+      }
+
+      video {
+        visibility: hidden;
+      }
+
+
+      body.loaded { display: block;}
+
+      """+cssf)
+
     # Create a json file of all slides output (refs to store)
     jsonfile = StringIO()
-    json.dump(tmpout,jsonfile, indent=None)
+    json.dump(tmpout, jsonfile, indent=None)
     jsonfile.seek(0)
 
     # The global svg glyphs need also to be added to the html5 page
-    if 'glyphs' in document._global_store:
-        glyphs_svg='<svg id="glyph_store"><defs>%s</defs></svg>'%( ''.join( [ glyph['svg'] for glyph in document._global_store['glyphs'].values() ] ) )
-        output += glyphs_svg
+    if 'svg_glyphs' in document._global_store:
+        glysid = get_attr('svg_glyphsids', None, 'text', unique=True)
+        glyphsvgs = [g['svg'] for g in document._global_store['svg_glyphs'].values() if g['id'] in glysid]
+        if len(glyphsvgs) > 0:
+            glyphs_svg = '<svg id="glyph_store"><defs>%s</defs></svg>'
+            output += glyphs_svg % (''.join(glyphsvgs))
 
-    # Add the svg content
-    if py3:
-        output += "".join( global_store )
-    else:
-        #Python 2 backcompatibility
-        output += "".join( global_store ).decode('utf8')
-    
-    
+        # Add the svg content
+        if py3:
+            output += "".join(global_store)
+        else:
+            #Python 2 backcompatibility
+            output += "".join(global_store).decode('utf8')
+
+ 
     # Create store divs for each slides
     output += '<script> slides = eval( ( %s ) );</script>'%jsonfile.read()
 
@@ -460,8 +478,8 @@ def display_matplotlib(slide_id, show=False):
     svgout = slide.svgheader
 
     # Export glyphs
-    if 'glyphs' in document._global_store:
-        glyphs_svg = '<defs>%s</defs>' % (''.join([glyph['svg'] for glyph in document._global_store['glyphs'].values()]))
+    if 'svg_glyphs' in document._global_store:
+        glyphs_svg = '<defs>%s</defs>' % (''.join([glyph['svg'] for glyph in document._global_store['svg_glyphs'].values()]))
         # old .decode('utf-8', errors='replace') for py2
         svgout += glyphs_svg
 
@@ -574,3 +592,47 @@ def get_bokeh_includes():
     js_out += '</script>'
 
     return css_out, js_out
+
+
+def fonts_merge():
+    """
+    Merge fonts with the same name (dvisvgm export only glyph present
+    in the document, so that we have sevaral font with the same name
+    with different and redondant glyphs)
+
+    parameters:
+    -----------
+    elements: list of tupple (slide_id, element_id)
+    
+    refs:
+    -----
+    
+    https://github.com/googlefonts/nototools/blob/master/nototools/merge_fonts.py
+    """
+
+    fonts = {}
+    fontsid = get_attr('css_fontsids', None, 'text', unique=True)
+    cssf = [document._global_store['css_fonts'][glyph] for glyph in document._global_store['css_fonts'] if glyph in fontsid]
+    for f in cssf:
+        fname = f.split('font-family:')[-1].split(';')[0]
+        f64 = f.split('base64,')[-1].split(')')[0]
+        # print(fname, f64)
+        b64decode = base64.b64decode(f64)
+        if fname not in fonts:
+            fonts[fname] = [BytesIO(b64decode)]
+        else:
+            fonts[fname] += [BytesIO(b64decode)]
+
+    css_font_tmpl = "@font-face{font-family:%s;src:url(data:application/x-font-woff2;base64,%s) format('woff2');}"
+    css_fonts = []
+    for f in fonts:
+        # print(f)
+        merger = merge.Merger()
+        nfont = merger.merge(fonts[f])
+        out = BytesIO()
+        nfont.save(out)
+        out.seek(0)
+        out64 = base64.b64encode(out.read())
+        css_fonts += [css_font_tmpl % (f, out64.decode('ascii'))]
+
+    return ''.join(css_fonts)

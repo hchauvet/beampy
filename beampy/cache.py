@@ -22,6 +22,7 @@ import glob
 import logging
 _log = logging.getLogger(__name__)
 
+
 class cache_slides():
 
     def __init__(self, cache_dir, document):
@@ -34,13 +35,13 @@ class cache_slides():
         self.data = {} #Cache data are stored in a dict
 
         self.data_file = 'data.pklz'
-        
+
         #Try to read cache
         if os.path.isdir(self.folder):
             if os.path.exists(self.folder+'/'+self.data_file):
                 with gzip.open(self.folder+'/'+self.data_file, 'rb') as f:
                     self.data = pkl.load(f)
-                
+
         else:
             os.mkdir(self.folder)
 
@@ -48,28 +49,29 @@ class cache_slides():
             print('Cache file from an other beampy version!')
             self.data = {}
             self.remove_files()
-            
+
         #check if we the optimize svg option is enabled
         elif 'optimize' not in self.data or self.data['optimize'] != document._optimize_svg:
             print('Reset cache du to optimize')
             self.data = {}
             self.remove_files()
-            
+
         else:
-            #Restore glyphs definitions
-            if 'glyphs' in self.data:
-                document._global_store['glyphs'] = self.data['glyphs']
-                
-            
-            
+            # Restore glyphs definitions
+            if 'svg_glyphs' in self.data:
+                document._global_store['svg_glyphs'] = self.data['svg_glyphs']
+
+            if 'css_fonts' in self.data:
+                document._global_store['css_fonts'] = self.data['css_fonts']
+
         #Add beampy version in data
         self.data['version'] = self.version
         self.data['optimize'] = document._optimize_svg
-        
+
     def remove_files(self):
         for f in glob.glob(self.folder+'/*.pklz'):
             os.remove(f)
-            
+
     def clear(self):
 
         if os.path.isdir(self.folder):
@@ -83,50 +85,53 @@ class cache_slides():
 
         slide: str of slide id, exemple: "slide_1"
 
-        bp_module: neampy_module instance
+        bp_module: beampy_module instance
         """
 
         if bp_module.type not in ['group']:
 
-            #commands that include raw contents (like text, tikz, ...)
+            # commands that include raw contents (like text, tikz, ...)
             if bp_module.rendered:
-                #Set the uniq id from the element['content'] value of the element
-                elemid = create_element_id(bp_module, use_args=False, add_slide=False, slide_position=False)
-                
+                # Set the uniq id from the element['content'] value of
+                # the element
+                elemid = create_element_id(bp_module, use_args=False,
+                                           add_slide=False,
+                                           slide_position=False)
+
                 if elemid is not None:
-                    
+
                     self.data[elemid] = {}
-                    
-                    #don't pickle matplotlib figure We don't need to store content in cache
-                    #if "matplotlib" not in str(type(bp_module)):
-                    #    self.data[elemid]['content'] = bp_module.content
-                        
                     self.data[elemid]['width'] = bp_module.positionner.width.value
                     self.data[elemid]['height'] = bp_module.positionner.height.value
-                    
+
                     if bp_module.svgout is not None:
-                        #create a temp filename
+                        # create a temp filename
                         svgoutname = tempfile.mktemp(prefix='svgout_', dir='')
                         self.data[elemid]['svgout'] = svgoutname
-                        #save the file 
+                        # save the file 
                         self.write_file_cache(svgoutname, bp_module.svgout)
-                        
+
                     if bp_module.htmlout is not None:
                         htmloutname = tempfile.mktemp(prefix='htmlout_', dir='')
                         self.data[elemid]['htmlout'] = htmloutname
                         self.write_file_cache(htmloutname, bp_module.htmlout)
-                        
+
                     if bp_module.jsout is not None:
                         jsoutname = tempfile.mktemp(prefix='jsout_', dir='')
                         self.data[elemid]['jsout'] = jsoutname
                         self.write_file_cache(jsoutname, bp_module.jsout)
 
-                    #print(element['args'])
-                    #print(element.keys())
-                    #For commands that includes files, need a filename elements in args
+                    if bp_module.attrtocache is not None:
+                        for key in bp_module.attrtocache:
+                            tmp = getattr(bp_module, key)
+                            if isinstance(tmp, dict):
+                                tmp = copy(tmp)
+                                self.data[elemid][key] = tmp
+
+                    # For commands that includes files, need a filename elements in args
                     try:
-                        self.data[elemid]['file_id'] = os.path.getmtime( bp_module.content )
-                    except:
+                        self.data[elemid]['file_id'] = os.path.getmtime(bp_module.content)
+                    except Exception as e:
                         pass
 
     def add_file(self, filename, content):
@@ -179,7 +184,7 @@ class cache_slides():
                 cacheelem = self.data[elemid]
                 out = True
 
-                #If it's from a file check if the file as changed
+                # If it's from a file check if the file as changed
                 if 'file_id' in cacheelem:
                     try:
                         curtime = os.path.getmtime( bp_module.content )
@@ -191,14 +196,21 @@ class cache_slides():
                     else:
                         out = True
 
-                #If It's in cache load items from the cache to the object
+                # If It's in cache load items from the cache to the object
                 if out:
                     for key in ['svgout', 'jsout', 'htmlout']:
                         if key in cacheelem:
                             content = self.read_file_cache(cacheelem[key])
                             setattr(bp_module, key, content)
 
-                    #Update the size
+                    # get also attr from cache
+                    if bp_module.attrtocache is not None:
+                        for key in bp_module.attrtocache:
+                            if hasattr(bp_module, key) and hasattr(cacheelem, key):
+                                _log.info('Module %s key %s is overwritten by the one in cache' % (bp_module.name, key))
+                                setattr(bp_module, key, cacheelem[key])
+
+                    # Update the size
                     bp_module.update_size(cacheelem['width'], cacheelem['height'])
 
         return out
@@ -209,15 +221,17 @@ class cache_slides():
         """
 
         #Check if their is some glyphs in the global_store
-        if 'glyphs' in self.global_store:
-            self.data['glyphs'] = self.global_store['glyphs']
-            
+        if 'svg_glyphs' in self.global_store:
+            self.data['svg_glyphs'] = self.global_store['svg_glyphs']
+
+        if 'css_fonts' in self.global_store:
+            self.data['css_fonts'] = self.global_store['css_fonts']
+
         with gzip.open(self.folder+'/'+self.data_file, 'wb') as f:
             pkl.dump(self.data, f, protocol=2)
-            
-            
+
     def write_file_cache(self, filename, content):
-        
+
         with gzip.open(self.folder+'/'+filename+'.pklz', 'wb') as f:
             try:
                 f.write(content.encode('utf-8'))
@@ -236,7 +250,8 @@ class cache_slides():
                 output = f.read()
             
         return output
-        
+
+
 #TODO: solve import bug when we try to import this function from beampy.functions...
 def create_element_id(bp_mod, use_args=True, use_render=True,
                       use_content=True, add_slide=True, slide_position=True,
@@ -279,18 +294,18 @@ def create_element_id(bp_mod, use_args=True, use_render=True,
         for key in bp_mod.args_for_cache_id:
             try:
                 tmp = getattr(bp_mod, key)
-                ct_to_hash += str(tmp)
+                ct_to_hash += '%s=%s' % (key, str(tmp))
             except:
-                print('No parameters %s for cache id for %s'%(key, bp_mod.name))
+                print('No parameters %s for cache id for %s' % (key, bp_mod.name))
 
     outid = None
     if ct_to_hash != '':
         #print ct_to_hash
         try:
-            outid = hashlib.md5( ct_to_hash.encode('utf-8') ).hexdigest()
+            outid = hashlib.md5(ct_to_hash.encode('utf-8')).hexdigest()
         except:
             # for python 2
-            outid = hashlib.md5( ct_to_hash ).hexdigest()
+            outid = hashlib.md5(ct_to_hash).hexdigest()
 
         if outid in document._slides[bp_mod.slide_id].element_keys:
             print("Id for this element already exist!")

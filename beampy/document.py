@@ -153,7 +153,7 @@ class document():
     # contents images, video, etc...  Format of an entry in the list:
     # {'type': 'svg (or html)', 'content': the data to be loaded}
     _global_store = {}
-
+    
     # Define path to external commands (see default THEME file)
     _external_cmd = {}
 

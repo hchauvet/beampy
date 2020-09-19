@@ -6,8 +6,8 @@ Tutorials
 .. warning::
    More tutorials need to be written!
 
-For Beginers
-------------
+For beginners
+-------------
 
 * :ref:`sphx_glr_auto_tutorials_first_slide.py`
 * :ref:`sphx_glr_auto_tutorials_positioning_system.py`

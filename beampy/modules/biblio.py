@@ -249,13 +249,27 @@ class cite(text):
         # Cite need to be re-rendered from latex if with, color, size,  are changed
         self.initial_width = self.width
         self.args_for_cache_id = ['initial_width', 'color', 'size',
-                                  'align', 'opacity']
+                                  'align', 'opacity', 'nofont']
 
 
-        # Initialise the global store on document._content to store letter
-        if 'svg_glyphs' not in document._contents:
-            document._contents['svg_glyphs'] = {}
+        # Init global store keys if not already created 
+        if 'css_fonts' not in document._global_store:
+            document._global_store['css_fonts'] = {}
 
+        if 'svg_glyphs' not in document._global_store:
+            document._global_store['svg_glyphs'] = {}
+            
+        if self.attrtocache is None:
+            self.attrtocache = []
+
+        if self.nofont:
+            self.attrtocache += ['svg_glyphsids']
+        else:
+            self.attrtocache += ['css_fontsids']
+
+        self.svg_glyphsids = []
+        self.css_fontsids = []
+        
         self.register()
 
 

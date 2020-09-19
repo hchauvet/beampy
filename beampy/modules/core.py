@@ -440,7 +440,10 @@ class beampy_module(object):
 
     #  Special args used to create cache id from md5
     args_for_cache_id = None
-    
+
+    # list of attributes to add to cache
+    attrtocache = None
+
     # Define special keyword arguments not included in THEME file
     special_kwargs = {'parent_slide_id': None}
     
@@ -601,6 +604,8 @@ class beampy_module(object):
                     print("Elem [%s ...] rendered"%self.call_cmd.strip()[:20])
                 except:
                     print("Elem %s rendered"%self.name)
+            else:
+                _log.info('Elem  [%s...] already rendered' % self.name)
 
         # Process the svg definitions
         self.render_svgdefs()
@@ -654,6 +659,9 @@ class beampy_module(object):
             if key in default_dict or key in self.special_kwargs:
                 outdict[key] = value
                 setattr(self, key, value)
+                #Add args to the args dictionnary also
+                self.args[key] = value
+                
             else:
                 if not lenient:
                     print("Error the key %s is not defined for %s module"%(key, function_name))
@@ -666,7 +674,10 @@ class beampy_module(object):
         for key, value in default_dict.items():
             if key not in outdict:
                 setattr(self, key, value)
-
+                # Add args to the args dictionnary also, this is
+                # usefull to restore property during processing
+                self.args[key] = value
+                
     def load_special_kwargs(self):
         """
 
@@ -680,6 +691,9 @@ class beampy_module(object):
         for key, value in self.special_kwargs.items():
             if not hasattr(self, key):
                 setattr(self, key, value)
+                
+                #Add args to the args dictionnary also
+                self.args[key] = value
                 
     def load_extra_args(self, theme_key):
         """
@@ -711,7 +725,6 @@ class beampy_module(object):
         self.width = self.positionner.width
         self.height = self.positionner.height
 
-    
     def add_svgdef(self, svgdef, svgdefsargs=None):
         """
         Function to add svg clipPath or filter.
@@ -745,7 +758,7 @@ class beampy_module(object):
         out_svgdefs = ''
         if len(self.svgdefs) > 0:
 
-            logging.debug('Export svg defs added to module %s' % str(self.name))
+            _log.debug('Export svg defs added to module %s' % str(self.name))
             # print('Svgdefs type for ', str(self.name)) 
             for i, svgdef in enumerate(self.svgdefs):
                 # print(type(svgdef))
@@ -755,10 +768,10 @@ class beampy_module(object):
 
                 if out_args != {}:
                     svgdef = svgdef.format(**out_args)
-                    
+
                 out_svgdefs += svgdef
 
-            logging.debug(out_svgdefs)
+            _log.debug(out_svgdefs)
             
         if out_svgdefs != '':
             document._slides[self.slide_id].svgdefout += [out_svgdefs]
@@ -828,8 +841,8 @@ class beampy_module(object):
 
         out += '</g>'
 
-        logging.debug(str(self.name), type(out))
-        
+        # _log.debug(str(self.name)+' '+str(type(out)))
+
         return out
 
     def export_html(self):

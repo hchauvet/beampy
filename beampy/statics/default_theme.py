@@ -45,7 +45,8 @@ THEME['text'] = {
     'usetex':True,
     'va': '',
     'opacity':1,
-    'extra_packages': []
+    'extra_packages': [],
+    'nofont': False
 }
 
 

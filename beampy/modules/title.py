@@ -28,11 +28,33 @@ class title( text ):
         
         #Add text arguments because we use the text render
         self.load_extra_args('text')
-        #Re-compute the title when color or size is changed
-        self.args_for_cache_id = ['color','size']
         
-        if self.width == None:
+        if self.width is None:
             self.width = document._width
+            
+        self.initial_width = self.width
+        #Re-compute the title when color or size is changed
+        self.args_for_cache_id = ['initial_width', 'color', 'size',
+                                  'align', 'opacity', 'nofont']
+
+        # Init global store keys if not already created 
+        if 'css_fonts' not in document._global_store:
+            document._global_store['css_fonts'] = {}
+
+        if 'svg_glyphs' not in document._global_store:
+            document._global_store['svg_glyphs'] = {}
+            
+        if self.attrtocache is None:
+            self.attrtocache = []
+            
+        if self.nofont:
+            self.attrtocache += ['svg_glyphsids']
+        else:
+            self.attrtocache += ['css_fontsids']
+
+        self.svg_glyphsids = []
+        self.css_fontsids = []
+
         self.height = None
 
         #Register this module

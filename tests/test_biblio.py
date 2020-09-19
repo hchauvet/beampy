@@ -3,10 +3,10 @@
 import pytest
 from beampy import *
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
+#import logging
+#logging.basicConfig(level=logging.DEBUG)
 
-test_name = 'test_text'
+test_name = 'test_biblio'
 
 @pytest.fixture
 def make_presentation():

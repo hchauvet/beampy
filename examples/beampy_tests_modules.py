@@ -2,6 +2,9 @@
 #-*- coding:utf-8 -*-
 import pylab as p
 from beampy import *
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 doc = document(cache=False)
 #Turn cache to True to speed up compilation
@@ -265,3 +268,4 @@ with slide('Bokeh plot'):
 
 
 save('./beampy_tests.html')
+#save('./beampy_tests.pdf')

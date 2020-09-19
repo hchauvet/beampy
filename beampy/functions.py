@@ -27,6 +27,7 @@ find_svg_tags = re.compile('id="(.*)"')
 # Regex to remove tab new line
 remove_tabnewline = re.compile('\s+')
 
+
 def unit_operation(value, to=0):
     """
         realise operation on values and return the result in px
@@ -46,7 +47,7 @@ def unit_operation(value, to=0):
         for v in vsplited:
             to -= float(convert_unit(v))
 
-    return "%0.1f"%to
+    return "%0.1f" % to
 
 
 def convert_unit(value, ppi=72):
@@ -268,12 +269,18 @@ def optimize_svg(svgfile_in):
 
     return svgout
 
-def latex2svg(latexstring, write_tmpsvg=False):
+
+def latex2svg(latexstring,
+              dvisvgmoptions=['-n', '-a', '--linkmark=none'],
+              write_tmpsvg=False):
     """
-        Command to render latex -> dvi -> svg
+    Render latex -> dvi -> svg
 
     Parameters
     ==========
+
+    dvisvgmoptions: list of string optional,
+        Give option to be passed to dvisvgm to convert dvi to svg.
 
     write_tmpsvg: true or false optional,
         Write the svg produced by dvisvgm to a file (if True)
@@ -297,31 +304,18 @@ def latex2svg(latexstring, write_tmpsvg=False):
         tmpname, tmpextension = os.path.splitext(f.name)
 
         # Write latex commands to the file
-        f.write( latexstring )
+        f.write(latexstring)
 
         # Flush file content, so that it is available for latex command
         f.file.flush()
 
         #Run Latex
         #t = time.time()
-        tex = os.popen("cd "+tmppath+" && latex -interaction=nonstopmode "+f.name)
-        #print('latex run in %f'%(time.time()-t))
-        #print tex.read() #To print tex output
-        """
-        This is a test to get the base line from latex output
-        \\newlength\\x
-        \\newlength\\y
-        \\x=1em
-        \\y=1ex
-        \\showthe\\x
-        \\showthe\\y
-        """
-        #find_size = re.compile(r'> \d.*?.pt.')
-        #tex_em, tex_ex = find_size.findall(tex.read())
-        #Convert latex pt to cm (1pt = 28.4cm)
-        #tex_em = "%0.5fcm"%(float(tex_em[2:-3]) * 1/28.4)
-        #convert to pixel
+        cmd = "cd "+tmppath+" && latex -interaction=nonstopmode --halt-on-error "+f.name
+        _log.debug(cmd)
+        tex = os.popen(cmd)
         tex_outputs = tex.read()
+        _log.debug(tex_outputs)
         tex.close() # close the os.popen
 
     #Run dvi2svgm
@@ -339,8 +333,9 @@ def latex2svg(latexstring, write_tmpsvg=False):
         #dvisvgm to convert dvi to svg [old -e option not compatible with linkmark]
         if write_tmpsvg:
             _log.debug('Write dvisvgm output as an svg file')
-            cmd = dvisvgmcmd
-            cmd += ' -n -a -n -a --linkmark=none -o {filename}.svg --verbosity=0 {filename}.dvi'
+            cmd = dvisvgmcmd+' '
+            cmd += ' '.join(dvisvgmoptions)
+            cmd += ' -o {filename}.svg --verbosity=0 {filename}.dvi'
             cmd = cmd.format(filename=tmpname)
             res = os.popen(cmd)
             resp = res.read()
@@ -349,18 +344,20 @@ def latex2svg(latexstring, write_tmpsvg=False):
             with open(tmpname + '.svg') as svgf:
                 outsvg = svgf.read()
         else:
-            cmd = dvisvgmcmd+' -n -s -a --linkmark=none -v0 {filename}.dvi'
+            cmd = dvisvgmcmd+' '
+            cmd += ' '.join(dvisvgmoptions)
+            cmd += ' -s -v0 {filename}.dvi'
             cmd = cmd.format(filename=tmpname)
-            outsvg = check_output(cmd, shell=True).decode('utf8')
-
-        #Remove temp files
+            outsvg = check_output(cmd, shell=True).decode('utf8', errors='replace')
+            
+        # Remove temp files
         for f in glob.glob(tmpname+'*'):
             os.remove(f)
 
+        # Check if their is warning emitted by dvisvgm inside the svgfile
         outsvg = clean_ghostscript_warnings(outsvg)
-
+        
         _log.debug(outsvg)
-        _log.debug(type(outsvg))
 
         return outsvg
 
@@ -379,7 +376,6 @@ def clean_ghostscript_warnings(rawsvg):
                it is possible that malicious <?xml version='1.0'?>
     <svg [...]/>
     """
-
 
     if isinstance(rawsvg, list):
         svg_lines = rawsvg
@@ -404,7 +400,7 @@ def clean_ghostscript_warnings(rawsvg):
     return good_svg
 
 
-def getsvgwidth( svgfile ):
+def getsvgwidth(svgfile):
     """
         get svgfile width using inkscape
     """
@@ -418,7 +414,8 @@ def getsvgwidth( svgfile ):
 
     return res
 
-def getsvgheight( svgfile ):
+
+def getsvgheight(svgfile):
     """
         get svgfile height using inkscape
     """
@@ -440,12 +437,14 @@ def gcs():
 
     return document._curentslide
 
+
 def set_curentslide(slide_id):
     """
     Set the curent slide to the given slide_id
     """
 
     document._curentslide = slide_id
+
 
 def set_lastslide():
     '''
@@ -549,11 +548,13 @@ def check_function_args( function, arg_values_dict, lenient = False ):
 
     return outdict
 
+
 def print_function_args(function_name):
     #Pretty print of function arguments with default values
     print("Allowed arguments for %s"%(function_name))
     for key, value in document._theme[function_name].items():
         print("%s: [%s] %s"%(key, str(value), type(value)))
+
 
 def inherit_function_args(function_name, args_dict):
     #Allow to add args defined for an other function to the args_dict
@@ -564,7 +565,8 @@ def inherit_function_args(function_name, args_dict):
 
     return args_dict
 
-def color_text( textin, color ):
+
+def color_text(textin, color):
 
     '''
     Adds Latex color to a string.
@@ -588,13 +590,12 @@ def dict_deep_update(original, update):
     """
 
     for key, value in original.items():
-        if not key in update:
+        if key not in update:
             update[key] = value
         elif isinstance(value, dict):
-            dict_deep_update( value, update[key] )
+            dict_deep_update(value, update[key])
 
     return update
-
 
 
 def create_element_id(bpmod, use_args=True, use_name=True,
@@ -702,7 +703,6 @@ def guess_file_type(file_name, file_type=None):
     return file_type
 
 
-# Function to render texts in document
 def render_texts(elements_to_render=None, extra_packages=None):
     r"""
     Function to merge all text in the document to run latex only once
@@ -743,27 +743,23 @@ def render_texts(elements_to_render=None, extra_packages=None):
     %s
     \begin{document}
     """ % ('\n'.join(extra_packages + document._latex_packages))
-    latex_pages = []
     latex_footer = r"\end{document}"
 
-    # logging.debug(latex_header)
-    #Loop over slide
-    t = time.time()
     cpt_page = 1
     elements_pages = []
-
-
+    latex_pages = []
+    elements_nofont = []
+    
     if elements_to_render == []:
-        for islide in range(len(document._slides)-1):
+        for islide in range(len(document._slides)):
             # don't loop over document._slides keys directly as they will be ordered differentyl in py2 and py3
-            sid = 'slide_%i' % (islide+1)
+            sid = 'slide_%i' % (islide)
             #Loop over content in the slide
             for cid in document._slides[sid].element_keys:
                 e = document._slides[sid].contents[cid]
                 #Check if it's a text element, is it cached?, render it to latex syntax
                 if e.type == 'text' and e.usetex and not e.rendered:
                     elements_to_render += [e]
-
 
     for e in elements_to_render:
         if e.cache and document._cache is not None:
@@ -772,121 +768,79 @@ def render_texts(elements_to_render=None, extra_packages=None):
             if ct_cache is False:
                 # Run the pre_rendering
                 e.pre_render()
-
                 try:
-                    latex_pages += [e.latex_text]
+                    if e.nofont:
+                        elements_nofont += [True]
+                    else:
+                        elements_nofont += [False]
+                        
+                    latex_pages += [e.latex_text]  
                     elements_pages += [{"element": e, "page": cpt_page}]
                     cpt_page += 1
                 except Exception as e:
                     print(e)
         else:
-
             e.pre_render()
-
             try:
+                if e.nofont:
+                    elements_nofont += [True]
+                else:
+                    elements_nofont += [False]
+
                 latex_pages += [e.latex_text]
                 elements_pages += [{"element": e, "page": cpt_page}]
                 cpt_page += 1
             except Exception as e:
                 print(e)
 
+    # Need to separate elements with font or nofont options
+    for nofont in [True, False]:
+        latexp = [p for i, p in enumerate(latex_pages) if elements_nofont[i] == nofont]
+        if len(latexp) > 0:
+            # Create the latex content
+            latex_content = latex_header
+            latex_content += '\n \\newpage \n'.join(latexp)
+            latex_content += latex_footer
 
-    _log.debug(latex_header+'\n \\newpage \n'.join(latex_pages)+latex_footer)
-    # Write the file to latex
-    if len(latex_pages) > 0:
-        # get the location of tempdir
-        tmppath = tempfile.gettempdir()
+            if nofont:
+                options = ['-n', '-a', '--linkmark=none', '-p1-']
+            else:
+                options = ['-a', '--font-format=woff2,ah',
+                           '--no-style', '--no-merge', '--linkmark=none',
+                           '-p1-']
 
-        # Create a None tempory filename
-        tmpname = None
-
-        # Create a variable to store the latex output
-        tex_outputs = None
-
-        # Use tempfile.NamedTemporaryFile to create a text file with .tex suffix and beampytmp prefix
-        # NamedTemporaryFile automaticly close the file at the end of the context by default
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.tex', prefix='beampytmp') as f:
-            # Get the name of the file
-            tmpname, extension = os.path.splitext(f.name)
-
-            # Write down the latex code to this file
-            f.write(latex_header)
-            f.write('\n \\newpage \n'.join(latex_pages))
-            f.write(latex_footer)
-
-            print('Latex file writen in %f'%(time.time()-t))
-
-            # Flush the file content so that latex can see it
-            f.file.flush()
-
-            #Run Latex using subprocess
-            #t = time.time()
-            cmd = "cd "+tmppath+" && latex -interaction=nonstopmode --halt-on-error "+f.name
-            _log.debug(cmd)
-
-            tex = os.popen(cmd)
-            #print('Latex run in %f'%(time.time()-t))
-            tex_outputs = tex.read()
-            _log.debug(tex_outputs)
-            tex.close() # close os.popen
-
-
-        # to test the output of latex file
-        """
-        with open('test_text_py2.tex', 'w') as f:
-            f.write(latex_header)
-            f.write('\n \\newpage \n'.join(latex_pages))
-            f.write(latex_footer)
-        """
-
-        if tex_outputs is None or 'error' in tex_outputs or '!' in tex_outputs:
-            print(tex_outputs)
-            print('Latex compilation error')
-            #Remove temp files generated by latex
-            for f in glob.glob(tmpname+'*'):
-                os.remove(f)
-
-            # Stop Beampy compilation
-            sys.exit(1)
-
-        #Upload svg to each elements
-        dvisvgmcmd = document._external_cmd['dvisvgm']
-
-        t = time.time()
-        if tmpname is not None:
-            cmd = dvisvgmcmd+' -n -s -p1- --linkmark=none -v0 '+tmpname+'.dvi'
-            allsvgs = check_output(cmd, shell=True).decode('utf8', errors='replace')
+            allsvgs = latex2svg(latex_content, dvisvgmoptions=options)
             allsvgs = allsvgs.splitlines()
+            # print(nofont, len(latexp), allsvgs)
 
-            #To split the data get the xml syntax <? xml ....?>
-            schema = get_xml_tag(allsvgs)
-            _log.debug('Schema to cut svg %s'%(str(schema)))
-            assert schema is not None
+            if len(latexp) == 1:
+                svg_list = [''.join(allsvgs)]
+                schema = ''
+            else:
+                #To split the data get the xml syntax <? xml ....?>
+                schema = get_xml_tag(allsvgs)
+                _log.debug('Schema to cut svg %s' % (str(schema)))
+                assert schema is not None
 
-            # Check if their is warning emitted by dvisvgm inside the svgfile
-            allsvgs = clean_ghostscript_warnings(allsvgs)
+                #Join all svg lines and split them each time you find the schema
+                svg_list = ''.join(allsvgs).split(schema)
+                if svg_list[0] == '':
+                    svg_list = svg_list[1:]
 
-            #Join all svg lines and split them each time you find the schema
-            svg_list = ''.join(allsvgs).split(schema)
-            if svg_list[0] == '':
-                svg_list = svg_list[1:]
+            tmpelems = [e for i, e in enumerate(elements_pages) if elements_nofont[i]==nofont]
+            _log.debug('Size of svg %i and size of latex pages %i'%(len(svg_list), len(tmpelems)))
+            assert len(svg_list) == len(tmpelems)
 
-            _log.debug('Size of svg %i and size of latex pages %i'%(len(svg_list), len(elements_pages)))
-            assert len(svg_list) == len(elements_pages)
-
-            #Process all pages to svg
-            for i, ep in enumerate(elements_pages):
-                #Loop over content in the slide
+            # Process all pages to svg
+            for i, ep in enumerate(tmpelems):
+                # Loop over content in the slide
                 ep['element'].svgtext = schema + svg_list[i]
 
-        print('DVI -> SVG in %f'%(time.time()-t))
-
-        #Remove temp files generated by latex
-        for f in glob.glob(tmpname+'*'):
-            os.remove(f)
 
 
 PYTHON_XMLFIND_REGEX = re.compile(r'<\?xml[^>]+>')
+
+
 def get_xml_tag(rawsvg):
     """
     Function to find the xml tag in a file this tag could be
@@ -894,9 +848,7 @@ def get_xml_tag(rawsvg):
     or
     <?xml version='1.0' encoding='UTF-8'?>
     or other (depends on dvisvgm version
-
     """
-
 
     if isinstance(rawsvg, list):
         svg_lines = rawsvg
@@ -905,6 +857,7 @@ def get_xml_tag(rawsvg):
 
     xmltag = None
     for l in svg_lines:
+        print(l)
         search_re = PYTHON_XMLFIND_REGEX.search(l)
         if search_re:
             xmltag = search_re.group(0)
@@ -959,3 +912,112 @@ def small_comment_parser(src):
                 marker_open = True
 
     return text_parts
+
+
+def apply_to_all(elements=None, element_type=None, function=print):
+    """Apply function to a given element in the elements list. If elements
+    list is None (default) the function will be applied on all
+    elements of all slides. When element_type is None (the default)
+    the function will be applied on all type of elements, if an
+    element_type is provided the function will only be applied to this
+    element_type.
+
+    Parameters
+    ----------
+
+    elements: list of tuple (slide_id, beampy modules id) or None,
+       A list of elements (slide_id, module_id) on which the function
+       will be applied. When sets to None (default) the elements will
+       be set to all elements id for all slides of the presentation.
+
+    element_type: str or None,
+       The name of the element type on which to apply the function. If
+       None (default) the function is applied on all type of element.
+
+    function: callable,
+       A function to apply on elements.
+    """
+
+    if elements is None:
+        elements = []
+        for islide in range(len(document._slides)):
+            sid = 'slide_%i' % (islide)
+            eids = document._slides[sid].element_keys
+            elements += [(sid, eid) for eid in eids]
+
+    for sid, eid in elements:
+        e = document._slides[sid].contents[eid]
+        if element_type is None or e.type == element_type:
+            function(e)
+
+
+def get_attr(attribute, elements=None, element_type=None, unique=False):
+    """
+    Retrieve all attribute for a given element_type in the elements
+    list. If elements is None, the whole elements from the documents
+    are analysed. If element_type is None the attribute is returned
+    for all the elements list.
+
+    Parameters:
+    -----------
+
+    attribute: str,
+       The name of the attribute to retrieve.
+
+    elements: list of tuple (slide_id, beampy modules id) or None,
+       A list of elements (slide_id, module_id) on which to get the
+       attribute. When sets to None (default) the elements will be
+       set to all elements id for all slides of the presentation.
+
+    element_type: str or None,
+       The name of the element type on which to get the attribute. If
+       None (default) the attribute is retrieved from all type of
+       element.
+
+    unique: Boolean,
+       Return only attribute with different values (default False)
+    """
+
+    if elements is None:
+        elements = []
+        for islide in range(len(document._slides)):
+            sid = 'slide_%i' % (islide)
+            eids = document._slides[sid].element_keys
+            elements += [(sid, eid) for eid in eids]
+
+    out = []
+    for sid, eid in elements:
+        e = document._slides[sid].contents[eid]
+        if element_type is None or e.type == element_type:
+            if hasattr(e, attribute):
+                tmp = getattr(e, attribute)
+                if unique:
+                    if tmp not in out:
+                        if (isinstance(tmp, list)):
+                            out += tmp
+                        else:
+                            out += [tmp]
+                else:
+                    if (isinstance(tmp, list)):
+                        out += tmp
+                    else:
+                        out += [tmp]
+            else:
+                _log.error('The element %s has no attribute %s',
+                           (e, attribute))
+
+    return out
+
+
+def force_rerender(element_type, elements=None):
+    """
+    Put rendered flag to false. This for re-rerender all elements.
+    """
+
+    def rerender(e):
+        e.rendered = False
+
+    apply_to_all(elements,
+                 element_type=element_type,
+                 function=rerender)
+
