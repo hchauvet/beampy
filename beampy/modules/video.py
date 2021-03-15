@@ -24,32 +24,24 @@ import subprocess
 
 class video(beampy_module):
     """
-    Include a figure to the current slide. Figure formats could be (**svg**,
-    **pdf**, **png**, **jpeg**, **matplotib figure**, and **bokeh figure**)
+    Add video in webm/ogg/mp4 format
 
-    Parameters
-    ----------
+    arguments
+    ---------
 
-    content : str or matplotlib.figure or bokeh.figure
-        Figure input source. To load file, `content` is the path to the file.
-        For matplotlib and bokeh, `content` is the python object figure of
-        either matplotlib or bokeh.
+    width = None -> document._width
+    heigh = None -> document._height
 
-    ext : {'svg','jpeg','png','pdf','bokeh','matplotlib'} or None, optional
-       Image format defined as string (the default value is None, which implies
-       that the image format is guessed from file or python object name.
+    x ['center']: x position
+    y ['auto']: y position
 
-    x : int or float or {'center', 'auto'} or str, optional
-        Horizontal position for the figure (the default is 'center').
+    autoplay [False]: To launch video when slide appears
 
-    y : int or float or {'center', 'auto'} or str, optional
-        Vertical position for the figure (the default is 'auto', which implies
-        equal blank width between 'auto' positioned elements)
+    control [True]: Display video control bar
 
-    width : int or float or None, optional
-        Width of the figure (the default is None, which implies that the width
-        is width of the image).
+    loop [False]: Run video indefinitely
 
+    still_image_time [0]: extract the still image for pdf export at the given still_image_time in second
     """
 
     def __init__(self, videofile, **kwargs):
@@ -68,6 +60,8 @@ class video(beampy_module):
         autoplay [False]: To launch video when slide appears
 
         control [True]: Display video control bar
+
+        loop [False]: Run video indefinitely
 
         still_image_time [0]: extract the still image for pdf export at the given still_image_time in second
         """
@@ -139,7 +133,7 @@ class video(beampy_module):
             videosrc = self.content
 
         output = """<video id='video' width="{width}px" {otherargs}><source type="video/{ext}" src="{src}"></video>"""
-            
+
         #Check if we need autoplay
         otherargs = ''
         if self.autoplay == True:
@@ -150,6 +144,10 @@ class video(beampy_module):
         else:
             #Add click event to run video
             otherargs += ' onclick="this.paused?this.play():this.pause();"'
+
+        if self.loop :
+            otherargs += ' loop muted'
+            # this doesn't always work (Firefox: OK, Chromium: No)
 
         output = output.format(width=width, otherargs=otherargs, ext=self.ext, src=videosrc)
         self.htmlout = output
