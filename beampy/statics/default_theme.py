@@ -103,6 +103,7 @@ THEME['video'] = {
     'x': 'center',
     'y': 'auto',
     'autoplay': False,
+    'loop' : False,
     'control': True,
     'still_image_time': 0.0,
     'embedded': True
