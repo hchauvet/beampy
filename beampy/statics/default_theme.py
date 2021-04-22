@@ -23,7 +23,8 @@ THEME['document'] = {
         "dvisvgm": "auto",
         "pdfjoin": "auto",
         "video_encoder": 'auto',
-        "pdf2svg": "auto"}
+        "pdf2svg": "auto",
+        "epstopdf": "auto"}
 }
 
 THEME['slide'] = {
