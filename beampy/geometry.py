@@ -13,7 +13,7 @@ import sys
 DEFAULT_X = {'align': 'left', 'reference': 'slide', 'shift': 0,
              'unit': 'width', 'anchor': 'left'}
 DEFAULT_Y = {'align': 'top', 'reference': 'slide', 'shift': 0,
-             'unit': 'width', 'anchor': 'top'}
+             'unit': 'height', 'anchor': 'top'}
 
 
 #Define function for alignement shortcuts.
@@ -217,7 +217,6 @@ class positionner():
         self.center = anchor('center', self.id, self.slideid)
 
     def convert_position(self):
-
         # Function to convert position of an element
         tmpx = DEFAULT_X.copy()
         tmpy = DEFAULT_Y.copy()
