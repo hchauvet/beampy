@@ -151,11 +151,9 @@ class figure(beampy_module):
             self.args['filedate'] = fdate
             self.filedate = fdate
             self.args_for_cache_id += ['filedate']
-            
-            # width and height are defined by the render function
-            #if self.width is None:
-            #    self.width = document._slides[gcs()].curwidth
 
+            if self.width is None and self.height is None:
+                self.width = document._slides[gcs()].curwidth
 
         # Add this module to the current slide + add positionner
         self.register()
