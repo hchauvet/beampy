@@ -209,7 +209,10 @@ class document():
             # Check if it's a python file which is given or a name of themes (stored in beampy/themes)
             themelist = []
             if '.py' in theme:
-                themename = theme.split('.')[0]
+                themepath = os.path.abspath(os.path.dirname(theme))
+                themename = os.path.basename(theme)
+                sys.path.append(themepath)
+                themename = themename.split('.')[0]
             else:
                 available_themes = glob.glob(bppath + 'themes/*_theme.py')
 

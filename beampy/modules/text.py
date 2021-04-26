@@ -358,55 +358,59 @@ class text(beampy_module):
             document._global_store['glyphs'] = {}
 
         #Extract defs containing glyphs from the svg file
-        defs = soup_data.find_all('defs')[0].extract()
-
-        for path in defs.find_all('path'):
-            #store the id of the glyph given by dvisvgm
-
-            path_id = path['id']
-            #store the bezier coordinates of the glyph
-            path_d = path['d']
-            try:
-                hash_id = hashlib.md5(path_d).hexdigest()
-            except:
-                hash_id = hashlib.md5(path_d.encode('utf8')).hexdigest()
-
-
-            #print(hash_id, path_id)
-
-            #check if the glyph is in the store or add it
-            if hash_id not in document._global_store['glyphs']:
-                #Add the glyph to the store and create a new uniq id for it
-                uniq_id = "g_"+str(len(document._global_store['glyphs']))
-                new_svg = "<path d='%s' id='%s'/>"%(path_d, uniq_id)
-                document._global_store['glyphs'][ hash_id ] = {"old_id": path_id, "d": path_d, "id": uniq_id, 'svg':new_svg}
-
-
-            else:
-                data_store = document._global_store['glyphs'][ hash_id ]
-                uniq_id = data_store['id']
-
-            #Find all the xlink:href to this glyph in the use part of the svg
-            for tag in soup_data.find_all('use', { 'xlink:href':'#%s'%(path_id) }):
-                #Change the dvisvgm ref to the new uniq_id ref of the glyph
-                tag['xlink:href'] = '#%s'%(uniq_id)
-
-
-            #Theirs is also definition use in the defs
-            for use in defs.find_all('use', {'xlink:href':'#%s'%(path_id)}):
-                # print(use)
+        try:
+            defs = soup_data.find_all('defs')[0].extract()
+            for path in defs.find_all('path'):
                 #store the id of the glyph given by dvisvgm
-                u_id = use['id']
-                use_id = "g_"+str( len(document._global_store['glyphs']) )
-                use['id'] = use_id
-                use['xlink:href'] = '#%s'%(uniq_id)
-                document._global_store['glyphs'][ use_id ] = {"old_id": u_id,  "id": use_id, 'svg':str(use)}
-                # print(use, u_id, use_id)
+
+                path_id = path['id']
+                #store the bezier coordinates of the glyph
+                path_d = path['d']
+                try:
+                    hash_id = hashlib.md5(path_d).hexdigest()
+                except:
+                    hash_id = hashlib.md5(path_d.encode('utf8')).hexdigest()
+
+
+                #print(hash_id, path_id)
+
+                #check if the glyph is in the store or add it
+                if hash_id not in document._global_store['glyphs']:
+                    #Add the glyph to the store and create a new uniq id for it
+                    uniq_id = "g_"+str(len(document._global_store['glyphs']))
+                    new_svg = "<path d='%s' id='%s'/>"%(path_d, uniq_id)
+                    document._global_store['glyphs'][ hash_id ] = {"old_id": path_id, "d": path_d, "id": uniq_id, 'svg':new_svg}
+
+
+                else:
+                    data_store = document._global_store['glyphs'][ hash_id ]
+                    uniq_id = data_store['id']
 
                 #Find all the xlink:href to this glyph in the use part of the svg
-                for tag in soup_data.find_all('use', { 'xlink:href':'#%s'%(u_id) }):
+                for tag in soup_data.find_all('use', { 'xlink:href':'#%s'%(path_id) }):
                     #Change the dvisvgm ref to the new uniq_id ref of the glyph
-                    tag['xlink:href'] = '#%s'%(use_id)
+                    tag['xlink:href'] = '#%s'%(uniq_id)
+
+
+                #Theirs is also definition use in the defs
+                for use in defs.find_all('use', {'xlink:href':'#%s'%(path_id)}):
+                    # print(use)
+                    #store the id of the glyph given by dvisvgm
+                    u_id = use['id']
+                    use_id = "g_"+str( len(document._global_store['glyphs']) )
+                    use['id'] = use_id
+                    use['xlink:href'] = '#%s'%(uniq_id)
+                    document._global_store['glyphs'][ use_id ] = {"old_id": u_id,  "id": use_id, 'svg':str(use)}
+                    # print(use, u_id, use_id)
+
+                    #Find all the xlink:href to this glyph in the use part of the svg
+                    for tag in soup_data.find_all('use', { 'xlink:href':'#%s'%(u_id) }):
+                        #Change the dvisvgm ref to the new uniq_id ref of the glyph
+                        tag['xlink:href'] = '#%s'%(use_id)
+
+        except:
+            defs = None
+            pass
 
 
         #Need to check if we have undefined reference

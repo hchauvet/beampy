@@ -9,6 +9,7 @@ from beampy import document
 from beampy.functions import (convert_unit, optimize_svg, gcs,
                               make_global_svg_defs, getsvgwidth,
                               getsvgheight, convert_pdf_to_svg,
+                              convert_eps_to_svg,
                               guess_file_type)
 
 from beampy.modules.core import beampy_module
@@ -57,6 +58,10 @@ class figure(beampy_module):
 
     width : int or float or None, optional
         Width of the figure (the default is None, which implies that the width
+        is width of the image).
+
+    height : int or float or None, optional
+        Height of the figure (the default is None, which implies that the width
         is width of the image).
 
     """
@@ -146,9 +151,10 @@ class figure(beampy_module):
             self.args['filedate'] = fdate
             self.filedate = fdate
             self.args_for_cache_id += ['filedate']
-
-            if self.width is None:
-                self.width = document._slides[gcs()].curwidth
+            
+            # width and height are defined by the render function
+            #if self.width is None:
+            #    self.width = document._slides[gcs()].curwidth
 
 
         # Add this module to the current slide + add positionner
@@ -161,10 +167,12 @@ class figure(beampy_module):
 
 
         # Svg // pdf render
-        if self.ext in ('svg', 'pdf', 'matplotlib') :
+        if self.ext in ('svg', 'pdf', 'eps', 'matplotlib') :
             #Convert pdf to svg
             if self.ext == 'pdf' :
                 figurein = convert_pdf_to_svg( self.content )
+            elif self.ext == 'eps' :
+                figurein = convert_eps_to_svg( self.content )
 
             #Convert matplotlib figure to svg
             elif self.ext == 'matplotlib':
@@ -248,21 +256,32 @@ class figure(beampy_module):
                 svgheight = svg_viewbox.split(' ')[3]
                 svgwidth = svg_viewbox.split(' ')[2]
 
-            # SCALE OK need to keep the original viewBox !!!
-            scale_x = (self.positionner.width/float(svgwidth)).value
-            # print svgwidth, svgheight, scale_x
-            # scale_y = float(convert_unit(args['height']))/float(svgheight)
-            good_scale = scale_x
 
             # BS4 get the svg tag content without <svg> and </svg>
             tmpfig = svgtag.renderContents().decode('utf8')
 
-            # Add the correct first line and last
-            tmphead = '\n<g transform="scale(%0.5f)">' % (good_scale)
-            output = tmphead + tmpfig + '</g>\n'
+            # Scale the figure according to the given width
+            if self.width.value is not None and self.height.value is None:
+                # SCALE OK need to keep the original viewBox !!!
+                scale = (self.positionner.width/float(svgwidth)).value
+                figure_height = float(svgheight) * scale
+                figure_width = self.positionner.width.value
 
-            figure_height = float(svgheight)*good_scale
-            figure_width = self.width.value
+            # Scale the figure according to the given height
+            if self.height.value is not None and self.width.value is None:
+                figure_height = self.positionner.height.value
+                scale = (self.positionner.height/float(svgheight)).value
+                figure_width = float(svgwidth) * scale
+
+            # Dont scale the figure let the user fix the width height
+            if self.height.value is not None and self.width.value is not None:
+                output = tmpfig
+                figure_height = self.positionner.height.value
+                figure_width = self.positionner.width.value
+            else:
+                # Apply the scaling to the figure
+                tmphead = '\n<g transform="scale(%0.5f)">' % (scale)
+                output = tmphead + tmpfig + '</g>\n'
 
             #Update the final svg size
             self.update_size(figure_width, figure_height)
@@ -296,9 +315,24 @@ class figure(beampy_module):
             #Open image with PIL to compute size
             tmp_img = Image.open(self.content)
             _,_,tmpwidth,tmpheight = tmp_img.getbbox()
-            scale_x = (self.positionner.width/float(tmpwidth)).value
-            figure_height = float(tmpheight) * scale_x
-            figure_width = self.positionner.width.value
+
+            # Scale the figure according to the given width
+            if self.width.value is not None and self.height.value is None:
+                # SCALE OK need to keep the original viewBox !!!
+                scale = (self.positionner.width/float(tmpwidth)).value
+                figure_height = float(tmpheight) * scale
+                figure_width = self.positionner.width.value
+
+            # Scale the figure according to the given height
+            if self.height.value is not None and self.width.value is None:
+                figure_height = self.positionner.height.value
+                scale = (self.positionner.height/float(tmpheight)).value
+                figure_width = float(tmpwidth) * scale
+
+            # Dont scale the figure let the user fix the width height
+            if self.height.value is not None and self.width.value is not None:
+                figure_height = self.positionner.height.value
+                figure_width = self.positionner.width.value
 
             if document._resize_raster:
                 #Rescale figure to the good size (to improve size and display speed)
@@ -308,7 +342,7 @@ class figure(beampy_module):
                         figurein = base64.b64encode(f.read()).decode('utf8')
 
                 else:
-                    out_img = resize_raster_image(tmp_img, max_width=self.positionner.width.value)
+                    out_img = resize_raster_image(tmp_img, max_width=figure_width)
                     figurein = base64.b64encode(out_img.read()).decode('utf8')
                     out_img.close()
             else:

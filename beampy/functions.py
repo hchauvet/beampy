@@ -464,6 +464,16 @@ def gce(doc=document):
     return doc._global_counter['element']
 
 
+def epstopdf(eps_input_file, pdf_output_file):
+    '''
+    Runs pdf2svg in shell:
+    pdf2svg pdf_input_file svg_output_file
+
+    '''
+
+    return check_call([document._external_cmd['epstopdf'],
+                       eps_input_file, pdf_output_file])
+
 def pdf2svg(pdf_input_file, svg_output_file):
     '''
     Runs pdf2svg in shell:
@@ -474,6 +484,38 @@ def pdf2svg(pdf_input_file, svg_output_file):
     return check_call([document._external_cmd['pdf2svg'],
                        pdf_input_file, svg_output_file])
 
+
+def convert_eps_to_svg(eps_input_file, temp_directory='local'):
+    '''
+    Open pdf_input_file, convert to svg using pdf2svg.
+    '''
+
+    local_directory, filename_pdf = os.path.split(eps_input_file)
+    filename = os.path.splitext(filename_pdf)[0]
+
+    if temp_directory == 'local':
+        temp_directory = local_directory
+    if len(temp_directory) > 0:
+        svg_output_file = temp_directory + '/' + filename + '.svg'
+        pdf_output_file = temp_directory + '/' + filename + '.pdf'
+    else:
+        svg_output_file = filename + '.svg'
+        pdf_output_file = filename + '.pdf'
+
+    try:
+        epstopdf(eps_input_file, pdf_output_file)
+        pdf2svg(pdf_output_file,svg_output_file)
+
+        with open(svg_output_file, 'r') as f:
+            svg_figure = f.read()
+
+        check_call(['rm', svg_output_file])
+        check_call(['rm', pdf_output_file])
+
+        return svg_figure
+
+    except ValueError:
+        return None
 
 def convert_pdf_to_svg(pdf_input_file, temp_directory='local'):
     '''
@@ -686,18 +728,20 @@ def guess_file_type(file_name, file_type=None):
         'pdf': ['pdf'],
         'png': ['png'],
         'jpeg': ['jpg', 'jpeg'],
-        'gif': ['gif']
+        'gif': ['gif'],
+        'eps': ['eps']
         }
 
     if file_type is None:
-        try:
-            ext = file_name.lower().split('.')[-1]
+        ext = os.path.splitext(file_name)[1][1:]
 
-            for file_type in file_extensions:
-                if ext in file_extensions[file_type]:
-                    break
-        except TypeError:
-            print('Unknown file type for file name: ' + file_name + '.' )
+        found = False
+        for file_type in file_extensions:
+            if ext in file_extensions[file_type]:
+                found = True
+                break
+        if not found:
+            raise TypeError('Unknown file type '+ext+' for file name: ' + file_name + '.' )
 
     return file_type
 

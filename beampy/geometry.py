@@ -13,7 +13,7 @@ import sys
 DEFAULT_X = {'align': 'left', 'reference': 'slide', 'shift': 0,
              'unit': 'width', 'anchor': 'left'}
 DEFAULT_Y = {'align': 'top', 'reference': 'slide', 'shift': 0,
-             'unit': 'width', 'anchor': 'top'}
+             'unit': 'height', 'anchor': 'top'}
 
 
 #Define function for alignement shortcuts.
@@ -190,11 +190,11 @@ class positionner():
         # Convert string to float
         # Convert width height to % if they are given as a float number less than one
         if width is not None and width < 1:
-            ratio = width/100.0
+            ratio = width
             width = document._slides[self.slideid].curwidth  * ratio
 
         if height is not None and height < 1:
-            ratio = height/100.0
+            ratio = height
             height = document._slides[self.slideid].curheight * ratio
 
         self.width.value = width
@@ -217,7 +217,6 @@ class positionner():
         self.center = anchor('center', self.id, self.slideid)
 
     def convert_position(self):
-
         # Function to convert position of an element
         tmpx = DEFAULT_X.copy()
         tmpy = DEFAULT_Y.copy()
