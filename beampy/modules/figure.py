@@ -151,9 +151,10 @@ class figure(beampy_module):
             self.args['filedate'] = fdate
             self.filedate = fdate
             self.args_for_cache_id += ['filedate']
-
-            if self.width is None:
-                self.width = document._slides[gcs()].curwidth
+            
+            # width and height are defined by the render function
+            #if self.width is None:
+            #    self.width = document._slides[gcs()].curwidth
 
 
         # Add this module to the current slide + add positionner
@@ -341,7 +342,7 @@ class figure(beampy_module):
                         figurein = base64.b64encode(f.read()).decode('utf8')
 
                 else:
-                    out_img = resize_raster_image(tmp_img, max_width=self.positionner.width.value)
+                    out_img = resize_raster_image(tmp_img, max_width=figure_width)
                     figurein = base64.b64encode(out_img.read()).decode('utf8')
                     out_img.close()
             else:
