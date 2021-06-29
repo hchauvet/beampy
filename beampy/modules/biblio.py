@@ -4,9 +4,9 @@ import bibtexparser
 from warnings import warn
 from glob import glob
 
-from beampy import document
 from beampy.modules.text import text
-from beampy.functions import check_function_args, gcs
+from beampy.core.document import document
+from beampy.core.functions import check_function_args, gcs
 import sys
 
 import logging

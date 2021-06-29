@@ -4,8 +4,8 @@ Part of beampy project.
 
 Placement class for relative placement of elements in slides
 """
-from beampy.functions import dict_deep_update, convert_unit
-from beampy.document import document
+from beampy.core.functions import dict_deep_update, convert_unit
+from beampy.core.document import document
 import operator
 import sys
 

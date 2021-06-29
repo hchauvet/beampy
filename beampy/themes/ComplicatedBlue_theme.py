@@ -120,10 +120,10 @@ THEME['maketitle']['template'] = theme_maketitle
 
 def background_layout():
 
-    from beampy.document import document
-    from beampy.geometry import bottom
+    from beampy.core.document import document
+    from beampy.core.geometry import bottom
 
-    N = len( document._slides )
+    N = len(document._slides)
     cur_slide = int(document._curentslide.split('_')[1]) + 1
 
     slide_width = float(document._width)

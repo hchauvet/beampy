@@ -1,7 +1,7 @@
 #-*- coding:utf-8 -*-
 
+from beampy.core.functions import convert_unit
 from beampy.modules.tikz import tikz
-from beampy.functions import convert_unit
 
 
 def arrow(x, y, dx, dy, style='->', color="black", lw='2pt', in_angle=None,

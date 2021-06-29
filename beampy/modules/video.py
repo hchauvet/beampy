@@ -6,16 +6,14 @@ Created on Sun Oct 25 19:05:18 2015
 
 Class to manage text for beampy
 """
-from beampy import document
-from beampy.modules.core import beampy_module, gcs
+from beampy.core.document import document
+from beampy.core.module import beampy_module
+from beampy.core.functions import gcs
 import base64
 import os
-try:
-    # Old python 2
-    from cStringIO import StringIO
-except:
-    # Python 3.x
-    from io import BytesIO as StringIO
+
+# Python 3.x
+from io import BytesIO as StringIO
 
 from PIL import Image
 import sys

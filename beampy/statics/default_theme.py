@@ -163,6 +163,7 @@ THEME['itemize'] = {
     'item_indent':'0cm',
     'item_color':THEME['title']['color'],
     'text_color':THEME['text']['color'],
+    'text_size':THEME['text']['size'],
     'width':None,
     'item_layers': None
 }

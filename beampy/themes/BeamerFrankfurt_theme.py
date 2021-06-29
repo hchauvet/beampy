@@ -96,13 +96,14 @@ THEME['link'] = {
 
 
 ######################### Define the headerbar #####################################
-from beampy.document import document
+from beampy.core.document import document
+from beampy.core.functions import convert_unit
+from beampy.core.geometry import distribute
+from beampy.core.group import group
 from beampy.modules.svg import rectangle, circle
 from beampy.modules.text import text
-from beampy.modules.core import group
 from beampy.modules.toc import get_visibles_indices
-from beampy.functions import convert_unit
-from beampy.geometry import distribute
+
 
 def create_header_bar():
 
@@ -208,7 +209,7 @@ THEME['slide']['layout'] = create_header_bar
 ######## FOR THE TITLE PAGE #############
 import datetime
 from beampy.utils import box
-from beampy.functions import color_text
+from beampy.core.functions import color_text
 import sys
 
 def theme_maketitle(titlein, author = [], affiliation = None, meeting = None, lead_author = None, date=None ):
@@ -227,7 +228,7 @@ def theme_maketitle(titlein, author = [], affiliation = None, meeting = None, le
         author[lead_author] = color_text(author[lead_author],
                                          args['lead_author_color'])
         
-    author_string = '\hspace{0.7cm} '.join(author)
+    author_string = r'\hspace{0.7cm} '.join(author)
 
     if date in ('Today', 'today', 'now'):
         date = datetime.datetime.now().strftime("%d/%m/%Y")

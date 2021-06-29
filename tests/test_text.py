@@ -4,7 +4,7 @@ import pytest
 from beampy import *
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
 test_name = 'test_text'
 
@@ -22,7 +22,7 @@ def make_presentation():
 
         
     with slide():
-        maketitle(test_name.replace('_','\_'))
+        maketitle(test_name.replace('_',r'\_'))
 
     with slide('Title: text with equation'):
         t4 = text(r"""Approximations:\\

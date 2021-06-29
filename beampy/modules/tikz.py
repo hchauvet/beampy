@@ -6,9 +6,9 @@ Created on Sun Oct 25 19:05:18 2015
 
 Class to manage tikz image for beampy
 """
-from beampy import document
-from beampy.functions import (gcs,  latex2svg)
-from beampy.modules.core import beampy_module
+from beampy.core.document import document
+from beampy.core.functions import (gcs,  latex2svg)
+from beampy.core.module import beampy_module
 from bs4 import BeautifulSoup
 
 

@@ -1,10 +1,10 @@
 # coding: utf-8
-from beampy.document import document
-from beampy.modules.core import beampy_module, group
+from beampy.core.document import document
+from beampy.core.group import group
+from beampy.core.geometry import center
+from beampy.core.functions import set_curentslide, set_lastslide, render_texts
 from beampy.modules.text import text
 from beampy.modules.svg import circle, rectangle
-from beampy.geometry import center
-from beampy.functions import set_curentslide, set_lastslide, render_texts
 
 
 class tableofcontents(group):

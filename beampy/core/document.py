@@ -6,15 +6,17 @@ Created on Fri May 22 18:28:59 2015
 from beampy.statics.default_theme import THEME
 import sys
 from distutils.spawn import find_executable
-from beampy.cache import cache_slides
+from beampy.core.cache import cache_slides
 from beampy import __version__ as bpversion
 # Auto change path
 import os
 import glob
 import inspect
 from time import time
+from pathlib import Path
 
-bppath = os.path.dirname(__file__) + '/'
+bppath = Path(os.path.dirname(__file__))
+bppath = str(bppath.parent)  + '/'
 basename = os.path.basename(__file__)
 script_file_name = os.path.basename(sys.argv[0]).split('.')[0]
 
@@ -208,31 +210,33 @@ class document():
 
             # Check if it's a python file which is given or a name of themes (stored in beampy/themes)
             themelist = []
-            if '.py' in theme:
+            themename = None
+            if theme.endswith('.py'):
                 themepath = os.path.abspath(os.path.dirname(theme))
                 themename = os.path.basename(theme)
                 sys.path.append(themepath)
                 themename = themename.split('.')[0]
             else:
                 available_themes = glob.glob(bppath + 'themes/*_theme.py')
-
+                _log.debug('Found themes: %s' % str(available_themes))
                 if theme in '|'.join(available_themes):
-                    #print((available_themes, theme))
                     themename = 'beampy.themes.'+theme+'_theme'
                     themelist = [theme+'_theme']
-
-                    #print(themename)
                 else:
                     themename = None
-            try :
-                new_theme = self.dict_deep_update( document._theme, __import__( themename, fromlist=themelist ).THEME )
-                self.theme =  new_theme
-                self.theme_name = themename
-                document._theme = new_theme
 
-            except ImportError:
+            if themename is None:
                 self.theme_name = 'default'
-                print("No slide theme '" + theme + "', returning to default theme.")
+            else:
+                try:
+                    new_theme = self.dict_deep_update(document._theme,
+                                                      __import__(themename, fromlist=themelist).THEME)
+                    self.theme = new_theme
+                    self.theme_name = themename
+                    document._theme = new_theme
+                except ImportError:
+                    self.theme_name = 'default'
+                    print("No slide theme '" + theme + "', returning to default theme.")
 
         # Store extra latex packages globally
         document._latex_packages = latex_packages
@@ -246,12 +250,11 @@ class document():
         # Load the source code of the current presentation
         self.get_source_code(source_filename)
 
-
         # Output the storage of slide etc... in debug logger
         _log.debug('Document class before adding slides')
         _log.debug('From classmethod (class not instantiated)')
         _log.debug(document.print_variables())
-        
+
         # Print the header message
         print("="*20 + " BEAMPY START " + "="*20)
 
@@ -321,7 +324,6 @@ class document():
         document._external_cmd = {}
         document._latex_packages = []
 
-        
     def dict_deep_update(self, original, update):
 
         """
@@ -381,7 +383,6 @@ class document():
     def get_source_code(self, sourcefilename=None):
         document._source_code = SourceManager(sourcefilename)
 
-
     def __repr__(self):
         output = '''
         Document class infos:
@@ -391,27 +392,26 @@ class document():
         allvars = vars(self)
         private = ''
         other = ''
-        
+
         for k in allvars:
             fmt = '%s: %s\n' % (k, str(allvars[k]))
             if k.startswith('_'):
                 private += fmt
             else:
                 other += fmt
-                
+
         return output % (private+'\n\n'+other)
 
-    
     @classmethod
     def print_variables(cls):
         """
         Print information on the document class and the content of its
         private data and methods.
         """
-        
+
         # Calling cls.__repr__(cls) works for python 3.x but not for
         # python 2.7
-        
+
         output = '''Document class infos:
         %s
         '''

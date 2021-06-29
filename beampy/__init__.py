@@ -6,8 +6,7 @@ Beampy main file
 
 __version__ = '0.5.5.post2'
 
-from beampy.functions import *
 from beampy.commands import *
-from beampy.exports import *
-from beampy.geometry import *
-
+from beampy.core.functions import *
+from beampy.core.exports import *
+from beampy.core.geometry import *

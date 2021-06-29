@@ -6,10 +6,10 @@ Class to manage item lists for beampy
 """
 # TODO: Implement itemize with beampy module class
 
-from beampy import document
+from beampy.core.document import document
+from beampy.core.group import group
+from beampy.core.functions import convert_unit, color_text, check_function_args
 from beampy.modules.text import text
-from beampy.modules.core import group
-from beampy.functions import convert_unit, color_text, check_function_args
 
 
 def itemize(items_list, **kwargs):
@@ -59,6 +59,10 @@ def itemize(items_list, **kwargs):
         doc._theme['text']['color']). Color could be given as svg-color-names
         or HTML color hex values (expl: #fffff for white).
 
+    text_size: float, optional
+        The size of the text in itermize, default theme sets this value to the
+        text size used in beampy text module.
+
     item_layers : (list of int or string) or None, optional
         Place items into layers to animate them (the default theme sets this
         value to None, which implies that all items are displayed on the same
@@ -75,8 +79,13 @@ def itemize(items_list, **kwargs):
     args = check_function_args(itemize, kwargs)
     number = 1
 
+    # Create an inside width (inside the group), if the width of the group is
+    # given as percentage change it to 1.0 for the text.
     if args['width'] is not None:
         in_width = float(convert_unit(args['width'])) - float(convert_unit(args['item_indent']))
+        if in_width < 1.0:
+            in_width = 0.99
+
     else:
         in_width = float(document._width) - float(convert_unit(args['item_indent']))
 
@@ -106,10 +115,11 @@ def itemize(items_list, **kwargs):
 
             if i == 0 :
                 t = text( item_char + r' ' + the_item, x = args['item_indent'],
-                        y = 0, width=in_width )
+                          y = 0, width=in_width, size=args['text_size'])
             else:
                 t = text( item_char + r' ' + the_item, x = args['item_indent'],
-                        y = args['item_spacing'], width=in_width )
+                        y = args['item_spacing'], width=in_width,
+                          size=args['text_size'])
 
             # Add layers to item
             if args['item_layers'] is not None:

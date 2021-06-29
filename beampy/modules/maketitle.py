@@ -7,15 +7,15 @@ Created on Sun Oct 25 19:05:18 2015
 Beampy title module
 
 """
-from beampy import document
+from beampy.core.document import document
+from beampy.core.group import group
+from beampy.core.functions import gcs
 from beampy.modules.text import text
-from beampy.modules.core import group
-from beampy.functions import gcs
 import datetime
 
 
 def default_maketitle(titlein, author=None, subtitle=None, date=None,
-                      title_width=None, vert_space=None):
+                      title_width=None, vert_space=None, **kwargs):
 
         args = document._theme['maketitle']
 

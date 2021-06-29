@@ -6,9 +6,11 @@ Here we define commands used to create elements in beampy
 
 """
 #Core commands (slides, begingroup etc..)
-from beampy.modules.core import *
-from beampy.document import (document, section,
-                             subsection, subsubsection)
+from beampy.core.module import beampy_module
+from beampy.core.group import group
+from beampy.core.slide import slide
+from beampy.core.document import (document, section,
+                                  subsection, subsubsection)
 
 #Specific commands with their renders
 from beampy.modules.biblio import cite

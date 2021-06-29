@@ -5,7 +5,7 @@ Created on Fri May 15 16:45:51 2015
 @author: hugo
 """
 
-from beampy.document import document
+from beampy.core.document import document
 from bs4 import BeautifulSoup
 import re
 from beampy.scour import scour
@@ -26,6 +26,7 @@ import inspect
 find_svg_tags = re.compile('id="(.*)"')
 # Regex to remove tab new line
 remove_tabnewline = re.compile('\s+')
+
 
 def unit_operation(value, to=0):
     """
@@ -1003,3 +1004,40 @@ def small_comment_parser(src):
                 marker_open = True
 
     return text_parts
+
+
+def find_strings_in_with(source_code: str, module_name: str) -> list:
+    """
+    parse python source file (or part of source code) to extract string inside a
+    "with" statement. Extract any string enclosed either by \"\"\" or by '''.
+
+    Parameters:
+    -----------
+
+    source_code: string,
+        the source code to be parsed.
+
+    module_name: string,
+        the name of the beampy module for which the with statement is used.
+
+    outputs:
+    --------
+
+    list of texts found inside the with statement
+    """
+
+    tmp = ['(?:with.*?'+module_name+r'\(.*?\):.*?\"{3})(.*?)(?:\"{3})']
+    tmp += ['(?:with.*?'+module_name+r'\(.*?\):.*?\'{3})(.*?)(?:\'{3})']
+    tmp = '|'.join(tmp)
+    re_pattern = re.compile(tmp, re.DOTALL)
+
+    groups = re_pattern.findall(source_code)
+
+    texts_parts = []
+
+    # two groups when for """ and one for '''
+    for tmptext in groups[0]:
+        if tmptext != '':
+            texts_parts += [tmptext.strip()]
+
+    return texts_parts

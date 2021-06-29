@@ -24,7 +24,7 @@ def make_presentation():
         p = bokfig(height=300, width=600)
         x = np.random.rand(100)
         y = np.random.rand(100)
-        p.circle(x, y, legend="sin(x)")
+        p.circle(x, y, legend_label="sin(x)")
 
         figure(p)
 
@@ -33,7 +33,7 @@ def make_presentation():
         p = bokfig(height=300, width=600)
         x = np.linspace(0, 4*np.pi, 30  )
         y = np.sin(x)
-        p.circle(x, y, legend="sin(x)")
+        p.circle(x, y, legend_label="sin(x)")
 
         text('test')[:]
         figure(p)[1]
@@ -42,7 +42,7 @@ def make_presentation():
         p = bokfig(height=600, width=800)
         x = np.linspace(0, 4*np.pi, 30  )
         y = np.sin(x)
-        p.circle(x, y, legend="sin(x)", size=10)
+        p.circle(x, y, legend_label="sin(x)", size=10)
 
         figure(p)
 
@@ -51,7 +51,7 @@ def make_presentation():
 
         x = np.linspace(0, 4*np.pi, 30  )
         y = np.sin(x)
-        p.circle(x, y, legend="sin(x)", size=8)
+        p.circle(x, y, legend_label="sin(x)", size=8)
         # configure visual properties on a plot's title attribute
         p.title.text = "Title With Options"
         p.title.text_color = "orange"

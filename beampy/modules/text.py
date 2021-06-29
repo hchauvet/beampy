@@ -6,19 +6,19 @@ Created on Sun Oct 25 19:05:18 2015
 
 Class to manage text for beampy
 """
-from beampy import document
-from beampy.functions import (gcs, color_text, getsvgwidth,
-                              getsvgheight, small_comment_parser,
-                              latex2svg)
+from beampy.core.document import document
+from beampy.core.functions import (gcs, color_text, getsvgwidth, getsvgheight,
+                                   latex2svg, find_strings_in_with)
 
-from beampy.modules.core import beampy_module
+from beampy.core.module import beampy_module
 import tempfile
-import os
 
 from bs4 import BeautifulSoup
 import sys
 import hashlib
 import logging
+_log = logging.getLogger(__name__)
+
 
 class text(beampy_module):
     r"""
@@ -115,11 +115,13 @@ class text(beampy_module):
         """
         Process the text inside the with
         """
-        source = document._source_code.source(start=self.start_line,
-                                              stop=self.stop_line)
-        input_texts = small_comment_parser(source)
-
+        source = document._source_code.source(start=self.start_line-1,
+                                              stop=-1)
+        input_texts = find_strings_in_with(source, 'text')
         self.content = r'\\'.join([r"%s" % t for t in input_texts])
+        _log.debug('With text found: from line %i->end' % (self.start_line))
+        _log.debug(source)
+        _log.debug(self.content)
 
     def pre_render(self):
         """

@@ -1,9 +1,4 @@
-import sys, os
-sys.path.insert(0, './../')
-
-
 from beampy import *
-
 
 doc = document()
 

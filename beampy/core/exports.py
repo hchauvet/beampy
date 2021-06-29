@@ -5,13 +5,11 @@ Created on Fri May 15 16:48:01 2015
 @author: hugo
 """
 
-from beampy.commands import document
-from beampy.functions import render_texts
+from beampy.core.document import document
+from beampy.core.functions import render_texts
 import json
-try:
-    from cStringIO import StringIO
-except:
-    from io import StringIO
+
+from io import StringIO
 
 import sys
 import os
@@ -21,14 +19,17 @@ import io
 import logging
 _log = logging.getLogger(__name__)
 
+from pathlib import Path
 # Get the beampy folder
-curdir = os.path.dirname(__file__) + '/'
+curdir = Path(os.path.dirname(__file__))
+curdir = str(curdir.parent.absolute()) + '/'
 
 # Is it python 2 or 3
 if (sys.version_info > (3, 0)):
     py3 = True
 else:
     py3 = False
+
 
 def save_layout():
     for islide in range(document._global_counter['slide']+1):
@@ -38,18 +39,10 @@ def save_layout():
 
 def reset_module_rendered_flag():
     for slide in document._slides:
-        # document._slides[slide].svgout = []
-        # document._slides[slide].svglayers = {}
-        # document._slides[slide].htmlout = {}
         document._slides[slide].reset_rendered()
 
         for ct in document._slides[slide].contents:
             document._slides[slide].contents[ct].reset_outputs()
-            # document._slides[slide].contents[ct].rendered = False
-            # document._slides[slide].contents[ct].exported = False
-            # document._slides[slide].contents[ct].svgout = None
-            # document._slides[slide].contents[ct].htmlout = None
-
 
 
 def save(output_file=None, format=None):

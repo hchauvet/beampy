@@ -5,8 +5,6 @@ Created on Fri May 15 16:27:48 2015
 @author: hugo
 """
 
-from beampy.document import document
-import time
 
 def compute_equal_space(available_size, all_elements_size, offset=0):
     """
@@ -19,6 +17,7 @@ def compute_equal_space(available_size, all_elements_size, offset=0):
     dspace = (available_size - total_content_size)/float( len(all_elements_size) + 1 )
 
     return dspace
+
 
 def auto_place_elements(all_size, container_size, axis, contents, ytop):
     """

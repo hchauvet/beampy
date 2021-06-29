@@ -3,9 +3,9 @@
 """
 Beampy module to include iframe in svg using svg ForeignObject
 """
-from beampy.document import document
-from beampy.functions import gcs
-from beampy.modules.core import beampy_module
+from beampy.core.document import document
+from beampy.core.functions import gcs
+from beampy.core.module import beampy_module
 
 import logging
 _log = logging.getLogger(__name__)

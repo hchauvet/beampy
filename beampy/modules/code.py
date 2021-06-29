@@ -5,9 +5,9 @@ Created on Sun Oct 25 19:05:18 2015
 @author: hugo
 """
 
-from beampy import document
+from beampy.core.document import document
+from beampy.core.module import beampy_module
 from beampy.modules.figure import figure
-from beampy.modules.core import beampy_module
 import tempfile
 import os
 from textwrap import dedent
@@ -19,6 +19,7 @@ try:
     is_pigment = True
 except:
     is_pigment = False
+
 
 class code(beampy_module):
     """

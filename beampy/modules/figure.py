@@ -5,14 +5,14 @@ Created on Sun Oct 25 19:05:18 2015
 @author: hugo
 """
 
-from beampy import document
-from beampy.functions import (convert_unit, optimize_svg, gcs,
-                              make_global_svg_defs, getsvgwidth,
-                              getsvgheight, convert_pdf_to_svg,
-                              convert_eps_to_svg,
-                              guess_file_type)
+from beampy.core.document import document
+from beampy.core.functions import (convert_unit, optimize_svg, gcs,
+                                   make_global_svg_defs, getsvgwidth,
+                                   getsvgheight, convert_pdf_to_svg,
+                                   convert_eps_to_svg,
+                                   guess_file_type)
 
-from beampy.modules.core import beampy_module
+from beampy.core.module import beampy_module
 from bs4 import BeautifulSoup
 from PIL import Image
 from io import BytesIO, StringIO

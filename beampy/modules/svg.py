@@ -5,17 +5,17 @@
 Module to write raw svg commands in slides
 """
 
-from beampy import document
-from beampy.functions import (getsvgwidth, getsvgheight)
-from beampy.modules.core import beampy_module, group
-from beampy.geometry import convert_unit
+from beampy.core.document import document
+from beampy.core.functions import (getsvgwidth, getsvgheight)
+from beampy.core.group import group
+from beampy.core.module import beampy_module
+from beampy.core.geometry import convert_unit
 
 import logging
 import tempfile
-import os
 
 
-class svg( beampy_module ):
+class svg(beampy_module):
     """
     Insert svg content.
 

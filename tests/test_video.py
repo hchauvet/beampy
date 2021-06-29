@@ -11,7 +11,7 @@ def make_presentation():
     doc = document(cache=False)
 
     with slide():
-        maketitle(test_name.replace('_','\_'))
+        maketitle(test_name.replace('_',r'\_'))
 
     with slide('Title: test video'):
         video('../examples/test.webm')
