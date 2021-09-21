@@ -124,7 +124,7 @@ def pdf_export(name_out):
     pdfjoincmd = document._external_cmd['pdfjoin']
 
     # use inkscape to translate svg to pdf
-    svgcmd = inkscapecmd+" --without-gui  --file='%s' --export-pdf='%s' -d=300"
+    svgcmd = inkscapecmd+" --without-gui  --file='%s' --export-pdf='%s' -d 300"
     bdir = os.path.dirname(name_out)
 
     print('Render svg slides')
