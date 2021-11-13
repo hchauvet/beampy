@@ -10,6 +10,7 @@ from beampy.core.functions import (getsvgwidth, getsvgheight)
 from beampy.core.group import group
 from beampy.core.module import beampy_module
 from beampy.core.geometry import convert_unit
+from beampy.core.content import Content
 
 import logging
 import tempfile
@@ -47,11 +48,12 @@ class svg(beampy_module):
         # Add args to the module
         self.load_args(kwargs)
 
+        super().__init__(self.x, self.y, self.width, self.height, svg_content, self.type)
         # Save the content
-        self.content = svg_content
+        #self.content = svg_content
         
         #Register the module
-        self.register()
+        #self.register()
 
     def render(self):
         """
@@ -80,11 +82,11 @@ class svg(beampy_module):
                 svg_height = getsvgheight(f.name)
 
         else:
-            svg_width = convert_unit(self.width.value)
-            svg_height = convert_unit(self.height.value)
+            svg_width = convert_unit(self.width)
+            svg_height = convert_unit(self.height)
 
         #Update the final svg size
-        self.update_size(svg_width, svg_height)
+        #self.update_size(svg_width, svg_height)
         #Add the final svg output of the figure
         self.svgout = self.content
 
@@ -92,7 +94,7 @@ class svg(beampy_module):
         self.rendered = True
 
 
-class rectangle(svg):
+class rectangle(beampy_module):
     """
     Insert an svg rectangle.
 
@@ -162,7 +164,7 @@ class rectangle(svg):
         self.type = 'svg'
 
         # Add args to the module
-        self.check_args_from_theme( kwargs )
+        self.check_args_from_theme(kwargs)
 
         # The size can be computed easily if no filter or clip path is given
         if self.svgclip is not None or self.svgfilter is not None:
@@ -183,7 +185,7 @@ class rectangle(svg):
                 self.style += '%s:%s;'%(beampy_svg_kword[kw], getattr(self,kw))
 
         self.dxdy = int(convert_unit(self.linewidth)/2)
-        self.content = ''''<rect x="{dx}" y="{dy}" rx="{rx}" ry="{ry}"
+        self.content = '''<rect x="dx" y="dy" rx="{self.rx}" ry="{self.ry}"
         width="{width}" height="{height}" style="{style}" {filter}
         {clip}/>'''
 
@@ -192,8 +194,10 @@ class rectangle(svg):
         self.svgdefsargs = []
         
         # Register the module
-        self.register()
-        
+        # self.register()
+        super().__init__(self.x, self.y, self.width, self.height, self.content, self.type)
+
+
     def pre_render(self):
 
         if self.svgfilter is None:
@@ -205,7 +209,7 @@ class rectangle(svg):
             self.svgclip = ''
         else:
             self.svgclip = 'clip-path="url({id})"'.format(id=self.svgclip)
-            
+
         # Update the width height of the rectangle
         self.content = self.content.format(width=self.width-self.dxdy*2,
                                            height=self.height-self.dxdy*2,
