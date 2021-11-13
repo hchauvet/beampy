@@ -8,8 +8,8 @@ THEME = {}
 
 THEME['document'] = {
     'format': 'html5', #could be svg // pdf // html5
-    'width': 800,
-    'height': 600,
+    'width': 1280,
+    'height': 760,
     'optimize': True,
     'resize_raster':True,
     'cache': True,
@@ -49,6 +49,12 @@ THEME['text'] = {
     'extra_packages': []
 }
 
+THEME['group'] = {
+    'x': 'center',
+    'y': 'auto',
+    'width': '100\%',
+    'height': '100\%'
+}
 
 THEME['title'] = {
     'size': 28,
