@@ -4,6 +4,7 @@ Part of beampy project.
 
 Placement class for relative placement of elements in slides
 """
+from beampy.core.store import Store
 from beampy.core.functions import dict_deep_update, convert_unit
 from beampy.core.document import document
 import operator
@@ -94,13 +95,16 @@ class positionner():
         self.slideid = slideid
 
 
-        try:
-            self.id_index = document._slides[self.slideid].element_keys.index(self.id)
-        except IndexError:
-            print('Element not found in document._content[gcs()].element_keys')
-            print('Positionner set for elem: %s in slide: %s' % (self.id, self.slideid))
+        if self.slideid is not None:
+            try:
+                self.id_index = self.id
+            except IndexError:
+                print('Element not found in document._content[gcs()].element_keys')
+                print('Positionner set for elem: %s in slide: %s' % (self.id, self.slideid))
+                self.id_index = -1
+                sys.exit(1)
+        else:
             self.id_index = -1
-            sys.exit(1)
 
         # Create width and Height Length
         self.width = Length(self.id, self.slideid)
@@ -220,13 +224,12 @@ class positionner():
         # Function to convert position of an element
         tmpx = DEFAULT_X.copy()
         tmpy = DEFAULT_Y.copy()
-        slidects = document._slides[self.slideid].contents
-
-        # Get the previous content if it exist (to us "+xx" or "-yy" in x, y coords)
-        if self.id_index > 0:
-            prev_ct = slidects[document._slides[self.slideid].element_keys[self.id_index - 1]]
-        else:
-            prev_ct = None
+        prev_ct = None
+        if self.slideid is not None:
+            slidects = Store.get_slide(self.slideid).modules
+            # Get the previous content if it exist (to us "+xx" or "-yy" in x, y coords)
+            if self.id_index > 0:
+                prev_ct = slidects[self.id_index - 1]
 
         # Check if x or y are only floats
         if isinstance(self.x, float) or isinstance(self.x, int):
@@ -773,186 +776,400 @@ def distribute(element_list, mode, available_size, offset=0, curslide=None):
 
             curpos += dx + W
 
+from beampy.core.delayedoperations import Delayed
+import operator
 
-class Length(object):
-    """Define the length for complexe operation.
+class Position():
+    """Define Position and operation on position, allow deferred operation
+    """
 
-    Allow operation like None + '12cm', where None will be transformed to the elem_id Length
-    (render the module to get his size) and convert the '12cm' to pixels.
+    def __init__(self, beampymodule, value, axis='x'):
+        """Create a Position object with a given value.
+
+        Parameters
+        ----------
+
+        - beampymodule, object:
+            The beampy module which use this Length.
+
+        - value, int or float or str:
+            The initial value of the length. could be a string with physical unit.
+
+        - axis, str in ['x' or 'y'] (optional):
+            The direction of this position (default: 'x'). Is used to convert
+            position given as percentage, to select the width ('x') or height ('y').
+        """
+
+        self._value = value
+        self.bpmodule = beampymodule
+        self.axis = axis
+
+    def converter(self, value):
+        """Convert the position to a numerical value.
+
+        Different case for value parameter:
+
+        - Position instance: return it's value
+        - string:
+            - ends with '%': convert with the curwidth, or curheight depending
+              on the axis
+            - 'XXcm' : convert units to pixel
+        - float:
+            - > 1.0 use the value
+            - < 1.0 convert with the curwidth or curheight depending
+                on the axis
+        - list or tupple:
+            - use the first (when axis == 'x') or the second (when axis == 'y')
+        """
+        if isinstance(value, (Position, Length)):
+            #value = getattr(value.bpmodule, value.axis)._value
+            value = value._value
+
+        if isinstance(value, (list, tuple)):
+            if self.axis == 'x':
+                value = value[0]
+            if self.axis == 'y':
+                value = value[1]
+
+        if isinstance(value, str):
+
+            # Manage the X% size with local size or default width/height of the theme
+            if value.endswith('%'):
+                value = relative_length(value, self.axis)
+            elif value == 'center':
+                value = center_on_available_space(self)
+            else:
+                value = convert_unit(value)
+
+            assert isinstance(value, (int, float)), f"I was unable to convert your position {type(value)} to a number!"
+
+        elif isinstance(value, float):
+            if value < 1.0:
+                value = int(round(relative_length(value, self.axis), 0))
+            else:
+                value = int(round(value, 0))
+
+        return value
+
+    @property
+    def value(self):
+        """Get the value, compute it if needed()
+        """
+        if isinstance(self._value, Delayed):
+            res = self._value.compute()
+        else:
+            res = self.converter(self._value)
+
+        return res
+
+    @value.setter
+    def value(self, nvalue):
+        self._value = nvalue
+
+    def __add__(self, newvalue):
+        res = Delayed(operator.add, self.converter)(self, newvalue)
+        return Position(self.bpmodule, res, self.axis)
+
+    def __radd__(self, newvalue):
+        res = Delayed(operator.add, self.converter)(newvalue, self)
+        return Position(self.bpmodule, res, self.axis)
+
+    def __sub__(self, newvalue):
+        res = Delayed(operator.sub, self.converter)(self, newvalue)
+        return Position(self.bpmodule, res, self.axis)
+
+    def __rsub__(self, newvalue):
+        res = Delayed(operator.sub, self.converter)(newvalue, self)
+        return Position(self.bpmodule, res, self.axis)
+
+    def __mul__(self, newvalue):
+        res = Delayed(operator.mul, self.converter)(self, newvalue)
+        return Position(self.bpmodule, res, self.axis)
+
+    def __rmul__(self, newvalue):
+        res = Delayed(operator.mul, self.converter)(newvalue, self)
+        return Position(self.bpmodule, res, self.axis)
+
+    def __truediv__(self, newvalue):
+        res = Delayed(operator.truediv, self.converter)(self, newvalue)
+        return Position(self.bpmodule, res, self.axis)
+
+    def __rtruediv__(self, newvalue):
+        res = Delayed(operator.truediv, self.converter)(newvalue, self)
+        return Position(self.bpmodule, res, self.axis)
+
+    def __repr__(self):
+        return f'{self._value}'
+
+
+class Length():
+    """Define length and operation on length, allow deferred operation
+    """
+
+    def __init__(self, value, axis='x'):
+        """Create a Length object with a given value.
+
+        Parameters
+        ----------
+
+        - value, int or float or str:
+            The initial value of the length. could be a string with physical unit.
+
+        - axis, str in ['x' or 'y'] (optional):
+            The direction of this position (default: 'x'). Is used to convert
+            position given as percentage, to select the width ('x') or height ('y').
+
+        """
+
+        self._value = value
+        self.axis = axis
+
+    def converter(self, value):
+        """Convert the position to a numerical value.
+
+        Different case for value parameter:
+
+        - Position instance: return it's value
+        - string:
+            - ends with '%': convert with the curwidth, or curheight depending on the axis
+            - 'XXcm' : convert units to pixel
+        """
+
+        if isinstance(value, (Length, Position)):
+            value = value._value
+
+        if isinstance(value, str):
+
+            # Manage the X% size with local size or default width/height of the theme
+            if value.endswith('%'):
+                value = relative_length(value, self.axis)
+            else:
+                value = convert_unit(value)
+
+            assert isinstance(value, (int, float)), f"I was unable to convert your length {type(value)} to a number!"
+
+        elif isinstance(value, float):
+            if value < 1.0:
+                value = int(round(relative_length(value, self.axis), 0))
+            else:
+                value = int(round(value, 0))
+
+        return value
+
+    @property
+    def value(self):
+        """Get the value, compute it if needed()
+        """
+        if isinstance(self._value, Delayed):
+            print('compute length')
+            res = self._value.compute()
+        else:
+            res = self.converter(self._value)
+
+        return res
+
+    @value.setter
+    def value(self, nvalue):
+        self._value = nvalue
+
+    def __add__(self, newvalue):
+        res = Delayed(operator.add, self.converter)(self, newvalue)
+        return Length(res, self.axis)
+
+    def __radd__(self, newvalue):
+        res = Delayed(operator.add, self.converter)(newvalue, self)
+        return Length(res, self.axis)
+
+    def __sub__(self, newvalue):
+        res = Delayed(operator.sub, self.converter)(self, newvalue)
+        return Length(res, self.axis)
+
+    def __rsub__(self, newvalue):
+        res = Delayed(operator.sub, self.converter)(newvalue, self)
+        return Length(res, self.axis)
+
+    def __mul__(self, newvalue):
+        res = Delayed(operator.mul, self.converter)(self, newvalue)
+        return Length(res, self.axis)
+
+    def __rmul__(self, newvalue):
+        res = Delayed(operator.mul, self.converter)(newvalue, self)
+        return Length(res, self.axis)
+
+    def __truediv__(self, newvalue):
+        res = Delayed(operator.truediv, self.converter)(self, newvalue)
+        return Length(res, self.axis)
+
+    def __rtruediv__(self, newvalue):
+        res = Delayed(operator.truediv, self.converter)(newvalue, self)
+        return Length(res, self.axis)
+
+    def __repr__(self):
+        return f'{self._value}'
+
+
+def relative_length(length, axis='x', fallback_size=(1280, 720)):
+    """Compute relative length, and return it's value in pixel.
 
     Parameters:
     -----------
 
-    elem_id, str:
-        the id of the beampy module for which the length apply
+    - length, str or float:
+        The relative length to compute, should en with % or be lower than 1.0 if
+        given as a float.
 
-    slide_id, str:
-        the id of the slide where the module is registered
+    - axis, str in ['x', 'y'] (optional):
+        The direction 'x' = 'width' and 'y' = 'heigth' used to compute the
+        finale size. (the default is 'x')
+
+    - fallback_size, list of int (optional):
+        The size used when their is no current width/height available (i.e. when
+        a module are created outside of a slide). (default is (1280, 720))
+    """
+
+    assert axis in ['x', 'y'], "Axis should be 'x' or 'y'"
+    assert len(fallback_size) == 2, "Fallback size should be (xx, xx) with xx an int"
+
+    # Get the availale space
+    if axis == 'x':
+        if Store.get_current_slide_id() is None:
+            if Store.isgroup() and Store.group.width is not None:
+                space = Store.group.width.value
+            else:
+                space = fallback_size[0]
+            print('TODO: read Theme layout width, use fallback %i' % space)
+        else:
+            if Store.isgroup() and Store.group.width is not None:
+                space = Store.group.width.value
+            else:
+                space = Store.get_current_slide().curwidth
+    else:
+        if Store.get_current_slide_id() is None:
+            if Store.isgroup() and Store.group.height is not None:
+                space = Store.group.height.value
+            else:
+                space = fallback_size[1]
+            print('TODO: read Theme layout height, use fallback %i' % space)
+        else:
+            if Store.isgroup() and Store.group.height is not None:
+                space = Store.group.height.value
+            else:
+                space = Store.get_current_slide().curheight
+
+    if isinstance(length, str) and length.endswith('%'):
+        ratio = float(length.replace('%', ''))/100.0
+    elif isinstance(length, float) and length < 1.0:
+        ratio = length
+    else:
+        raise ValueError("Could not compute %s as a relative length" % length)
+
+    out = int(ratio * space)
+
+    return out
+
+
+def center_on_available_space(position, fallback_size=(1280, 720)):
+    """Function to center the given position of beampy_module on the avalaible
+    space, either curwidth, curheight (or use the fallback_size).
+
+    Parameters:
+    -----------
+
+    - Positions, Position object:
+        The position to center
+
+    - fallback_size, tuple or list of int:
+        The size used if curwidth and curheight are not available.
 
     """
 
-    def __init__(self, elem_id, slide_id, value=None):
-        self.elem_id = elem_id
-        self.slide_id = slide_id
-        self.value = value
-
-    def run_render(self):
-        elem = document._slides[self.slide_id].contents[self.elem_id]
-
-        if elem.type == 'group':
-            print('Render group to get its size')
-            for gelem_id in elem.elementsid:
-                gelem = document._slides[self.slide_id].contents[gelem_id]
-                if gelem.rendered is False:
-                    print("Need to render elem %s in group to get its size" % gelem.name)
-                    gelem.pre_render()
-                    gelem.run_render()
-
-
-            # Compute the size of the group
-            elem.compute_group_size()
-
+    if position.axis == 'x':
+        if Store.get_current_slide_id() is None:
+            if Store.isgroup() and Store.group.width is not None:
+                space = Store.group.width.value
+            else:
+                space = fallback_size[0]
+            print('TODO: read Theme layout width, use fallback %i' % space)
         else:
-            print('Run render to get length of %s' % (elem.name))
-            if elem.rendered is False:
-                # Run the pre_render
-                elem.pre_render()
-                # Run the render
-                elem.run_render()
+            if Store.isgroup() and Store.group.width is not None:
+                space = Store.group.width.value
+            else:
+                space = Store.get_current_slide().curwidth
 
-        assert elem.width.value is not None
-        assert elem.height.value is not None
+        out_pos = space/2 - position.bpmodule.width/2
 
-    def process_value(self):
-        if self.elem_id is not None and self.slide_id is not None:
-            if self.value is None:
-                self.run_render()
+    else:
+        if Store.get_current_slide_id() is None:
+            if Store.isgroup() and Store.group.height is not None:
+                space = Store.group.height.value
+            else:
+                space = fallback_size[1]
+            print('TODO: read Theme layout height, use fallback %i' % space)
+        else:
+            if Store.isgroup() and Store.group.height is not None:
+                space = Store.group.height.value
+            else:
+                space = Store.get_current_slide().curheight
 
-        if isinstance(self.value, str):
-            self.value = float(convert_unit(self.value))
+        out_pos = space/2 - position.bpmodule.height/2
 
 
-    @staticmethod
-    def process_right_value(right_value):
-        """
-        Process the right value of the operation (could be another element Length or string with length + unit or pixels)
-        """
+    return out_pos.value
 
-        if isinstance(right_value, Length):
-            if right_value.value is None:
-                right_value.run_render()
 
-            tmp_rvalue = float(right_value.value)
+def horizontal_distribute(beampy_modules, available_space):
+    """Equally distribute beampy_modules horizontally over the available space
+    and update their x Position objects with a pixel position.
 
-        if isinstance(right_value, str):
-            tmp_rvalue = float(convert_unit(right_value))
+    Parameters:
+    -----------
 
-        if isinstance(right_value, float) or isinstance(right_value, int):
-            tmp_rvalue = float(right_value)
+    - beampy_modules, list of beampy_module objects:
+        Modules to be distributed horizontally.
 
-        return tmp_rvalue
+    - available_space, int:
+        The size available to compute the distance between two adjacent modules.
+    """
 
-    def __add__(self, right_value):
+    widths = [m.width for m in beampy_modules]
 
-        # Process the incomming value
-        rvalue = self.process_right_value(right_value)
-        # Process the element value
-        self.process_value()
+    total_width = sum(widths).value
 
-        sumv = self.value + rvalue
+    if total_width > available_space:
+        print('Horizontal overflow of elements (%i px to distribute in %i)' % (total_width, available_space))
 
-        assert sumv >= 0
+    dx = (available_space-total_width) if total_width <= available_space else 0
+    dx = round(dx / (len(beampy_modules)+1), 0)
 
-        return Length(None, None, sumv)
+    beampy_modules[0].x = dx
+    for i, bpm in enumerate(beampy_modules[1:]):
+        bpm.x = beampy_modules[i].right + dx
 
-    def __sub__(self, right_value):
 
-        # Process the incomming value
-        rvalue = self.process_right_value(right_value)
-        # Process the element value
-        self.process_value()
+def vertical_distribute(beampy_modules, available_space):
+    """Equally distribute beampy_modules vertically over the available space
+    and update their y Position objects with a pixel position.
 
-        subv = self.value - rvalue
+    Parameters:
+    -----------
 
-        assert subv >= 0
+    - beampy_modules, list of beampy_module objects:
+        Modules to be distributed vertically.
 
-        return Length(None, None, subv)
+    - available_space, int:
+        The size available to compute the distance between two adjacent modules.
+    """
 
-    def __mul__(self, right_value):
-        # Process the incomming value
-        rvalue = self.process_right_value(right_value)
-        # Process the element value
-        self.process_value()
+    heights = [m.height for m in beampy_modules]
 
-        mulv = self.value * rvalue
+    total_height = sum(heights).value
 
-        assert mulv >= 0
+    if total_height > available_space:
+        print('Vertical overflow of elements (%i px to distribute in %i)' % (total_height, available_space))
 
-        return Length(None, None, mulv)
+    dy = (available_space-total_height) if total_height <= available_space else 0
+    dy = round(dy / (len(beampy_modules)+1), 0)
 
-    def __rmul__(self, left_value):
-        lvalue = self.process_right_value(left_value)
-        self.process_value()
-
-        mulv = lvalue * self.value
-
-        assert mulv >= 0
-
-        return Length(None, None, mulv)
-
-    def __radd__(self, left_value):
-        lvalue = self.process_right_value(left_value)
-        self.process_value()
-
-        sumv = lvalue + self.value
-
-        assert sumv >= 0
-
-        return Length(None, None, sumv)
-
-    def __rsub__(self, left_value):
-        lvalue = self.process_right_value(left_value)
-        self.process_value()
-
-        diffv = lvalue - self.value
-
-        assert diffv >= 0
-
-        return Length(None, None, diffv)
-
-    def __truediv__(self, right_value):
-        # Process the incomming value
-        rvalue = self.process_right_value(right_value)
-        # Process the element value
-        self.process_value()
-
-        assert rvalue != 0
-
-        divv = self.value / rvalue
-
-        assert divv >= 0
-
-        return Length(None, None, divv)
-
-    def __rtruediv__(self, left_value):
-
-        lvalue = self.process_right_value(left_value)
-        self.process_value()
-
-        divv = lvalue / self.value
-
-        assert divv >= 0
-
-        return Length(None, None, divv)
-
-    def __div__(self, right_value):
-        return self.__truediv__(right_value)
-
-    def __rdiv__(self, left_value):
-        return self.__rtruediv__(left_value)
-
-    def __str__(self):
-        return str(self.value)
-
-    def __repr__(self):
-        return 'Length with value %s' % str(self.value)
+    beampy_modules[0].y = dy
+    for i, bpm in enumerate(beampy_modules[1:]):
+        bpm.y = beampy_modules[i].bottom + dy

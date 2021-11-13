@@ -3,10 +3,13 @@
 """
 The slide class of the beampy project:
 """
+from beampy.core.store import Store
 from beampy.core.document import document
 from beampy.core.functions import (check_function_args, convert_unit,
                                    set_curentslide, set_lastslide)
 from beampy.core.group import group
+from beampy.core.layers import unique_layers, get_maximum_layer
+from beampy.core.geometry import horizontal_distribute, vertical_distribute
 import logging
 _log = logging.getLogger(__name__)
 
@@ -34,29 +37,33 @@ class slide(object):
     def __init__(self, title=None, **kwargs):
 
         # Add a slide to the global counter
-        if 'slide' in document._global_counter:
-            document._global_counter['slide'] += 1
-        else:
-            document._global_counter['slide'] = 0
+        # if 'slide' in document._global_counter:
+        #    document._global_counter['slide'] += 1
+        #else:
+        #    document._global_counter['slide'] = 0
 
         # Init group counter
-        document._global_counter['group'] = 0
+        # document._global_counter['group'] = 0
 
         # check args from THEME
         self.args = check_function_args(slide, kwargs)
 
         # The id for this slide
-        self.slide_num = document._global_counter['slide']
+        self.slide_num = len(Store)+1
         self.id = 'slide_%i' % self.slide_num
         # Set this slide as the curent slide (where components will be added)
-        document._curentslide = self.id
+        # document._curentslide = self.id
+        Store.add_slide(self)
 
         # Change from dict to class
         self.tmpout = ''
+        self.modules = []  # will store modules
+        self.id_modules_auto_x = [] # will store modules with x='auto'
+        self.id_modules_auto_y = [] # will store modules with y='auto'
         self.contents = {}
         self.element_keys = []
         self.cpt_anim = 0
-        self.num = document._global_counter['slide']+1
+        # self.num = self.slide_num
         self.title = title
         self.curwidth = document._width
         self.curheight = document._height
@@ -65,6 +72,7 @@ class slide(object):
         # Store all outputs
         self.svgout = []
         self.svgdefout = []  # Store module definition for slide
+        self.svgdefsid = []  # Store defs id
         self.htmlout = {}  # Html is a dict, each key dict is a layer htmlout[0] = [html, html, html] etc...
         self.scriptout = []
         self.animout = []
@@ -76,7 +84,7 @@ class slide(object):
         self.render_layout = True
 
         # Add the slide to the document contents list
-        document._slides[self.id] = self
+        #document._slides[self.id] = self
 
         # Store the current TOC position
         if len(document._TOC) > 0:
@@ -86,13 +94,15 @@ class slide(object):
 
         # Manage groups inside one slide the lower level of group is 0 and correspond
         # to the main slide
-        self.groupsid = {}
+        # self.groupsid = {}
         self.cur_group_level = -1
-        g0 = group(x=0, y=0, width=document._width, height=document._height)
+        # g0 = group(x=0, y=0, width=document._width, height=document._height)
+
         # Store the current group id (managed by the
         # __enter__/__exit__ method of group class)
-        self.cur_group_id = g0.id
-        self.groupsid[0] = [g0.id]  # store groups id objects in this list
+        self.cur_group_pos = 0
+        # old self.cur_group_id
+        # self.groupsid[0] = [g0.id]  # store groups id objects in this list
 
         if title is not None:
             from beampy.modules.title import title as bptitle
@@ -103,47 +113,20 @@ class slide(object):
             self.title_element = None
 
         # Add ytop to the slide main group
-        g0.yoffset = self.ytop
+        # g0.yoffset = self.ytop
 
-    def add_module(self, module_id, module_content):
+    def add_module(self, module):
+        """Add a module to the list of modules in this slides.
+
+        Parameters
+        ----------
+
+        module, beampy_module object:
+            The module to add to the slide
+        """
+
         # Add a module to the current slide
-        # logging.debug('Add module %s to slide %s' % (str(module_content.type), self.id))
-
-        self.element_keys += [module_id]
-        self.contents[module_id] = module_content
-
-        # Check if it's a new group or not
-        # print(self.groupsid, self.cur_group_level)
-        if module_content.type != 'group':
-            _log.debug('Module %s added to group %s' % (str(module_content.name), self.cur_group_id))
-            self.contents[self.cur_group_id].add_elements_to_group(module_id, module_content)
-            # Add the id of the group to the module
-            self.contents[module_id].group_id = self.cur_group_id
-            # Todo[improvement]: register the group tree for a given module not just the last group
-        else:
-            # print("add group %s with id %s" % (str(module_content), module_id))
-            if module_content.grouplevel > 0:
-                # Add this group id to the previous group
-                if module_content.parentid is not None:
-                    _log.debug("Add parent (id=%s) for %s(%s)" % (module_content.parentid, module_content.name, module_id))
-                    self.contents[module_content.parentid].add_elements_to_group(module_id, module_content)
-
-                # Record group tree in groupsid dict
-                if module_content.grouplevel not in self.groupsid:
-                    self.groupsid[module_content.grouplevel] = [module_id]
-                else:
-                    self.groupsid[module_content.grouplevel] += [module_id]
-
-            logging.debug('Element %s added to slide'%(str(module_content.name)))
-
-    def remove_module(self, module_id):
-        # Remove a module
-        self.element_keys.pop(self.element_keys.index(module_id))
-        # Remove the module from it's group
-        gid = self.contents[module_id].group_id
-        self.contents[gid].remove_element_in_group(module_id)
-        # Remove the module from contents main store
-        self.contents.pop(module_id)
+        self.modules += [module]
 
     def add_rendered(self, svg=None, svgdefs=None, html=None, js=None,
                      animate_svg=None, layer=0):
@@ -198,51 +181,9 @@ class slide(object):
         3- Check that layers are consecutive numbers from 0 -> max
         """
 
-        # Get the max layers
-        for mid in self.element_keys:
-            module = self.contents[mid]
-
-            # When the range of layer is defined as a string (usual
-            # with an unknown maximum), take the start value as
-            # maximum layer
-            if isinstance(module.layers, str):
-                start = int(module.layers.split(',')[0].replace('range(',''))
-                maxmodulelayers = start
-            else:
-                maxmodulelayers = max(module.layers)
-
-            if maxmodulelayers > self.num_layers:
-                self.num_layers = maxmodulelayers
-
-        # Resolve 'range(0, max, 1)'
-        layers_in_slide = []
-        for mid in self.element_keys:
-            module = self.contents[mid]
-
-            # Resolve string args 'max' in layers
-            if isinstance(module.layers, str):
-                if 'range' in module.layers:
-                    lmax = self.num_layers + 1
-                else:
-                    lmax = self.num_layers
-
-                module.add_layers(eval(module.layers.replace('max', str(lmax))))
-
-            # Check the consecutivity of layers
-            for layer in module.layers:
-                if layer not in layers_in_slide:
-                    layers_in_slide += [layer]
-
-        layers_in_slide = sorted(layers_in_slide)
-        if layers_in_slide != list(range(0, self.num_layers+1)):
-            raise ValueError('Layers are not consecutive. I got %s, I should have %s'%(str(layers_in_slide),
-                                                                                       str(list(range(0, self.num_layers+1)))))
-
-        # Propagate layer of modules inside groups
-        for mid in self.element_keys:
-            if self.contents[mid].type == 'group':
-                _log.debug('Run propagate layer for %s' % str(self.contents[mid].name))
-                self.contents[mid].propagate_layers()
+        self.num_layers = get_maximum_layer(self.modules)
+        layers_in_slide = unique_layers(self.modules, self.num_layers)
+        _log.debug('List of layers %s ' % str(layers_in_slide))
 
     def show(self):
         from beampy.exports import display_matplotlib
@@ -283,6 +224,62 @@ class slide(object):
 
                 #document._global_counter['slide'] = save_global_ct # restor the slide counter
                 set_lastslide()
+
+
+    def __repr__(self):
+        """
+        Convenient informations to display for slide when using str(slide)
+        """
+        ngroup = len(tuple(m for m in self.modules if m.type == 'group'))
+        out = 'Slide <%i>\n' % self.slide_num
+        out += '- %i modules [%i groups]' % (len(self.modules), ngroup)
+
+        return out
+
+    def render(self):
+        print('-' * 20 + ' slide_%i ' % self.slide_num + '-' * 20)
+
+        self.svgdefout = []
+        self.svgdefsid = []
+        self.svgout = {}
+        self.svglayers = {}
+
+        # Process x='auto'
+        if len(self.id_modules_auto_x) > 0:
+            horizontal_distribute([self.modules[mid] for mid in self.id_modules_auto_x],
+                                  self.curwidth)
+
+        # Process y='auto'
+        if len(self.id_modules_auto_y) > 0:
+            vertical_distribute([self.modules[mid] for mid in self.id_modules_auto_y],
+                                self.curheight)
+
+        # Loop over modules
+        for i, mod in enumerate(self.modules):
+            mod.compute_position()
+
+            # Need to check if we already have the definition of this module
+            # This is done globally by the render function
+            # if mod.content_id not in self.svgdefsid:
+                # self.svgdefout += [mod.svgdef]
+                # self.svgdefsid += [mod.content_id]
+
+            # Export svg use for this module
+            for layer in mod.layers:
+                if mod.type == 'group':
+                    svguse = mod.svguse(layer)
+                else:
+                    svguse = mod.svguse
+
+                if layer in self.svgout:
+                    self.svgout[layer] += [svguse]
+                else:
+                    self.svgout[layer] = [svguse]
+
+        for layer in self.svgout:
+            self.svglayers[layer] = ''.join(self.svgout[layer])
+
+        self.export_header()
 
     def newrender(self):
         """
@@ -373,6 +370,9 @@ class slide(object):
                     self.ytop, self.ytop)
                     self.add_rendered(svg=out)
 
+        self.export_header()
+
+    def export_header(self):
         # Export the slide svg header
         svg_template = """<?xml version="1.0" encoding="utf-8" standalone="no"?>
         <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
@@ -386,7 +386,7 @@ class slide(object):
         shape-rendering="geometricPrecision"
         >"""\
 
-        header_template = svg_template.format(width=document._width,
-                                              height=document._height,
+        header_template = svg_template.format(width=Store.get_layout()._width,
+                                              height=Store.get_layout()._height,
                                               bgcolor=self.args['background'])
         self.svgheader = header_template

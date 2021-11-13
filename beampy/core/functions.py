@@ -6,6 +6,7 @@ Created on Fri May 15 16:45:51 2015
 """
 
 from beampy.core.document import document
+from beampy.core.store import Store
 from bs4 import BeautifulSoup
 import re
 from beampy.scour import scour
@@ -639,9 +640,8 @@ def dict_deep_update(original, update):
     return update
 
 
-
-def create_element_id(bpmod, use_args=True, use_name=True,
-                      use_content=True, add_slide=True, slide_position=True):
+def create_element_id(bpmod, use_args=True, use_name=True, use_content=True,
+                      add_slide=True, slide_position=True):
     """
         create a unique id for the beampy_module using bpmod.content
         and bpmod.args.keys() and bpmod.name
@@ -652,7 +652,7 @@ def create_element_id(bpmod, use_args=True, use_name=True,
         ct_to_hash += bpmod.slide_id
 
     if use_args and bpmod.args is not None:
-        ct_to_hash += ''.join(['%s:%s' % (k, v) for k, v in bpmod.args.items()])
+        ct_to_hash += ''.join(['%s:%s' % (k, v) for k, v in bpmod.args.items() if k not in ['x', 'y']])
 
     if use_name and bpmod.name is not None:
         ct_to_hash += bpmod.name
@@ -661,20 +661,17 @@ def create_element_id(bpmod, use_args=True, use_name=True,
         ct_to_hash += str(bpmod.content)
 
     if slide_position:
-        ct_to_hash += str(len(document._slides[bpmod.slide_id].element_keys))
+        ct_to_hash += str(len(Store.get_slide(bpmod.slide_id).element_keys))
 
     outid = None
     if ct_to_hash != '':
         # print(ct_to_hash)
-        try:
-            outid = hashlib.md5( ct_to_hash ).hexdigest()
-        except:
-            outid = hashlib.md5( ct_to_hash.encode('utf8') ).hexdigest()
+        outid = hashlib.md5( ct_to_hash.encode('utf8') ).hexdigest()
 
-        if outid in document._slides[bpmod.slide_id].element_keys:
-            print("Id for this element already exist!")
+        if bpmod.slide_id is not None and Store.get_slide(bpmod.slide_id).is_module(outid):
+            _log.debug("Id for %s already exist!" % str(bpmod.name))
             sys.exit(0)
-            outid = None
+            # outid = None
 
         #print(outid)
 

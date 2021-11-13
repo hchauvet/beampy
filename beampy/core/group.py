@@ -3,9 +3,14 @@
 """
 Class that define beampy groups. It's a class that derives from module base class.
 """
+from beampy.core.store import Store
 from beampy.core.document import document
-from beampy.core.geometry import distribute
+from beampy.core.content import Content
+from beampy.core.geometry import (distribute, horizontal_distribute,
+                                  vertical_distribute)
 from beampy.core.module import beampy_module
+from beampy.core.layers import (unique_layers, get_maximum_layer,
+                                stringlayers_to_int)
 from beampy.core.functions import gcs
 import sys
 
@@ -14,6 +19,337 @@ _log = logging.getLogger(__name__)
 
 
 class group(beampy_module):
+
+    def __init__(self, x=None, y=None, width=None, height=None, modules=None):
+        """Group beampy elements to manipulate them as a single beampy_module
+
+        Parameters:
+        -----------
+
+        Example:
+        --------
+        """
+
+        self.init_width = width
+        self.init_height = height
+
+        # Init this as a module
+        super().__init__(x, y, width, height, 'group')
+        # Update the default arguments
+        self.update_signature(self.x, self.y, self.width, self.height)
+        self.apply_theme(exclude=['modules'])
+
+        # Check in the store if their is a parent group object
+        self.parent = None
+        if Store.isgroup():
+            self.parent = Store.group
+        else:
+            if Store.get_current_slide_id() is not None:
+                self.parent = Store.get_current_slide()
+
+        Store.group = self
+
+        self.modules = modules
+
+        # Store modules that need to be "automatically placed" inside the group
+        self.id_modules_auto_x = []
+        self.id_modules_auto_y = []
+        if self.modules is None:
+            self.modules = []
+
+        if len(self.modules) > 0:
+            self.__exit__()
+
+    def add_content(self, content, content_type):
+        """Rewrite add_content method for groups
+        """
+        pass
+
+    def add_module(self, bp_module):
+        """Add the module to the group
+        """
+        self.modules += [bp_module]
+
+    def render(self):
+        """
+        Render the group modules and create an svg group
+        """
+
+        svgout = {}
+
+        init_width = self.width.value
+        init_height = self.height.value
+
+        # Create a new content with all those modules
+        content = '('+', '.join([m.signature for m in self.modules])+')'
+        self._content = Content(content, 'svg',
+                                self.width.value,
+                                self.height.value,
+                                self.name)
+
+        # TODO: Think a way to get a cache for this group content !!!
+
+        # Manage width = None, height = None
+        # When width is None compute the total width of elements in the group
+        if self.init_width is None:
+            if Store.get_current_slide_id() is None:
+                w = 1280
+                print('TODO: need to read theme default width!!! set to 1280')
+            else:
+                w = Store.get_current_slide().curwidth
+
+            self.width = w
+
+        if self.init_height is None:
+            if Store.get_current_slide_id() is None:
+                h = 720
+                print('TODO: need to read theme default height!!! set to 720')
+            else:
+                h = Store.get_current_slide().curheight
+
+            self.height = h
+
+        # Process auto X
+        if len(self.id_modules_auto_x) > 0:
+            horizontal_distribute([self.modules[mid] for mid in self.id_modules_auto_x],
+                                   self.width.value)
+
+        # Process auto Y
+        if len(self.id_modules_auto_y) > 0:
+            vertical_distribute([self.modules[mid] for mid in self.id_modules_auto_y],
+                                self.height.value)
+
+        # Loop over modules
+        for i, mod in enumerate(self.modules):
+            # Compute the final position of the module
+            mod.compute_position()
+
+        # Need to re-compute the width and height of the group
+        # from the "frozen" width/height (called content_width/content_height)
+        if init_width is None:
+            g_width = self.group_width()
+            self.width = g_width
+
+            # Need to set the origine of the modules as we change te width
+            xmin = self.xmin()
+            for m in self.modules:
+                m._final_x -= xmin
+
+        if init_height is None:
+            g_height = self.group_height()
+            self.height = g_height
+
+            # Need to set the origine of the modules as we change te width
+            ymin = self.ymin()
+            for m in self.modules:
+                m._final_y -= ymin
+
+        # Export to data each group for the different layers
+        self.svgdef = 'Defined on export'
+        self.content_width = self.width.value
+        self.content_height = self.height.value
+
+        # For group we define the signature after the renderering
+        # to include the list of modules
+        self.update_signature(x=self.x, y=self.y, width=init_width,
+                              height=init_height, modules=content)
+
+    def export_svgdef(self) -> dict:
+        """Dynamically export svgdef for each modules in the group.
+        Return a dictionnary of list of svgdef indexed by layer
+        """
+
+        svgout = {}
+        for i, mod in enumerate(self.modules):
+            for layer in mod.layers:
+                if mod.type == 'group':
+                    svguse = mod.svguse(layer)
+                else:
+                    svguse = mod.svguse
+
+                if layer in svgout:
+                    svgout[layer] += [svguse]
+                else:
+                    svgout[layer] = [svguse]
+
+        # Add the last layer of modules svguse to the group layer above the
+        # maximum of modules layers.
+        max_layer = max(svgout.keys())
+        for layer in self.layers:
+            if layer > max_layer:
+                svgout[layer] = svgout[max_layer]
+
+        return svgout
+
+    @property
+    def svgdef(self):
+        if 'svgdef' in self.data:
+            svgdef = self.export_svgdef()
+            out = ''.join([f'<g id=\"{self.content_id}_{layer}\" class="group">'+f'{"".join(svgdef[layer])}'+'</g>' for layer in svgdef])
+            return out
+
+        return None
+
+    @svgdef.setter
+    def svgdef(self, svgin):
+        """Rewrite svgdef setter for group
+        """
+        if hasattr(self, 'data') and 'svgdef' in self.data:
+            self.data['svgdef'] = svgin
+        else:
+            self.data = {'svgdef': svgin}
+
+    def svguse(self, layer):
+        """Rewrite the method for group, as it should take in consideration
+        layers!
+        """
+        assert self._final_x is not None, f"{self.name} final X position is None for\n{self}"
+        assert self._final_y is not None, f"final Y position is None for\n{self}"
+
+        return f'<use x="{self._final_x}" y="{self._final_y}" href="#{self.content_id}_{layer}"/>'
+
+    def group_width(self):
+        """Compute the width of the group based on the module inside the group.
+        group modules should have been positionned prior to compute the
+        group_size.
+
+        return the computed width
+        """
+
+        modules_x = [m._final_x for m in self.modules]
+        modules_right = [m.right.value for m in self.modules]
+
+        xmin = min(modules_x)
+        xmax = max(modules_right)
+
+        assert xmax >= xmin
+
+        return xmax-xmin
+
+    def group_height(self):
+        """Compute the height of the group based on the module inside the group.
+        group modules should have been positionned prior to compute the
+        group_size.
+
+        return the computed height
+        """
+
+        modules_y = [m._final_y for m in self.modules]
+        modules_bottom = [m.bottom.value for m in self.modules]
+
+        ymin = min(modules_y)
+        ymax = max(modules_bottom)
+
+        assert ymax >= ymin
+
+        return ymax-ymin
+
+    def xmin(self):
+        """Get the minimum horizontal direction of the group.
+        group_modules should be positionned first.
+        """
+        return min((m._final_x for m in self.modules))
+
+    def xmax(self):
+        """Get the maximum horizontal direction of the group.
+        group_modules should be positionned first.
+        """
+        return max((m._final_x for m in self.modules))
+
+    def ymin(self):
+        """Get the minimum vertical direction of the group.
+        group_modules should be positionned first.
+        """
+        return min((m._final_y for m in self.modules))
+
+    def ymax(self):
+        """Get the maximum vertical direction of the group.
+        group_modules should be positionned first.
+        """
+        return max((m._final_y for m in self.modules))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, otype, ovalue, otraceback):
+
+        # Convert string layer and check group module layers consistancy
+        self.check_modules_layers()
+
+        # Render the group
+        self.render()
+
+        # Update the group layers
+        self.update_group_layers()
+
+        # Restore parent group in the Store
+        if isinstance(self.parent, group):
+            Store.group = self.parent
+        else:
+            Store.group = None
+
+    def check_modules_layers(self):
+        """
+        Function to check the consistency of layers in the slide.
+        To do so:
+
+        1- Get the number of layers
+
+        2- Resolve string layers to replace 'max' statement with the slide number of layer
+           expl: 'range(0-max-1)' or '[0,max]'
+
+        3- Check that layers are consecutive numbers from 0 -> max
+        """
+
+        self.group_num_layers = get_maximum_layer(self.modules)
+        self.layers_in_group = unique_layers(self.modules, self.group_num_layers,
+                                             check_consistancy=True)
+        _log.debug('List of layers %s ' % str(self.layers_in_group))
+
+    def update_group_layers(self):
+        """Update the layer of modules inside the group to add the minimum value
+        of the group layer.
+        At the end set the group.layers to unique layers in the group
+        """
+
+        #  Find the minimum layer of the current group
+        #  Check the type of layer for the group
+        if isinstance(self.layers, str):
+            # If it's type "range(min,'max',step)" extract the min of the range using regexp
+            if self.parent is not None:
+                maxlayer = get_maximum_layer(self.parent.modules)
+            else:
+                # When the parent is None (group outside of slide or an
+                # other group), the minimum layer is 0
+                maxlayer = 0
+
+            group_layers = stringlayers_to_int(self.layers, maxlayer)
+        else:
+            group_layers = self.layers
+
+        min_layer = min(group_layers)
+
+        # Add this minimum to all layers inside the group
+        all_layers = []
+        for module in self.modules:
+            tmp_layers = [l+min_layer for l in module.layers]
+
+            # Add group layers not defined in the module
+            for l in group_layers:
+                if l not in tmp_layers and l > max(tmp_layers):
+                    tmp_layers += [l]
+
+            # Update this to the module layers list
+            tmp_layers = sorted(set(tmp_layers))
+            module.add_layers(tmp_layers)
+            all_layers += tmp_layers
+
+        # Update the group layer to list of uniq and sorted module layers
+        new_group_layers = sorted(set(all_layers))
+        self.add_layers(new_group_layers)
+
+
+class group_old(beampy_module):
     """Group Beampy modules together and manipulate them as a group
 
     Parameters
@@ -70,10 +406,9 @@ class group(beampy_module):
         self.y = y
         self.background = background
         self.type = 'group'
-        self.content = []
+        self.content = None
         self.xoffset = 0
         self.yoffset = 0
-        self.parentid = parentid # Store the id of the parent group
         self.grouplevel = 0
 
         # To store elements id to group
@@ -91,15 +426,17 @@ class group(beampy_module):
 
         # Get the id of the slide
         if parent_slide_id is None:
-            slide = document._slides[gcs()]
+            # slide = document._slides[gcs()]
+            slide = Store.get_current_slide()
         else:
             self.parent_slide_id = parent_slide_id
-            slide = document._slides[self.parent_slide_id]
+            slide = Store.get_slide(self.parend_slide_id)
+            #slide = document._slides[self.parent_slide_id]
 
         if elements_to_group is not None:
             opengroup = False
 
-        # Add the parentid if level is more than 1
+        # Add the parentid if level is more than 0
         if slide.cur_group_level >= 0:
             self.parentid = slide.contents[slide.groupsid[slide.cur_group_level][-1]].id
 
@@ -109,11 +446,15 @@ class group(beampy_module):
             slide.cur_group_level = self.grouplevel
 
         # Add classic register to the slide
-        self.register(auto_render=False)
+        super().__init__(self.x, self.y, self.width, self.height, None, self.type)
+        #self.register(auto_render=False)
         self.group_id = self.id
+        # Set the parent position
+        if parentid is None:
+            self.parentpos = self.get_position()
 
-        self.init_width = self.positionner.width.value
-        self.init_height = self.positionner.height.value
+        self.init_width = self.width
+        self.init_height = self.height
 
         if elements_to_group is not None:
             # print('TODO: Need to remove these elements from previous group!')
@@ -125,6 +466,7 @@ class group(beampy_module):
                     slide.contents[e.group_id].remove_element_in_group(e.id)
 
                 e.group_id = self.id
+
 
     def reset_outputs(self):
         """
@@ -141,42 +483,42 @@ class group(beampy_module):
 
     def __enter__(self):
         # Is the slide group level correctly set?
-        if document._slides[self.slide_id].cur_group_level != self.grouplevel:
+        if Store.get_slide(self.slide_id).cur_group_level != self.grouplevel:
             #print('Change cur_group_level')
-            document._slides[self.slide_id].cur_group_level = self.grouplevel
+            Store.get_slide(self.slide_id).cur_group_level = self.grouplevel
 
         _log.debug('Enter a new group %s with level: %i' % (self.id,
                                                             self.grouplevel))
 
         # Set the id to of the current group to this group id
-        document._slides[self.slide_id].cur_group_id = self.id
+        Store.get_slide(self.slide_id).cur_group_id = self.id
         # Check if we need to update the curwidth of slide
         if self.width.value is not None:
-            document._slides[self.slide_id].curwidth = self.width.value
+            Store.get_slide(self.slide_id).curwidth = self.width.value
         else:
-            self.width.value = document._slides[self.slide_id].curwidth
+            self.width.value = Store.get_slide(self.slide_id).curwidth
 
         # For the height check if a height is given in the group
         if self.height.value is not None:
-            document._slides[self.slide_id].curheight = self.height.value
+            Store.get_slide(self.slide_id).curheight = self.height.value
 
         return self
 
     def __exit__(self, type, value, traceback):
         _log.debug('Exit group %s' % self.id)
         if self.grouplevel >= 1:
-            document._slides[self.slide_id].cur_group_level = self.grouplevel - 1
+            Store.get_slide(self.slide_id).cur_group_level = self.grouplevel - 1
 
         # Check if we need to update the curwidth of slide to the parent group
-        if self.parentid is not None and document._slides[self.slide_id].contents[self.parentid].width.value is not None:
-            document._slides[self.slide_id].curwidth = document._slides[self.slide_id].contents[self.parentid].width.value
+        if self.parentid is not None and Store.get_slide(self.slide_id).contents[self.parentid].width.value is not None:
+            Store.get_slide(self.slide_id).curwidth = Store.get_slide(self.slide_id).contents[self.parentid].width.value
 
         # Check if we need to update the curheight of slide to the parent group
-        if self.parentid is not None and document._slides[self.slide_id].contents[self.parentid].height.value is not None:
-            document._slides[self.slide_id].curheight = document._slides[self.slide_id].contents[self.parentid].height.value
+        if self.parentid is not None and Store.get_slide(self.slide_id).contents[self.parentid].height.value is not None:
+            Store.get_slide(self.slide_id).curheight = Store.get_slide(self.slide_id).contents[self.parentid].height.value
 
         # Get the id of the parentgroup as the cur_group_id
-        document._slides[self.slide_id].cur_group_id = self.parentid
+        Store.get_slide(self.slide_id).cur_group_id = self.parentid
 
         _log.debug('Set current group level to %i'%document._slides[self.slide_id].cur_group_level)
 
@@ -191,27 +533,28 @@ class group(beampy_module):
         Function to recusivly propagate the layers to group elements
         :return:
         """
-        slide = document._slides[self.slide_id]
+        slide = Store.get_slide(self.slide_id)
 
         for eid in self.elementsid:
             # logging.debug('Element to propagate layer %s ' % str(slide.contents[eid].name))
             for layer in self.layers:
-                if layer not in slide.contents[eid].layers and layer > min(slide.contents[eid].layers):
-                    _log.debug('add layer %i to %s' % (layer, slide.contents[eid].name))
-                    slide.contents[eid].layers += [layer]
+                if layer not in slide.modules[eid].layers and layer > min(slide.modules[eid].layers):
+                    _log.debug('add layer %i to %s' % (layer, slide.modules[eid].name))
+                    slide.modules[eid].layers += [layer]
 
             # Clean layer of elements lower than the minimum of group layer
-            for elayer in slide.contents[eid].layers:
+            for elayer in slide.modules[eid].layers:
                 if elayer < min(self.layers):
-                    slide.contents[eid].layers.pop(slide.contents[eid].layers.index(elayer))
+                    slide.modules[eid].layers.pop(slide.modules[eid].layers.index(elayer))
 
             # If the elements it's an group with should call the same method to do the recursion
-            if slide.contents[eid].type == 'group':
-                slide.contents[eid].propagate_layers()
+            if slide.modules[eid].type == 'group':
+                slide.modules[eid].propagate_layers()
 
-    def add_elements_to_group(self, eid, element):
+    def add_elements_to_group(self, element):
         #Function to register elements inside the group
         is_auto = False
+        eid = element.get_position()
         self.elementsid += [eid]
         self.exports_id += [eid]
 

@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
 """
-Base class for beampy modules
+Base class for beampy-sldieshow modules
 """
 from beampy.core.document import document
+from beampy.core.store import Store
+from beampy.core.content import Content
 from beampy.core.functions import (gcs, create_element_id,
                                    get_command_line, print_function_args,
-                                   pre_cache_svg_image)
-from beampy.core.geometry import positionner
+                                   pre_cache_svg_image, convert_unit)
+from beampy.core.geometry import positionner, Position, Length, relative_length
 
 import sys
 import inspect
@@ -15,25 +17,14 @@ import logging
 _log = logging.getLogger(__name__)
 
 
-class beampy_module(object):
+class beampy_module():
     """
         Base class for creating a module
 
         Each module need a render method and need to return a register
     """
 
-    rendered = False  # State of the module (True if it has been rendered to an svg
-    positionner = None  # Store the positionner (to manage placement in slide)
-    content = None  # Store the input content
-    type = None  # Define the type of the module
-    name = None
     args = {}  # Store the raw dict of passed args (see check_args_from_theme)
-
-    # Storage of render outputs
-    svgout = None  # The output of the render
-    htmlout = None  # We can store also html peace of code
-    jsout = None  # Store javascript if needed
-    animout = None  # Store multiple rasters for animation
 
     call_cmd = ''  # Store the command used in the source script
     call_lines = ''  # Store lines of the call cmd
@@ -42,13 +33,6 @@ class beampy_module(object):
     group_id = None  # store the group id if the module is inside one group
     start_line = 0
     stop_line = 0
-
-    # Needed args (give some default one)
-    x = 0
-    y = 0
-    width = None
-    height = None
-    svg_decoration = '' # strore an svg element to add to the elemen group like a rectangle
 
     #  Special args used to create cache id from md5
     args_for_cache_id = None
@@ -66,39 +50,45 @@ class beampy_module(object):
     svgdefs = []
     svgdefsargs = []
 
-    def __init__(self, **kargs):
+    def __init__(self, x, y, width, height, content_type='svg', **kwargs):
+        """Beampy module is the base class for each elements added to slide in
+        Beampy-slideshow. Modules are registered to the Store when they are
+        created with a unique ID and added to the slide it belongs. The content
+        of the module is then transformed to svg by the render methods (only if
+        the module is not cached).
 
-        self.check_args_from_theme(kargs)
+        Parameters
+        ----------
+
+        x : int or float or {'center', 'auto'} or str
+            Horizontal position for the text container. See positioning system
+            of Beampy.
+
+        y : int or float or {'center', 'auto'} or str
+            Vertical position for the text container. See positioning system of
+            Beampy.
+
+        width : int or float or None
+            Width of the module. If None, the width will be set when module is
+            rendered to svg.
+
+        height : int or float or None
+            Height of the module. If None, the width will be set when module is
+            rendered to svg.
+
+        content_type : str in ['svg', 'html', 'js']
+            The type of the content
+
+        **kwargs, any key=value list:
+            will be added to the class variables to use them in the render for
+            exemple.
+        """
+
         self.register()
-        print("Base class for a new module")
-
-    def register(self, auto_render=False):
-        # Function to register the module (run the function add to slide)
-
-        # Load the special_kwargs to set them as attribute of the module
-        self.load_special_kwargs()
-
-        # Save the id of the current slide for the module
-        if self.parent_slide_id is None:
-            self.slide_id = gcs()
-        else:
-            self.slide_id = self.parent_slide_id
-
-        # Store the list of groups id where the module is finally located (used for html element to
-        # resolve final positionning)
-        self.groups_id = []
-
-        # Ajout du nom du module
-        self.name = self.get_name()
-
-
-        # Create a unique id for this element
-        self.id = create_element_id( self )
-
-        _log.debug('%s(id=%s) store the slide id: %s' % (self.name, self.id, self.slide_id))
 
         # Store the layers where this module should be printed
         self.layers = [0]
+
         # Store a boolean to know if this module has been exported to slide store
         self.exported = False
 
@@ -107,23 +97,59 @@ class beampy_module(object):
         self.out_svgdefs = None
         self.svgdefsargs = []
 
-        # Add module to his slide
-        document._slides[self.slide_id].add_module(self.id, self)
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self._final_x = None
+        self._final_y = None
+        self.type = content_type
 
-        self.positionner = positionner(self.x, self.y ,
-                                       self.width, self.height,
-                                       self.id, self.slide_id)
+        # Variables that will store output of render functions
+        self.svgout = ''  # The svg template to produce the final valid svg string
+        self.htmlout = ''  # The html template
+        self.jsout = ''  # The javascript template to produce the valid javascrpit output
+        self.animout = ''  # Store multiple rasters for animation
 
-        # Add anchors for relative positionning
-        self.top = self.positionner.top
-        self.bottom = self.positionner.bottom
-        self.left = self.positionner.left
-        self.right = self.positionner.right
-        self.center = self.positionner.center
+        # Add kwards as variable of the class
+        self.set(**kwargs)
 
-        # Report width, height from positionner to self.width, self.height
-        # Always use the update_size method
-        self.update_size(self.width, self.height)
+    def register(self):
+        # Function to register the module (run the function add to slide)
+        # print(inspect.signature(self.register).parameters.keys())
+        # Load the special_kwargs to set them as attribute of the module
+        self.load_special_kwargs()
+
+        # Store the list of groups id where the module is finally located (used for html element to
+        # resolve final positionning)
+        self.groups_id = []
+
+        # Ajout du nom du module
+        self.name = self.get_name()
+
+        # Add the id of the current slide for the module
+        if Store.get_current_slide_id() is not None:
+            if self.parent_slide_id is None:
+                self.slide_id = Store.get_current_slide_id()
+            else:
+                self.slide_id = self.parent_slide_id
+
+
+        # Add module to his slide or to the current group
+        if self.slide_id is not None:
+            if Store.isgroup():
+                Store.group.add_module(self)
+            else:
+                Store.get_slide(self.slide_id).add_module(self)
+            sid = self.slide_id
+            self.id = self.get_index()
+        else:
+            if Store.isgroup():
+                Store.group.add_module(self)
+            sid = None
+            self.id = None
+
+        _log.debug('%s(id=%s) store the slide id: %s' % (self.name, self.id, self.slide_id))
 
         # Add the source of the script that run this module
         try:
@@ -138,28 +164,433 @@ class beampy_module(object):
         self.call_cmd = source
         self.call_lines = (start, stop)
 
-        # Do we need to auto render elements
-        if auto_render:
-            if not self.rendered:
-                self.pre_render()
-                self.run_render()
+    def add_content(self, content, content_type):
+        """Add the content to this module.
 
-                # At the end of the render, width and height should be fixed !
-                assert self.width.value is not None
-                assert self.height.value is not None
+        Parameters:
+        -----------
+
+        content: str,
+            The content to be added, that will be used by the parser
+
+        content_type:
+        """
+        # Create a content
+        self._content = Content(content, content_type,
+                                self.width.value,
+                                self.height.value,
+                                self.name,
+                                self.args_for_cache_id)
+
+        if Store.is_content(self._content.id):
+            print(f'This module {self.signature} already exist in the Store, I will use {self.content_id}' )
+            self._content.load_from_store()
+        else:
+            # Render the module
+            self.pre_render()
+            self.run_render()
+
+
+    def update_signature(self, *args, **kwargs):
+        """Create a unique signature of the init method using inspect module.
+        This would be usefull to cache the module
+        """
+        if not hasattr(self, '_signature'):
+            self._signature = inspect.signature(self.__init__)
+
+        self._arguments = self._signature.bind(*args, **kwargs)
+
+    @property
+    def signature(self):
+        if not hasattr(self, '_arguments'):
+            args = inspect.signature(self.__init__).bind()
+        else:
+            args = self._arguments
+
+        args.apply_defaults()
+        argsout = []
+        for k in args.arguments:
+            # Remove args useless for caching like x and y
+            if k not in ['x', 'y']:
+                argsout += [f'{str(k)}={args.arguments[k]}']
+
+        return f'{self.name}({", ".join(argsout)})'
+
+    @property
+    def content_id(self):
+        return self._content.id
+
+    @property
+    def data(self):
+        """The raw data of the content of the module
+        """
+        if self._content is not None:
+            return self._content.data
+
+        return None
+
+    @data.setter
+    def data(self, raw_content):
+        """Set the raw data of the module. This method should be used from
+        self.render.
+        """
+        self._content.data = raw_content
+        # TODO Store.update_content(self._content)
+
+    @property
+    def content_width(self):
+        """Get the original width of the content
+        """
+        if self._content is not None:
+            return self._content.width
+
+        return None
+
+    @content_width.setter
+    def content_width(self, width):
+        """Update the originale width of the content.
+        This method should be used inside the render function to set the width by:
+        module.content_width = the_width_of_the_content
+        """
+        if isinstance(width, str):
+            width = convert_unit(width)
+
+        self._content.width = width
+
+
+    @property
+    def content_height(self):
+        """Get the original height of the content
+        """
+        if self._content is not None:
+            return self._content.height
+
+        return None
+
+    @content_height.setter
+    def content_height(self, height):
+        """Update the originale height of the content.
+        This method should be used inside the render function to set the height by:
+        module.content_height = the_height_of_the_content
+        """
+        if isinstance(height, str):
+            height = convert_unit(height)
+
+        self._content.height = height
+
+    def set(self, **kwargs):
+        """Add extrat args to the module. And check them from
+        THEME if they are None.
+        """
+
+        for kw in kwargs:
+            setattr(self, kw, kwargs[kw])
+
+    def get_index(self):
+        """Return the position of the module in slide modules list
+        """
+        if Store.isgroup():
+            pos = Store.group.modules.index(self)
+        else:
+            pos = Store.get_slide(self.slide_id).modules.index(self)
+
+        return pos
+
+    def get_previous_module(self):
+        """Return the previous module stored in the slide.
+        """
+
+        previous_module = None
+
+        mpos = self.get_index()
+        if mpos > 0:
+            if Store.isgroup():
+                previous_module = Store.group.modules[mpos-1]
+            else:
+                previous_module = Store.get_slide(self.slide_id).modules[mpos-1]
+        else:
+            raise IndexError("No previous module in the slide or group")
+
+        return previous_module
+
+    @property
+    def svgdef(self):
+        if 'svgdef' in self.data:
+            svgdef = self.data["svgdef"]
+            return svgdef
+
+        return None
+
+    @svgdef.setter
+    def svgdef(self, svgin):
+        """Create the svg group with the correct id
+        """
+        out = f'<g id="{self.content_id}" class="{self.name}">{svgin}</g>'
+        if hasattr(self, 'data') and 'svgdef' in self.data:
+            self.data['svgdef'] = out
+        else:
+            self.data = {'svgdef': out}
+
+    @property
+    def svguse(self):
+        """Return the svg <use> command for this element
+        """
+        return f'<use x="{self._final_x}" y="{self._final_y}" href="#{self.content_id}"/>'
+
+    @property
+    def width(self):
+        return self._width
+
+    @width.setter
+    def width(self, w):
+        if not hasattr(self, '_width'):
+            if not isinstance(w, Length):
+                length = Length(w, axis='x')
+            else:
+                length = w
+
+            self._width = length
+        else:
+            if isinstance(w, Length):
+                self._width.value = w._value
+            else:
+                self._width.value = w
+
+    @property
+    def height(self):
+        return self._height
+
+    @height.setter
+    def height(self, h):
+        if not hasattr(self, '_height'):
+            if not isinstance(h, Length):
+                length = Length(h, axis='y')
+            else:
+                length = h
+
+            self._height = length
+        else:
+            if isinstance(h, Length):
+                self._height.value = h._value
+            else:
+                self._height.value = h
+
+    @property
+    def x(self):
+        # print("prop class")
+        return self._x
+
+    @property
+    def y(self):
+        return self._y
+
+    @x.setter
+    def x(self, position):
+        """
+        Set a new horizontal position for the module. Create a Position object
+        which allow delayed operation.
+
+        Parameters
+        ----------
+
+        position: int or float or dict or string in 'auto' or 'center'
+            When the position is given as a int or float: if position<1 will be a % of the
+            current width, else if will be the position in pixel
+
+
+
+        """
+
+        # String cases
+        if isinstance(position, str):
+            if position.startswith('+') or position.startswith('-'):
+                position = self.process_previous_position(position, 'x')
+            elif position == 'auto':
+                if self.slide_id is not None:
+                    if Store.isgroup():
+                        Store.group.id_modules_auto_x += [self.id]
+                    else:
+                        Store.get_slide(self.slide_id).id_modules_auto_x += [self.id]
+                else:
+                    if Store.isgroup():
+                        Store.group.id_modules_auto_x += [self.id]
+                    else:
+                        raise IndexError("The module could not have x='auto' as it's defined outside of a slide or a group")
+
+        # Tuple cases (x, y) or [x, y]
+        if isinstance(position, (tuple, list)):
+            # only keep the position for the y direction
+            position = position[0]
+
+        # Do I need to update X or create a new position object
+        if not hasattr(self, '_x'):
+            # Ensure that position is a Position class
+            if not isinstance(position, Position):
+                pos = Position(self, position, axis='x')
+            else:
+                pos = position
+
+            self._x = pos
+        else:
+            # Update only the value
+            if isinstance(position, Position):
+                self._x.value = position._value
+            else:
+                self._x.value = position
+
+    @y.setter
+    def y(self, position):
+        """
+        Set a new vertical position for the module. Create a Position object
+        which allow delayed operation.
+
+        Parameters
+        ----------
+
+        position: int or float or list or tuple or dict or string in 'auto' or 'center'
+            When the position is given as a int or float: if position<1 will be a % of the
+            current width, else if will be the position in pixel
+        """
+
+        # String cases
+        if isinstance(position, str):
+            if position.startswith('+') or position.startswith('-'):
+                position = self.process_previous_position(position, 'y')
+            elif position == 'auto':
+                if self.slide_id is not None:
+                    if Store.isgroup():
+                        Store.group.id_modules_auto_y += [self.id]
+                    else:
+                        Store.get_slide(self.slide_id).id_modules_auto_y += [self.id]
+                else:
+                    if Store.isgroup():
+                        Store.group.id_modules_auto_y += [self.id]
+                    else:
+                        raise IndexError("The module could not have y='auto' as it's defined outside of a slide or group")
+
+
+        # Tuple cases (x, y) or [x, y]
+        if isinstance(position, (tuple, list)):
+            # only keep the position for the y direction
+            position = position[1]
+
+        if not hasattr(self, '_y'):
+            # Create a new position object
+            if not isinstance(position, Position):
+                pos = Position(self, position, axis='y')
+            else:
+                pos = position
+
+            self._y = pos
+        else:
+            # Update the Position object
+            if isinstance(position, Position):
+                self._y.value = position._value
+            else:
+                self._y.value = position
+
+    def process_previous_position(self, position, axis='x'):
+        """Find the previous module in slide to process the current position
+        position relative to this module.
+
+        Parameters
+        ----------
+
+        - position, str (kind '+XX' or '-XXcm'):
+            The position given as a relative position to the previous module of
+            the slide.
+
+        - axis, str in ['x', 'y'] (optional):
+            The axis of the given position (default is 'x')
+
+        Return
+        ------
+
+        a Position object with the correct operation if possible or None
+        """
+
+        assert isinstance(position, str), "Relative position should be a string"
+        assert not position.startswith('+') or not position.startswith('-'), "Relative position should starts with + or -"
+        assert axis in ['x', 'y'], "Axis should be 'x' or 'y'"
+
+        previous_module = self.get_previous_module()
+
+        if position.startswith('+'):
+            offset = position.replace('+', '')
+            previous_operation = '+'
+
+        if position.startswith('-'):
+            offset = position.replace('-', '')
+            previous_operation = '-'
+
+        if previous_module is not None:
+            if previous_operation == '+':
+                position = getattr(previous_module, axis) + offset
+            else:
+                position = getattr(previous_module, axis) - offset
+
+        return position
+
+    @property
+    def right(self):
+        """Return the horizontal position to be align with the right edge of the
+        module.
+        """
+        return self.x + self.width
+
+    @property
+    def bottom(self):
+        """Return the vertical position to be align with the bottom edge of the
+        module.
+        """
+        return self.y + self.height
+
+    @property
+    def center(self):
+        """Return the horizontal and vertical positions to be align with the center of the
+        module.
+        """
+        return (self.x + self.width/2, self.y + self.height/2)
+
+    @property
+    def x_center(self):
+        return self.x + self.width/2
+
+    @property
+    def y_center(self):
+        return self.y + self.height/2
+
+    def compute_position(self):
+        """Compute the position of the module and store the result in
+        self._final_x, self._final_y variables.
+
+        The computation of Position and Length will fix the relative length used
+        for "%" operations.
+
+        If the Position depends of 'auto' positionning, those "auto" positions
+        should be computed before.
+        """
+
+        # Run the processing for x and y
+        self._final_x = self.x.value
+        self._final_y = self.y.value
 
     def delete(self):
         # Remove from document
-        document._slides[self.slide_id].remove_module(self.id)
+
+        if self.slide_id is not None:
+            for sid in self.slide_id:
+                Store.get_slide(sid).remove_module(self.id)
+
+        Store.remove_module(self.id)
         del self
 
     def reset_outputs(self):
-        self.svgout = None  # The output of the render
-        self.htmlout = None  # We can store also html peace of code
-        self.jsout = None  # Store javascript if needed
-        self.animout = None  # Store multiple rasters for animation
-        self.rendered = False
-        self.exported = False
+        self.svgout = ''  # The output of the render
+        self.htmlout = ''  # We can store also html peace of code
+        self.jsout = ''  # Store javascript if needed
+        self.animout = ''  # Store multiple rasters for animation
+        self.data = None
 
     def pre_render(self):
         """
@@ -173,10 +604,9 @@ class beampy_module(object):
         # self.update_size(new_width, new_height)
 
         # Store your the render outputs to
-        self.svgout = None
-        self.htmlout = None
-        self.jsout = None
-        self.animout = None
+        self.data['svgdef'] = "a data thing"
+        self.content_width = self.width.value
+        self.content_height = self.height.value
 
         self.rendered = True
 
@@ -186,104 +616,86 @@ class beampy_module(object):
         """
 
         # Get the current slide object
-        slide = document._slides[self.slide_id]
+        if self.slide_id is None:
+            slide = None
+            snum = None
+        else:
+            slide = Store.get_slide(self.slide_id)
+            snum = slide.slide_num
+
         _log.debug("Render %s(id=%s): with height: %s and width: %s on slide: %s" % (self.name,
                                                                                      self.id,
                                                                                      self.height,
                                                                                      self.width,
-                                                                                     slide.num))
+                                                                                     snum))
 
-        if self.cache and document._cache is not None:
-            ct_cache = document._cache.is_cached('slide_%i'%slide.num, self)
-            if ct_cache:
-                #Update the state of the module to rendered
-                self.rendered = True
-                try:
-                    print("Elem [%s ...] from cache"%self.call_cmd.strip()[:20])
-                except:
-                    print("Elem %s from cache"%self.name)
-            else:
-                #print("element %i not cached"%ct['positionner'].id)
-                if not self.rendered:
-                    self.render()
-                    _log.debug('Add %s(id=%s) cache for slide_id: %s' % (self.name, self.id, slide.num))
-                    document._cache.add_to_cache('slide_%i'%slide.num, self)
-                    try:
-                        print("Elem [%s ...] rendered"%self.call_cmd.strip()[:20])
-                    except:
-                        print("Elem %s rendered"%self.name)
-        else:
-            if not self.rendered:
-                self.render()
-                try:
-                    print("Elem [%s ...] rendered"%self.call_cmd.strip()[:20])
-                except:
-                    print("Elem %s rendered"%self.name)
-
+        self.render()
         # Process the svg definitions
-        self.render_svgdefs()
+        # self.render_svgdefs()
 
     def get_name(self):
         # Return the name of the module
         # return str(self.__init__.im_class).split('.')[-1]
-        name = str(self.__init__.__self__.__class__).split('.')[-1]
-
-        # For python 3.x compatibility
-        if "'>" in name:
-            name = name.replace("'>", '')
+        name = str(type(self).__name__)
 
         return name
 
-    def check_args_from_theme(self, arg_values_dict, parent=None,
-                              lenient=False):
+    def apply_theme(self, parent=None, lenient=False, exclude=None):
         """
-        Function to check input function keyword args.
-
-        Functions args are defined in the default_theme.py or if a
-        theme is added the new value is taken rather than the
-        default one.
+        Load arguments of beampy_module.__init__ methods from the THEME when
+        they are set to None. The beampy module should have a valid signature,
+        updated with *beampy_module.update_signature* method.
 
         Parameters
         ----------
-        arg_values_dict: dictionary,
-            The key-value dictionary containing function arguments.
-
-        parent: string optional
+        parent: string optional,
             The name of the parent beampy_module to also load args
 
         lenient: boolean optional
             When True, allows check function to not stop Beampy
             compilation when the argument is not defined in the THEME
             dictionary (default value is False)
+
+        exclude: list of str optional,
+            Define key for which their is no THEME default to apply.
+
         """
 
-        # Add args value to the module
-        self.args = arg_values_dict
+        # Use an auto mode with arg=None -> then load from THEME
+        # print(inspect.signature(self.__init__).parameters.keys())
 
-        function_name = self.get_name()
-        default_dict = document._theme[function_name]
+
+        assert hasattr(self, '_arguments'), "Need to add use self.update_signature in ryour module init"
+        self._arguments.apply_defaults()
+
+        args = self._arguments.arguments
+        keys = args.keys()
+
+        function_name = self.name
+        default_dict = Store.get_layout()._theme[function_name]
+
         # Merge default dictionary with the parent dictionary
         if parent is not None:
-            default_dict = dict(default_dict, **document._theme[parent])
+            default_dict = dict(default_dict,
+                                **Store.get_layout()._theme[parent])
 
-        outdict = {}
-        for key, value in arg_values_dict.items():
-            #Check if this arguments exist for this function
-            if key in default_dict or key in self.special_kwargs:
-                outdict[key] = value
-                setattr(self, key, value)
-            else:
-                if not lenient:
-                    print("Error the key %s is not defined for %s module"%(key, function_name))
-                    print_function_args(function_name)
-                    sys.exit(1)
+        if exclude is None:
+            exclude = []
+
+        for key, value in args.items():
+            # If the value is None look for it in the default_dict
+            if value is None and key not in exclude:
+                if key in default_dict:
+                    # Update the value in the object
+                    setattr(self, key, default_dict[key])
+                    # Update the args in the signature
+                    self._arguments.arguments[key] = getattr(self, key)
                 else:
-                    _log.debug('Your argument %s is not defined in the Theme' % (key))
-
-        # Check if their is ommited arguments that need to be loaded by default
-        for key, value in default_dict.items():
-            if key not in outdict:
-                setattr(self, key, value)
+                    if not lenient:
+                        print_function_args(function_name)
+                        raise IndexError("Error the key %s is not defined for %s module" % (key, function_name))
+                    else:
+                        _log.debug('Your argument %s is not defined in the Theme' % (key))
 
     def load_special_kwargs(self):
         """
@@ -320,14 +732,6 @@ class beampy_module(object):
         for key, value in kwargs_dict.items():
             setattr(self, key, value)
 
-    def update_size(self, width, height):
-        """
-            Update the size (width, height) of the current module
-        """
-
-        self.positionner.update_size( width, height )
-        self.width = self.positionner.width
-        self.height = self.positionner.height
 
     def add_svgdef(self, svgdef, svgdefsargs=None):
         """
@@ -384,13 +788,17 @@ class beampy_module(object):
 
     def __repr__(self):
         out = 'module: %s\n'%self.name
+        out += 'Id: %s\n' % self.id
+        if self._content is not None:
+            out += 'Content id: %s\n' % self._content.id
+        out += 'width: %s, height: %s\n' % (str(self.width), str(self.height))
+        out += 'x: %s, y: %s\n' % (self.x, self.y)
+
         try:
             out += 'source (lines %i->%i):\n%s\n'%(self.call_lines[0], self.call_lines[1],
                                        self.call_cmd)
         except:
             out += 'source : fail\n'
-
-        out += 'width: %s, height: %s\n'%(str(self.width.value), str(self.height.value))
 
         return out
 
@@ -505,6 +913,7 @@ class beampy_module(object):
         self.layers = layerslist
 
     def __call__(self, *args, **kwargs):
+        # Check if their is a current slide
         # Todo: regegister the module where it is called (use it to recall a module in another slide)
         raise NotImplementedError("Not implemented, you can call a module twice!")
 
@@ -513,10 +922,10 @@ class beampy_module(object):
         Manage layer of a given module using the python getitem syntax
         with slicing
 
-        self()[0] -> layer(0)
-        self()[:1] -> layer(0,1)
-        self()[1:3] -> layer(1,2,3)
-        self()[2:] -> layer(2,..,max(layer))
+        self()[0] -> layer([0])
+        self()[:1] -> layer([0,1])
+        self()[1:3] -> layer([1,2,3])
+        self()[2:] -> layer([2,..,max(layer)])
         """
 
         if isinstance(item, slice):
@@ -547,7 +956,7 @@ class beampy_module(object):
                 if isinstance(start, str):
                     self.add_layers('range(%s,max,%i)' % (start, step))
                 else:
-                    self.add_layers( 'range(%i,max,%i)'%(start, step) )
+                    self.add_layers('range(%i,max,%i)'%(start, step) )
 
             else:
                 if isinstance(start, str):
@@ -556,16 +965,17 @@ class beampy_module(object):
                     self.add_layers(list(range(start, item.stop+1, step)))
 
         else:
-            if isinstance(item, list) or isinstance(item, tuple):
+            if isinstance(item, (list, tuple)):
                 string_layers = False
                 item = list(item)
                 for i, it in enumerate(item):
-                    if it < 0:
-                        item[i] = 'max%i+1'%it
-                        string_layers = True
 
                     if isinstance(it, str):
                         string_layers = True
+                    else:
+                        if it < 0:
+                            item[i] = 'max%i+1'%it
+                            string_layers = True
 
                 if string_layers:
                     # Need to replace ' by None because str([0,'max']) -> "[0,'max']"
@@ -574,12 +984,11 @@ class beampy_module(object):
                     self.add_layers(item)
 
             else:
-                if item < 0:
-                    item = 'max%i+1'%item
-
                 if isinstance(item, str):
                     self.add_layers('[%s]'%item)
                 else:
+                    if item < 0:
+                        item = 'max%i+1'%item
                     self.add_layers([item])
 
         return self

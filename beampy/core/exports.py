@@ -4,8 +4,7 @@ Created on Fri May 15 16:48:01 2015
 
 @author: hugo
 """
-
-from beampy.core.document import document
+from beampy.core.store import Store
 from beampy.core.functions import render_texts
 import json
 
@@ -51,9 +50,10 @@ def save(output_file=None, format=None):
 
     """
 
+    document = Store.get_layout()
     _log.debug('Document at the begining of save method')
     _log.debug(document.print_variables())
-    
+
     if document._quiet:
         sys.stdout = open(os.devnull, 'w')
 
@@ -61,16 +61,16 @@ def save(output_file=None, format=None):
     bname = os.path.basename(output_file)
     bdir = output_file.replace(bname,'')
 
-    if document._rendered:
-        document._rendered = False
-        reset_module_rendered_flag()
+    #if document._rendered:
+    #    document._rendered = False
+    #    reset_module_rendered_flag()
 
     file_ext = os.path.splitext(output_file)[-1]
 
     if 'html' in file_ext or format == 'html5':
         document._output_format = 'html5'
-        render_texts()
-        save_layout()
+        #render_texts()
+        #save_layout()
         output = html5_export()
 
     elif 'svg' in file_ext or format == "svg":
@@ -223,6 +223,8 @@ def svg_export(dir_name, quiet=False):
 
 def html5_export():
 
+    document = Store.get_layout()
+
     with open(curdir+'statics/jquery.js','r') as f:
         jquery = f.read()
 
@@ -274,17 +276,18 @@ def html5_export():
     # If we directly want to charge the content in pure html
     tmpout = {}
     tmpscript = {}
-    global_store = ''
-    for islide in range(document._global_counter['slide']+1):
+    global_store = '<svg><defs>'
+    global_store_id = []
+    for islide in range(len(Store)):
 
         tnow = time.time()
 
-        slide_id = "slide_%i"%islide
+        slide_id = "slide_%i" % (islide)
         tmpout[slide_id] = {}
-        slide = document._slides[slide_id]
+        slide = Store.get_slide("slide_%i" % (islide+1))
 
         # Render the slide
-        slide.newrender()
+        slide.render()
 
         # Add a small peace of svg that will be used to get the data from the global store
         tmpout[slide_id]['svg'] = [] # Init the store for the differents layers
@@ -296,20 +299,12 @@ def html5_export():
         # save the list of rendered svg to a new dict as a string that is loaded globally in the html
         # tmp = ''.join(slide.svgout).decode('utf-8', errors='replace')
         # OLD .decode('utf-8', errors='replace') after join for py2
-        if py3:
-            modulessvgdefs = ''.join(slide.svgdefout)
-        else:
-            _log.debug('Encode output as utf-8, for python2 compatibility')
-            modulessvgdefs = ''
-            for svgdef in slide.svgdefout:
-                if isinstance(svgdef, unicode):
-                    _log.debug('convert unicode')
-                    modulessvgdefs += svgdef.encode('utf-8', errors='replace')
-                else:
-                    modulessvgdefs += svgdef
+        # modulessvgdefs = ''.join(slide.svgdefout)
 
-
-        global_store += "<svg><defs>" + modulessvgdefs
+        # global_store += "<svg><defs>" + modulessvgdefs
+        tmp_svgdef, tmp_id = export_svgdefs(slide.modules, global_store_id)
+        global_store_id += [tmp_id]
+        global_store += tmp_svgdef
 
         for layer in range(slide.num_layers+1):
             print('write layer %i'%layer)
@@ -323,8 +318,6 @@ def html5_export():
             global_store += "<g id='slide_{i}-{layer}'>{content}</g>".format(i=islide, layer=layer, content=layer_content)
             # Create an svg use for the given layer
             tmpout[slide_id]['svg'] += ['<use xlink:href="#slide_{i}-{layer}"/>'.format(i=islide, layer=layer)]
-
-        global_store += '</defs></svg>'
         
         if slide.animout is not None:
             tmpout[slide_id]['svganimates'] = {}
@@ -343,29 +336,21 @@ def html5_export():
 
         if slide.scriptout is not None:
             tmpscript['slide_%i'%islide] = ''.join(slide.scriptout)
-            
+
+        # TODO: Rewrite outside of svg global_store
         if slide.htmlout is not None:
             for layer in slide.htmlout:
-                if py3:
-                    global_store += '<div id="html_store_slide_%i-%i">%s</div>'%(islide, layer,
-                                                                                 ''.join(slide.htmlout[layer]))
-                else:
-                    tmphtmlout = ''
-                    for hout in slide.htmlout[layer]:
-                        if isinstance(hout, unicode):
-                            tmphtmlout += hout.encode('utf-8', errors='replace')
-                        else:
-                            tmphtmlout += hout
-                            
-                    global_store += '<div id="html_store_slide_%i-%i">%s</div>'%(islide, layer, tmphtmlout)
+                global_store += '<div id="html_store_slide_%i-%i">%s</div>'%(islide, layer,
+                                                                             ''.join(slide.htmlout[layer]))
 
-                    
         print("Done in %0.3f seconds"%(time.time()-tnow))
+
+    global_store += '</defs></svg>'
 
         
     # Create a json file of all slides output (refs to store)
     jsonfile = StringIO()
-    json.dump(tmpout,jsonfile, indent=None)
+    json.dump(tmpout, jsonfile, indent=None)
     jsonfile.seek(0)
 
     # The global svg glyphs need also to be added to the html5 page
@@ -375,7 +360,7 @@ def html5_export():
 
     # Add the svg content
     if py3:
-        output += "".join( global_store )
+        output += "".join(global_store)
     else:
         #Python 2 backcompatibility
         output += "".join( global_store ).decode('utf8')
@@ -567,3 +552,29 @@ def get_bokeh_includes():
     js_out += '</script>'
 
     return css_out, js_out
+
+
+def export_svgdefs(modules: list, exported_id: list) -> (str, list):
+    """Export svgdef for each module in the list, if the module content_id is not in
+    the exported_list. If the module is a group run export_svgdef to do the recursivity
+
+    Returns
+    -------
+
+    list of svgdef and list of updated exported_id
+    """
+
+    svgdef = []
+    for m in modules:
+        if m.content_id not in exported_id:
+            svgdef += [m.svgdef]
+            exported_id += [m.content_id]
+
+            if m.type == 'group':
+                tmp_svgdef, tmp_id = export_svgdefs(m.modules, exported_id)
+                svgdef += [tmp_svgdef]
+                exported_id += [tmp_id]
+
+    svgdef = '\n'.join(svgdef)
+
+    return svgdef, exported_id

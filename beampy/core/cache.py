@@ -119,7 +119,7 @@ class cache_slides():
                     #print(element.keys())
                     #For commands that includes files, need a filename elements in args
                     try:
-                        self.data[elemid]['file_id'] = os.path.getmtime( bp_module.content )
+                        self.data[elemid]['file_id'] = os.path.getmtime(bp_module.content)
                     except:
                         pass
 
