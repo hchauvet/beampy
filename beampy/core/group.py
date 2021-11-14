@@ -185,10 +185,11 @@ class group(beampy_module):
     def svgdef(self):
         if 'svgdef' in self.data:
             svgdef = self.export_svgdef()
-            out = ''.join([f'<g id=\"{self.content_id}_{layer}\" class="group">'+f'{"".join(svgdef[layer])}'+'</g>' for layer in svgdef])
-            return out
+            out = [f'<g id=\"{self.content_id}_{self.slide_id}_{layer}\" class="group">'+f'{"".join(svgdef[layer])}'+'</g>' for layer in svgdef]
+            out_id = [f'{self.content_id}_{self.slide_id}_{layer}' for layer in svgdef]
+            return out_id, out
 
-        return None
+        return None, None
 
     @svgdef.setter
     def svgdef(self, svgin):
@@ -206,7 +207,7 @@ class group(beampy_module):
         assert self._final_x is not None, f"{self.name} final X position is None for\n{self}"
         assert self._final_y is not None, f"final Y position is None for\n{self}"
 
-        return f'<use x="{self._final_x}" y="{self._final_y}" href="#{self.content_id}_{layer}"/>'
+        return f'<use x="{self._final_x}" y="{self._final_y}" href="#{self.content_id}_{self.slide_id}_{layer}"/>'
 
     def group_width(self):
         """Compute the width of the group based on the module inside the group.

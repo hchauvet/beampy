@@ -566,14 +566,22 @@ def export_svgdefs(modules: list, exported_id: list) -> (str, list):
 
     svgdef = []
     for m in modules:
-        if m.content_id not in exported_id:
-            svgdef += [m.svgdef]
-            exported_id += [m.content_id]
+        # Special case of group which exports id with layer
+        if m.type == 'group':
+            tmp_id, tmp_svgdefs = m.svgdef
+            for i in range(len(tmp_id)):
+                if tmp_id[i] not in exported_id:
+                    svgdef += [tmp_svgdefs[i]]
+                    exported_id += [tmp_id[i]]
 
-            if m.type == 'group':
-                tmp_svgdef, tmp_id = export_svgdefs(m.modules, exported_id)
-                svgdef += [tmp_svgdef]
-                exported_id += [tmp_id]
+            tmp_svgdef, tmp_id = export_svgdefs(m.modules, exported_id)
+            svgdef += [tmp_svgdef]
+            exported_id += [tmp_id]
+        else:
+            if m.content_id not in exported_id:
+                svgdef += [m.svgdef]
+                exported_id += [m.content_id]
+
 
     svgdef = '\n'.join(svgdef)
 
