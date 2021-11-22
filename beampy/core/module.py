@@ -11,6 +11,7 @@ from beampy.core.functions import (gcs, create_element_id,
                                    pre_cache_svg_image, convert_unit)
 from beampy.core.geometry import positionner, Position, Length, relative_length
 
+from copy import deepcopy
 import sys
 import inspect
 import logging
@@ -128,12 +129,7 @@ class beampy_module():
         self.name = self.get_name()
 
         # Add the id of the current slide for the module
-        if Store.get_current_slide_id() is not None:
-            if self.parent_slide_id is None:
-                self.slide_id = Store.get_current_slide_id()
-            else:
-                self.slide_id = self.parent_slide_id
-
+        self.set_slide_id(parent_slide_id=self.parent_slide_id)
 
         # Add module to his slide or to the current group
         if self.slide_id is not None:
@@ -163,6 +159,20 @@ class beampy_module():
 
         self.call_cmd = source
         self.call_lines = (start, stop)
+
+    def set_slide_id(self, parent_slide_id=None):
+        """Method to check if the current slide is defined in the store and to
+        set the id of this slide to self.slide_id attribute.
+        """
+
+        if parent_slide_id is not None:
+            self.slide_id = parent_slide_id
+        else:
+            if Store.get_current_slide_id() is not None:
+                self.slide_id = Store.get_current_slide_id()
+            else:
+                _log.debug('No slide id for this module')
+                self.slide_id = None
 
     def add_content(self, content, content_type):
         """Add the content to this module.
@@ -912,10 +922,49 @@ class beampy_module():
         logging.debug('layer list %s' % str(layerslist))
         self.layers = layerslist
 
-    def __call__(self, *args, **kwargs):
-        # Check if their is a current slide
-        # Todo: regegister the module where it is called (use it to recall a module in another slide)
-        raise NotImplementedError("Not implemented, you can call a module twice!")
+    def __call__(self, x, y):
+        """Add the module to the current slide or group with a given x, y
+        position. This will add a deep copy of the module to the list of modules
+        of group or slide.
+
+        Parameters:
+        -----------
+
+        - x: str, int or float, or position or length object
+            The horizontal position for the module
+
+        - y: str, int or float, or position or length object
+            The vertical position for the module
+        """
+
+        copy_self = deepcopy(self)
+
+        # Reset the layers
+        copy_self.layers = [0]
+
+        # Redefine the slide_id
+        copy_self.set_slide_id()
+
+
+        # Add module to his slide or to the current group
+        if copy_self.slide_id is not None:
+            if Store.isgroup():
+                Store.group.add_module(copy_self)
+            else:
+                Store.get_slide(copy_self.slide_id).add_module(copy_self)
+            copy_self.id = copy_self.get_index()
+        else:
+            if Store.isgroup():
+                Store.group.add_module(copy_self)
+            copy_self.id = None
+
+        # Update x, y positions
+        copy_self._final_x = None
+        copy_self._final_y = None
+        copy_self.x = x
+        copy_self.y = y
+
+        return copy_self
 
     def __getitem__(self, item):
         """
