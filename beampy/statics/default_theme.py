@@ -159,10 +159,11 @@ THEME['itemize'] = {
     'x':'center',
     'y':'auto',
     'item_style':'bullet',
-    'item_spacing':'+1cm',
+    'item_spacing':None,
     'item_indent':'0cm',
     'item_color':THEME['title']['color'],
     'text_color':THEME['text']['color'],
+    'text_size':THEME['text']['size'],
     'width':None,
     'item_layers': None
 }

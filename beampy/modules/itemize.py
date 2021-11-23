@@ -43,7 +43,7 @@ def itemize(items_list, **kwargs):
 
     item_spacing : int or float or str, optional
         Vertical spacing between items (the default theme sets this value to
-        '+1cm'). `item_spacing` accepts the same values as Beampy `x` or `y`.
+        text_size). `item_spacing` accepts the same values as Beampy `x` or `y`.
 
     item_indent : int or float or str, optional
         Horizontal item indent (the default theme sets this value to '0cm').
@@ -59,6 +59,10 @@ def itemize(items_list, **kwargs):
         doc._theme['text']['color']). Color could be given as svg-color-names
         or HTML color hex values (expl: #fffff for white).
 
+    text_size : int, optional
+        Font size of the item texts (the default theme sets this value to
+        doc._theme['text']['size']).
+
     item_layers : (list of int or string) or None, optional
         Place items into layers to animate them (the default theme sets this
         value to None, which implies that all items are displayed on the same
@@ -72,7 +76,7 @@ def itemize(items_list, **kwargs):
 
     '''
 
-    args = check_function_args(itemize, kwargs)
+    args = check_function_args( itemize, kwargs )
     number = 1
 
     if args['width'] is not None:
@@ -84,8 +88,13 @@ def itemize(items_list, **kwargs):
         if len(items_list) != len(args['item_layers']):
             raise ValueError('Length of item_layers is not the same as the length of items_list')
 
+    if args['item_spacing'] is None :
+        args['item_spacing'] = '+' + str( args['text_size'] ) + 'pt'
+        # args['item_spacing'] = '+.1cm'
 
-    with group(width=args['width'], x=args['x'], y=args['y']) as groupitem:
+
+
+    with group( width = args['width'], x=args['x'], y=args['y'] ) as groupitem:
 
         for i, the_item in enumerate(items_list) :
 
@@ -106,10 +115,10 @@ def itemize(items_list, **kwargs):
 
             if i == 0 :
                 t = text( item_char + r' ' + the_item, x = args['item_indent'],
-                        y = 0, width=in_width )
+                        y = 0, width=in_width, size = args['text_size'])
             else:
                 t = text( item_char + r' ' + the_item, x = args['item_indent'],
-                        y = args['item_spacing'], width=in_width )
+                        y = args['item_spacing'], width=in_width, size = args['text_size'] )
 
             # Add layers to item
             if args['item_layers'] is not None:

@@ -54,7 +54,7 @@ def make_presentation():
 
         g1.add_border()
         g2.add_border()
-        
+
     return doc
 
 
@@ -66,5 +66,3 @@ def test_html(make_presentation):
 def test_pdf(make_presentation):
     doc = make_presentation
     save('./pdf_out/%s.pdf'%test_name)
-
-
