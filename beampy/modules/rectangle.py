@@ -31,6 +31,8 @@ class rectangle(beampy_module):
          :py:mod:`document._width`). The value is given as string with a unit
          accepted by svg syntax.
 
+    margin: TODO import doc from  beampy_module init method
+
     color : string, optional
         Color filling the rectangle (the default theme sets this to
         THEME['title']['color']). The color is given either as HTML hex value
@@ -71,9 +73,9 @@ class rectangle(beampy_module):
 
     """
 
-    def __init__(self, x=None, y=None, width=None, height=None, opacity=None,
-                 rx=None, ry=None, color=None, edgecolor=None, linewidth=None,
-                 svgfilter=None, svgclip=None, **kwargs):
+    def __init__(self, x=None, y=None, width=None, height=None, margin=None,
+                 opacity=None, rx=None, ry=None, color=None, edgecolor=None,
+                 linewidth=None, svgfilter=None, svgclip=None, **kwargs):
 
         # The input type of the module
         content_type = 'svg'
@@ -94,13 +96,14 @@ class rectangle(beampy_module):
             self.inkscape_size = False
 
         # Register the module
-        super().__init__(x, y, width, height, content_type, **kwargs)
+        super().__init__(x, y, width, height, margin, content_type, **kwargs)
 
         # Create a signature for the module
         self.update_signature(self.x, self.y, self.width.value,
-                              self.height.value, self.opacity, self.rx, self.ry,
-                              self.color, self.edgecolor, self.linewidth,
-                              self.svgfilter, self.svgclip, **kwargs)
+                              self.height.value, margin, self.opacity, self.rx,
+                              self.ry, self.color, self.edgecolor,
+                              self.linewidth, self.svgfilter, self.svgclip,
+                              **kwargs)
 
         # Apply the theme for None arguments
         self.apply_theme()

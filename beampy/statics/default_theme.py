@@ -9,7 +9,7 @@ THEME = {}
 THEME['document'] = {
     'format': 'html5', #could be svg // pdf // html5
     'width': 1280,
-    'height': 760,
+    'height': 720,
     'optimize': True,
     'resize_raster':True,
     'cache': True,
@@ -52,8 +52,9 @@ THEME['text'] = {
 THEME['group'] = {
     'x': 'center',
     'y': 'auto',
-    'width': '100\%',
-    'height': '100\%'
+    'width': r'95%',
+    'height': r'95%',
+    'margin': 0
 }
 
 THEME['title'] = {
@@ -191,10 +192,11 @@ THEME['rectangle'] = {
     'edgecolor': THEME['text']['color'],
     'height': '10px',
     'width': '%spx'%(THEME['document']['width']),
-    'rx':0,
-    'ry':0,
+    'rx': 0,
+    'ry': 0,
     'svgfilter': None,
-    'svgclip': None
+    'svgclip': None,
+    'margin': 0
 }
 
 THEME['circle'] = {

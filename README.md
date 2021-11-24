@@ -1,6 +1,19 @@
 # Beampy [![Build Status](https://travis-ci.com/hchauvet/beampy.svg)](https://travis-ci.com/hchauvet/beampy) [![codecov](https://codecov.io/gh/hchauvet/beampy/graph/badge.svg)](https://codecov.io/gh/hchauvet/beampy) ![pypi python version](https://img.shields.io/pypi/pyversions/beampy-slideshow.svg) ![pypi licence](https://img.shields.io/pypi/l/beampy-slideshow.svg) ![pypi download](https://img.shields.io/pypi/dm/beampy-slideshow.svg) ![pypi beampy version](https://img.shields.io/pypi/v/beampy-slideshow.svg)
 
-**Dev branch: still not usable, lot of change in the core of beampy, work in progress...**
+## 🚨🚨 Dev branch 🚨🚨: still not usable, lot of change in the core of beampy, work in progress...
+
+### 🚧 TODO
+- Tests for core:
+  - position operation 
+  - length operation
+  - group operation 
+  - layer opertation
+  - define module outside slide and call
+  
+- Re implement theme system
+- Re implement cache system
+- Re implement all modules
+- Re implement exports
 
 Beampy is a python tool to create slide-show in svg that can be displayed with HTML5
 (tested on Firefox and Chromium)

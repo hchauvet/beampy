@@ -1131,7 +1131,7 @@ def horizontal_distribute(beampy_modules, available_space):
         The size available to compute the distance between two adjacent modules.
     """
 
-    widths = [m.width for m in beampy_modules]
+    widths = [m.total_width for m in beampy_modules]
 
     total_width = sum(widths).value
 
@@ -1141,9 +1141,9 @@ def horizontal_distribute(beampy_modules, available_space):
     dx = (available_space-total_width) if total_width <= available_space else 0
     dx = round(dx / (len(beampy_modules)+1), 0)
 
-    beampy_modules[0].x = dx
+    beampy_modules[0].x = dx + beampy_modules[0].margin[3]
     for i, bpm in enumerate(beampy_modules[1:]):
-        bpm.x = beampy_modules[i].right + dx
+        bpm.x = beampy_modules[i].right + dx + bpm.margin[3]
 
 
 def vertical_distribute(beampy_modules, available_space):
@@ -1160,7 +1160,7 @@ def vertical_distribute(beampy_modules, available_space):
         The size available to compute the distance between two adjacent modules.
     """
 
-    heights = [m.height for m in beampy_modules]
+    heights = [m.total_height for m in beampy_modules]
 
     total_height = sum(heights).value
 
@@ -1170,6 +1170,6 @@ def vertical_distribute(beampy_modules, available_space):
     dy = (available_space-total_height) if total_height <= available_space else 0
     dy = round(dy / (len(beampy_modules)+1), 0)
 
-    beampy_modules[0].y = dy
+    beampy_modules[0].y = dy + beampy_modules[0].margin[0]
     for i, bpm in enumerate(beampy_modules[1:]):
-        bpm.y = beampy_modules[i].bottom + dy
+        bpm.y = beampy_modules[i].bottom + dy + bpm.margin[0]

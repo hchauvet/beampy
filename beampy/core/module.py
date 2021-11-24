@@ -19,10 +19,8 @@ _log = logging.getLogger(__name__)
 
 
 class beampy_module():
-    """
-        Base class for creating a module
-
-        Each module need a render method and need to return a register
+    """Base class for creating a module. All beampy modules are a subclass of
+    this class.
     """
 
     args = {}  # Store the raw dict of passed args (see check_args_from_theme)
@@ -51,12 +49,14 @@ class beampy_module():
     svgdefs = []
     svgdefsargs = []
 
-    def __init__(self, x, y, width, height, content_type='svg', **kwargs):
-        """Beampy module is the base class for each elements added to slide in
-        Beampy-slideshow. Modules are registered to the Store when they are
-        created with a unique ID and added to the slide it belongs. The content
-        of the module is then transformed to svg by the render methods (only if
-        the module is not cached).
+    def __init__(self, x, y, width, height, margin, content_type='svg', **kwargs):
+        """Beampy module is the base class for each elements added to slide or group in
+        Beampy-slideshow. Modules create a Content (with a given size)
+        registered to the Store. A unique ID is created for the Content and
+        added to the module class with a position. The module is added to the
+        slide it belongs.
+        Module define a render method to transform the Content object to svg
+        (only if the module is not cached).
 
         Parameters
         ----------
@@ -77,12 +77,22 @@ class beampy_module():
             Height of the module. If None, the width will be set when module is
             rendered to svg.
 
+        margin : number or string or list ([vertical, horizontal] or [top,
+            right, bottom, left]), Add margin around the module. If margin is a
+            number or a string it applies on all border of the module. If a list
+            of size 2 is given, it contains the vertical (top = bottom =
+            vertical) and the horizontal (left = right = horizontal)
+            margins. Each element of list or single number is converted to a
+            Length object so that length could be given as a string with unit or
+            % of the current size.
+
         content_type : str in ['svg', 'html', 'js']
             The type of the content
 
         **kwargs, any key=value list:
             will be added to the class variables to use them in the render for
             exemple.
+
         """
 
         self.register()
@@ -102,6 +112,7 @@ class beampy_module():
         self.y = y
         self.width = width
         self.height = height
+        self.margin = margin
         self._final_x = None
         self._final_y = None
         self.type = content_type
@@ -117,9 +128,6 @@ class beampy_module():
 
     def register(self):
         # Function to register the module (run the function add to slide)
-        # print(inspect.signature(self.register).parameters.keys())
-        # Load the special_kwargs to set them as attribute of the module
-        self.load_special_kwargs()
 
         # Store the list of groups id where the module is finally located (used for html element to
         # resolve final positionning)
@@ -129,7 +137,7 @@ class beampy_module():
         self.name = self.get_name()
 
         # Add the id of the current slide for the module
-        self.set_slide_id(parent_slide_id=self.parent_slide_id)
+        self.set_slide_id()
 
         # Add module to his slide or to the current group
         if self.slide_id is not None:
@@ -160,19 +168,16 @@ class beampy_module():
         self.call_cmd = source
         self.call_lines = (start, stop)
 
-    def set_slide_id(self, parent_slide_id=None):
+    def set_slide_id(self):
         """Method to check if the current slide is defined in the store and to
         set the id of this slide to self.slide_id attribute.
         """
 
-        if parent_slide_id is not None:
-            self.slide_id = parent_slide_id
+        if Store.get_current_slide_id() is not None:
+            self.slide_id = Store.get_current_slide_id()
         else:
-            if Store.get_current_slide_id() is not None:
-                self.slide_id = Store.get_current_slide_id()
-            else:
-                _log.debug('No slide id for this module')
-                self.slide_id = None
+            _log.debug('No slide id for this module')
+            self.slide_id = None
 
     def add_content(self, content, content_type):
         """Add the content to this module.
@@ -199,7 +204,6 @@ class beampy_module():
             # Render the module
             self.pre_render()
             self.run_render()
-
 
     def update_signature(self, *args, **kwargs):
         """Create a unique signature of the init method using inspect module.
@@ -246,6 +250,43 @@ class beampy_module():
         """
         self._content.data = raw_content
         # TODO Store.update_content(self._content)
+
+    @property
+    def margin(self):
+        """Get the margin process each length
+        """
+        out_margin = [0, 0, 0, 0]
+        if hasattr(self, '_margin') and isinstance(self._margin, list):
+            out_margin = [self._margin[0].value,
+                          self._margin[1].value,
+                          self._margin[2].value,
+                          self._margin[3].value]
+
+        return out_margin
+
+    @margin.setter
+    def margin(self, new_margin):
+        """Check type of given margin and convert each of element to Length
+        objects.
+        """
+        if isinstance(new_margin, (str, float, int)):
+            self._margin = [Length(new_margin, 'y'), Length(new_margin, 'x')] * 2
+        elif isinstance(new_margin, (list, tuple)):
+            if len(new_margin) == 2:
+                self._margin = [Length(new_margin[0], 'y'),
+                                Length(new_margin[1], 'x')] * 2
+            if len(new_margin) == 4:
+                self._margin = [Length(new_margin[0], 'y'),
+                                Length(new_margin[1], 'x'),
+                                Length(new_margin[3], 'y'),
+                                Length(new_margin[4], 'x')]
+            else:
+                raise TypeError("The size of margin list should be 2 or 4, not %s" % len(new_margin))
+        elif new_margin is None:
+            # This allow theme set of the margin
+            self._margin = None
+        else:
+            raise TypeError("The margin should be a list or a number or a string")
 
     @property
     def content_width(self):
@@ -369,6 +410,20 @@ class beampy_module():
     @property
     def height(self):
         return self._height
+
+    @property
+    def total_height(self):
+        """The height + vertical margins
+        """
+        margin = self.margin
+        return self.height + margin[0] + margin[2]
+
+    @property
+    def total_width(self):
+        """The width + horizontal margins
+        """
+        margin = self.margin
+        return self.width + margin[1] + margin[3]
 
     @height.setter
     def height(self, h):
@@ -546,14 +601,25 @@ class beampy_module():
         """Return the horizontal position to be align with the right edge of the
         module.
         """
-        return self.x + self.width
+        return self.x + self.width + self.margin[1]
 
     @property
     def bottom(self):
         """Return the vertical position to be align with the bottom edge of the
         module.
         """
-        return self.y + self.height
+        return self.y + self.height + self.margin[2]
+
+    @property
+    def left(self):
+        """Return the left anchor of the module
+        """
+        return self.x - self.margin[3]
+
+    @property
+    def top(self):
+        """Return the top anchor of the module"""
+        return self.y - self.margin[0]
 
     @property
     def center(self):
@@ -675,7 +741,7 @@ class beampy_module():
         # print(inspect.signature(self.__init__).parameters.keys())
 
 
-        assert hasattr(self, '_arguments'), "Need to add use self.update_signature in ryour module init"
+        assert hasattr(self, '_arguments'), "Need to add use self.update_signature in your module init"
         self._arguments.apply_defaults()
 
         args = self._arguments.arguments
@@ -706,42 +772,6 @@ class beampy_module():
                         raise IndexError("Error the key %s is not defined for %s module" % (key, function_name))
                     else:
                         _log.debug('Your argument %s is not defined in the Theme' % (key))
-
-    def load_special_kwargs(self):
-        """
-
-        Load all attributes contained in self.sepcial_kwargs
-        dictionnary as attributes of the beampy_module with the
-        setattr function.
-
-        """
-
-        # Check if their is ommited arguments from the special_kwargs
-        for key, value in self.special_kwargs.items():
-            if not hasattr(self, key):
-                setattr(self, key, value)
-
-    def load_extra_args(self, theme_key):
-        """
-        Function to load default args from the theme for the given theme_key
-        and add them to the module
-        """
-
-        for key, value in document._theme[theme_key].items():
-            if not hasattr(self, key):
-                setattr(self, key, value)
-
-                #Add args to the args dictionnary also
-                self.args[key] = value
-
-    def load_args(self, kwargs_dict):
-        """
-            Function to transform input kwargs dict into attribute of the module
-        """
-
-        for key, value in kwargs_dict.items():
-            setattr(self, key, value)
-
 
     def add_svgdef(self, svgdef, svgdefsargs=None):
         """
