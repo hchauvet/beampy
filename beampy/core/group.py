@@ -43,12 +43,12 @@ class group(beampy_module):
         # Check in the store if their is a parent group object
         self.parent = None
         if Store.isgroup():
-            self.parent = Store.group
+            self.parent = Store.group()
         else:
             if Store.get_current_slide_id() is not None:
                 self.parent = Store.get_current_slide()
 
-        Store.group = self
+        Store.set_group(self)
 
         self.modules = modules
 
@@ -286,9 +286,9 @@ class group(beampy_module):
 
         # Restore parent group in the Store
         if isinstance(self.parent, group):
-            Store.group = self.parent
+            Store.set_group(self.parent)
         else:
-            Store.group = None
+            Store.set_group(None)
 
     def check_modules_layers(self):
         """

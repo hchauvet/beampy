@@ -17,7 +17,6 @@ class StoreMetaclass(type):
     def __len__(self):
         return len(self._slides)
 
-
     def get_number_of_groups(self):
         """Count the number of groups in the Store
         """
@@ -228,14 +227,12 @@ class Store(metaclass=StoreMetaclass):
 
         cls._layout = newlayout
 
-    @property
     @classmethod
     def group(cls):
         return cls._current_group
 
-    @group.setter
     @classmethod
-    def group(cls, new_group):
+    def set_group(cls, new_group):
         cls._current_group = new_group
 
     @classmethod

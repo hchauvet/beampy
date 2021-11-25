@@ -137,14 +137,14 @@ class beampy_module():
         # Add module to his slide or to the current group
         if self.slide_id is not None:
             if Store.isgroup():
-                Store.group.add_module(self)
+                Store.group().add_module(self)
             else:
                 Store.get_slide(self.slide_id).add_module(self)
             sid = self.slide_id
             self.id = self.get_index()
         else:
             if Store.isgroup():
-                Store.group.add_module(self)
+                Store.group().add_module(self)
             sid = None
             self.id = None
 
@@ -334,7 +334,7 @@ class beampy_module():
         """Return the position of the module in slide modules list
         """
         if Store.isgroup():
-            pos = Store.group.modules.index(self)
+            pos = Store.group().modules.index(self)
         else:
             pos = Store.get_slide(self.slide_id).modules.index(self)
 
@@ -349,7 +349,7 @@ class beampy_module():
         mpos = self.get_index()
         if mpos > 0:
             if Store.isgroup():
-                previous_module = Store.group.modules[mpos-1]
+                previous_module = Store.group().modules[mpos-1]
             else:
                 previous_module = Store.get_slide(self.slide_id).modules[mpos-1]
         else:
@@ -466,12 +466,12 @@ class beampy_module():
             elif position == 'auto':
                 if self.slide_id is not None:
                     if Store.isgroup():
-                        Store.group.id_modules_auto_x += [self.id]
+                        Store.group().id_modules_auto_x += [self.id]
                     else:
                         Store.get_slide(self.slide_id).id_modules_auto_x += [self.id]
                 else:
                     if Store.isgroup():
-                        Store.group.id_modules_auto_x += [self.id]
+                        Store.group().id_modules_auto_x += [self.id]
                     else:
                         raise IndexError("The module could not have x='auto' as it's defined outside of a slide or a group")
 
@@ -517,12 +517,12 @@ class beampy_module():
             elif position == 'auto':
                 if self.slide_id is not None:
                     if Store.isgroup():
-                        Store.group.id_modules_auto_y += [self.id]
+                        Store.group().id_modules_auto_y += [self.id]
                     else:
                         Store.get_slide(self.slide_id).id_modules_auto_y += [self.id]
                 else:
                     if Store.isgroup():
-                        Store.group.id_modules_auto_y += [self.id]
+                        Store.group().id_modules_auto_y += [self.id]
                     else:
                         raise IndexError("The module could not have y='auto' as it's defined outside of a slide or group")
 
@@ -972,13 +972,13 @@ class beampy_module():
         # Add module to his slide or to the current group
         if copy_self.slide_id is not None:
             if Store.isgroup():
-                Store.group.add_module(copy_self)
+                Store.group().add_module(copy_self)
             else:
                 Store.get_slide(copy_self.slide_id).add_module(copy_self)
             copy_self.id = copy_self.get_index()
         else:
             if Store.isgroup():
-                Store.group.add_module(copy_self)
+                Store.group().add_module(copy_self)
             copy_self.id = None
 
         # Update x, y positions
