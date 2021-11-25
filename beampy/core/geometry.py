@@ -1037,7 +1037,7 @@ def relative_length(length, axis='x', fallback_size=(1280, 720)):
                 space = Store.group.width.value
             else:
                 space = fallback_size[0]
-            print('TODO: read Theme layout width, use fallback %i' % space)
+                print('TODO: read Theme layout width, use fallback %i' % space)
         else:
             if Store.isgroup() and Store.group.width is not None:
                 space = Store.group.width.value
@@ -1049,7 +1049,7 @@ def relative_length(length, axis='x', fallback_size=(1280, 720)):
                 space = Store.group.height.value
             else:
                 space = fallback_size[1]
-            print('TODO: read Theme layout height, use fallback %i' % space)
+                print('TODO: read Theme layout height, use fallback %i' % space)
         else:
             if Store.isgroup() and Store.group.height is not None:
                 space = Store.group.height.value
@@ -1089,7 +1089,7 @@ def center_on_available_space(position, fallback_size=(1280, 720)):
                 space = Store.group.width.value
             else:
                 space = fallback_size[0]
-            print('TODO: read Theme layout width, use fallback %i' % space)
+                print('TODO: read Theme layout width, use fallback %i' % space)
         else:
             if Store.isgroup() and Store.group.width is not None:
                 space = Store.group.width.value
@@ -1104,7 +1104,7 @@ def center_on_available_space(position, fallback_size=(1280, 720)):
                 space = Store.group.height.value
             else:
                 space = fallback_size[1]
-            print('TODO: read Theme layout height, use fallback %i' % space)
+                print('TODO: read Theme layout height, use fallback %i' % space)
         else:
             if Store.isgroup() and Store.group.height is not None:
                 space = Store.group.height.value

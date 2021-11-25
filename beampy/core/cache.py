@@ -16,6 +16,34 @@ import logging
 _log = logging.getLogger(__name__)
 
 
+class Cache():
+    """Manage cache for slide contents in Beampy
+    """
+
+    def __init__(self, cache_dir=None):
+        self.folder = cache_dir
+        self.index_name = 'data.pklz'
+        self.index_fullpath = os.path.join(self.folder, self.index_name)
+
+    def read(self):
+        """Read the cache file on disk
+        """
+        dataout = None
+        if os.path.exists(self.index_fullpath):
+            with gzip.open(self.index_full_path, 'rb') as f:
+                dataout = pkl.load(f)
+        else:
+            _log.debug('Unable to load cache file %s' % str(self.index_fullpath))
+
+        return dataout
+
+    def remove_files(self):
+        """Remove all files from cache folder
+        """
+
+        for f in glob.glob(self.folder+'/*.pklz'):
+            os.remove(f)
+
 class cache_slides():
 
     def __init__(self, cache_dir, document):

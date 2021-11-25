@@ -3,10 +3,12 @@
 Created on Fri May 22 18:28:59 2015
 @author: hugo
 """
-from beampy.statics.default_theme import THEME
+
 import sys
 from distutils.spawn import find_executable
 from beampy.core.cache import cache_slides
+from beampy.core.theme import Theme
+
 from beampy import __version__ as bpversion
 # Auto change path
 import os
@@ -144,7 +146,7 @@ class document():
     _text_box = False
     _optimize_svg = True
     _output_format = 'html5'
-    _theme = THEME
+    _theme = Theme()
     _cache = None
     _pdf_animations = False
     _resize_raster = True
@@ -208,35 +210,7 @@ class document():
         if 'theme' in kwargs:
             theme = kwargs['theme']
 
-            # Check if it's a python file which is given or a name of themes (stored in beampy/themes)
-            themelist = []
-            themename = None
-            if theme.endswith('.py'):
-                themepath = os.path.abspath(os.path.dirname(theme))
-                themename = os.path.basename(theme)
-                sys.path.append(themepath)
-                themename = themename.split('.')[0]
-            else:
-                available_themes = glob.glob(bppath + 'themes/*_theme.py')
-                _log.debug('Found themes: %s' % str(available_themes))
-                if theme in '|'.join(available_themes):
-                    themename = 'beampy.themes.'+theme+'_theme'
-                    themelist = [theme+'_theme']
-                else:
-                    themename = None
-
-            if themename is None:
-                self.theme_name = 'default'
-            else:
-                try:
-                    new_theme = self.dict_deep_update(document._theme,
-                                                      __import__(themename, fromlist=themelist).THEME)
-                    self.theme = new_theme
-                    self.theme_name = themename
-                    document._theme = new_theme
-                except ImportError:
-                    self.theme_name = 'default'
-                    print("No slide theme '" + theme + "', returning to default theme.")
+            document._theme = Theme(theme)
 
         # Store extra latex packages globally
         document._latex_packages = latex_packages
@@ -313,7 +287,7 @@ class document():
         document._height = 0
         document._guide = False
         document._text_box = False
-        document._theme = THEME
+        document._theme = Theme()
         document._cache = None
         document._external_cmd = {}
         document._resize_raster = True
@@ -323,21 +297,6 @@ class document():
         document._global_store = {}
         document._external_cmd = {}
         document._latex_packages = []
-
-    def dict_deep_update(self, original, update):
-
-        """
-        Recursively update a dict.
-        Subdict's won't be overwritten but also updated.
-        from http://stackoverflow.com/questions/38987/how-can-i-merge-two-python-dictionaries-in-a-single-expression/44512#44512
-        """
-
-        for key, value in original.items():
-            if not key in update:
-                update[key] = value
-            elif isinstance(value, dict) and isinstance(update[key], dict):
-                self.dict_deep_update(value, update[key])
-        return update
 
     def link_external_programs(self):
         # Function to link [if THEME['document']['external'] = 'auto'

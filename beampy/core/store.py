@@ -245,6 +245,12 @@ class Store(metaclass=StoreMetaclass):
 
         return True
 
+    @classmethod
+    def theme(cls, module_name):
+        if module_name in cls._theme:
+            return cls._theme[module_name]
+        else:
+            raise KeyError(f'Not such module {module_name} defined in theme {cls._theme.keys()}')
 
     @classmethod
     def clear_all(cls):

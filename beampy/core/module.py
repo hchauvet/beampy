@@ -6,13 +6,11 @@ Base class for beampy-sldieshow modules
 from beampy.core.document import document
 from beampy.core.store import Store
 from beampy.core.content import Content
-from beampy.core.functions import (gcs, create_element_id,
-                                   get_command_line, print_function_args,
+from beampy.core.functions import (get_command_line, print_function_args,
                                    pre_cache_svg_image, convert_unit)
-from beampy.core.geometry import positionner, Position, Length, relative_length
+from beampy.core.geometry import Position, Length, relative_length
 
 from copy import deepcopy
-import sys
 import inspect
 import logging
 _log = logging.getLogger(__name__)
@@ -35,9 +33,6 @@ class beampy_module():
 
     #  Special args used to create cache id from md5
     args_for_cache_id = None
-
-    # Define special keyword arguments not included in THEME file
-    special_kwargs = {'parent_slide_id': None}
 
     # Do cache for this element or not
     cache = True
@@ -249,7 +244,6 @@ class beampy_module():
         self.render.
         """
         self._content.data = raw_content
-        # TODO Store.update_content(self._content)
 
     @property
     def margin(self):
@@ -330,8 +324,7 @@ class beampy_module():
         self._content.height = height
 
     def set(self, **kwargs):
-        """Add extrat args to the module. And check them from
-        THEME if they are None.
+        """Add extrat args to the module.
         """
 
         for kw in kwargs:
@@ -748,12 +741,12 @@ class beampy_module():
         keys = args.keys()
 
         function_name = self.name
-        default_dict = Store.get_layout()._theme[function_name]
+        default_dict = Store.theme(function_name)
 
         # Merge default dictionary with the parent dictionary
         if parent is not None:
             default_dict = dict(default_dict,
-                                **Store.get_layout()._theme[parent])
+                                **Store.theme(parent))
 
         if exclude is None:
             exclude = []
