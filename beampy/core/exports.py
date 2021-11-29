@@ -101,8 +101,8 @@ def save(output_file=None, format=None):
                
                
     # write cache file
-    if document._cache is not None:
-        document._cache.write_cache()
+    if Store.cache() is not None:
+        Store.cache().save()
 
     # Set rendered flag to true for the whole document
     document._rendered = True

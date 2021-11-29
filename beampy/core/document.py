@@ -6,7 +6,6 @@ Created on Fri May 22 18:28:59 2015
 
 import sys
 from distutils.spawn import find_executable
-from beampy.core.cache import cache_slides
 from beampy.core.theme import Theme
 
 from beampy import __version__ as bpversion

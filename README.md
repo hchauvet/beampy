@@ -13,9 +13,11 @@
   
   
 - [x] Re implement theme system
-- [ ] Re implement cache system, almost done (need to add global information to cache like version etc...)
+- [x] Re implement cache system
 - [ ] Re implement all modules
 - [ ] Re implement exports
+- [ ] Add cache for external tools location
+
 
 Beampy is a python tool to create slide-show in svg that can be displayed with HTML5
 (tested on Firefox and Chromium)
