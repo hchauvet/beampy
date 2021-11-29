@@ -5,8 +5,8 @@ The beampy store is used to store beampy slideshow content using the class
 variable conservation in python
 """
 import logging
+from .._version import __version__
 _log = logging.getLogger(__name__)
-
 
 class StoreMetaclass(type):
     """
@@ -33,7 +33,7 @@ class StoreMetaclass(type):
         out += "- %i slides\n" % (len(self))
         out += "- %i modules [%i group]\n" % (len(self._contents), ngroups)
         out += f"- current slide: {self._current_slide}\n"
-        out += f"- current group: {self.group}\n"
+        out += f"- current group: {self.group()}\n"
 
         return out
 
@@ -62,11 +62,17 @@ class Store(metaclass=StoreMetaclass):
     # Store slideshow theme
     _theme = dict()
 
+    # The cache class
+    _cache = None
+
     # Store the slideshow layout (previously denominated document in Beampy < 1.0)
     _layout = None
 
     # Store the current group
     _current_group = None
+
+    # Beampy version
+    _version = __version__
 
     @classmethod
     def __repr__(cls):
@@ -237,7 +243,7 @@ class Store(metaclass=StoreMetaclass):
 
     @classmethod
     def isgroup(cls):
-        if isinstance(cls.group, property) or cls.group is None:
+        if cls.group() is None:
             return False
 
         return True
@@ -248,6 +254,10 @@ class Store(metaclass=StoreMetaclass):
             return cls._theme[module_name]
         else:
             raise KeyError(f'Not such module {module_name} defined in theme {cls._theme.keys()}')
+
+    @classmethod
+    def cache(cls):
+        return cls._cache
 
     @classmethod
     def clear_all(cls):
@@ -262,7 +272,8 @@ class Store(metaclass=StoreMetaclass):
         cls._options = dict()
         cls._theme = dict()
         cls._layout = None
-        cls.group = None
+        cls._cache = None
+        cls._current_group = None
 
 # Some functions to easily manipulate the store
 def get_module_position(content_id, slide_id=None):

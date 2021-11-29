@@ -196,9 +196,16 @@ class beampy_module():
             print(f'This module {self.signature} already exist in the Store, I will use {self.content_id}' )
             self._content.load_from_store()
         else:
-            # Render the module
-            self.pre_render()
-            self.run_render()
+            # Check if the module is cached
+            if self._content.is_cached:
+                # Load from cache
+                self._content.load_from_cache()
+            else:
+                # Render the module
+                self.pre_render()
+                self.run_render()
+                # Add content to cache
+                self._content.add_to_cache()
 
     def update_signature(self, *args, **kwargs):
         """Create a unique signature of the init method using inspect module.
@@ -822,7 +829,7 @@ class beampy_module():
     def __repr__(self):
         out = 'module: %s\n'%self.name
         out += 'Id: %s\n' % self.id
-        if self._content is not None:
+        if hasattr(self, '_content') and self._content is not None:
             out += 'Content id: %s\n' % self._content.id
         out += 'width: %s, height: %s\n' % (str(self.width), str(self.height))
         out += 'x: %s, y: %s\n' % (self.x, self.y)

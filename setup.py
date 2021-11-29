@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-from beampy import __version__ as beampy_version
+from beampy._version import __version__ as beampy_version
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
