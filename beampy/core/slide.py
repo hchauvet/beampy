@@ -53,7 +53,6 @@ class slide(object):
         self.id = 'slide_%i' % self.slide_num
         # Set this slide as the curent slide (where components will be added)
         # document._curentslide = self.id
-        Store.add_slide(self)
 
         # Change from dict to class
         self.tmpout = ''
@@ -82,6 +81,9 @@ class slide(object):
 
         # Do we need to render the THEME layout on this slide
         self.render_layout = True
+
+        # Add the slide to the Store
+        Store.add_slide(self)
 
         # Add the slide to the document contents list
         #document._slides[self.id] = self

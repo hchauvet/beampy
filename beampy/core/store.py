@@ -71,6 +71,9 @@ class Store(metaclass=StoreMetaclass):
     # Store the current group
     _current_group = None
 
+    # Store the glyphs
+    _glyphs = dict()
+
     # Beampy version
     _version = __version__
 
@@ -91,7 +94,6 @@ class Store(metaclass=StoreMetaclass):
 
         #update the current slide
         cls._current_slide = newslide.id
-
 
     @classmethod
     def get_current_slide(cls):
@@ -201,10 +203,12 @@ class Store(metaclass=StoreMetaclass):
         cls._contents[content_id]._data_id = data_id
 
     @classmethod
-    def update_content_size(cls, bp_content: object):
+    def update_content_size(cls, bp_content: object, dim='both'):
         # TODO: implement save_cache if needed!!!
-        cls._contents[bp_content.id]._width = bp_content._width
-        cls._contents[bp_content.id]._height = bp_content._height
+        if dim in ['both', 'width']:
+            cls._contents[bp_content.id]._width = bp_content._width
+        if dim in ['both', 'height']:
+            cls._contents[bp_content.id]._height = bp_content._height
 
     @classmethod
     def remove_content(cls, content_id):
@@ -260,6 +264,48 @@ class Store(metaclass=StoreMetaclass):
         return cls._cache
 
     @classmethod
+    def get_glyph(cls, unique_id: str):
+        """Get the glyph from the store base on it's unique_id obtain from the
+        hash of the svg path content "d"
+        """
+        if unique_id in cls._glyphs:
+            return cls._glyphs[unique_id]
+        else:
+            raise KeyError('No glyphs %s in Store' % unique_id)
+
+    @classmethod
+    def add_glyph(cls, new_glyph: dict):
+        """Add a new glyph to the Store.
+
+        Parameter:
+        ----------
+
+        - new_glyph, dict:
+            The new glyph to add, the dict should contains keys:
+            - "uid", the unique id of the glyph
+            - "id", the new id (based on the length of _glyphs)
+            - "dvisvgm_id", the orginal dvisvgm_id
+            - "svg", the svg (path or use) of the glyph
+        """
+
+        assert 'id' in new_glyph
+        assert 'uid' in new_glyph
+        assert 'dvisvgm_id' in new_glyph
+        assert 'svg' in new_glyph
+
+        if new_glyph['uid'] not in cls._glyphs:
+            cls._glyphs[new_glyph['uid']] = new_glyph
+        else:
+            _log.debug('Glyph already in Store %s ' % str(new_glyph))
+
+    @classmethod
+    def is_glyph(cls, glyph_id: str):
+        if glyph_id in cls._glyphs:
+            return True
+
+        return False
+
+    @classmethod
     def clear_all(cls):
         """
         Clear all data of the Store
@@ -274,6 +320,7 @@ class Store(metaclass=StoreMetaclass):
         cls._layout = None
         cls._cache = None
         cls._current_group = None
+        cls._glyphs = dict()
 
 # Some functions to easily manipulate the store
 def get_module_position(content_id, slide_id=None):

@@ -112,6 +112,12 @@ class beampy_module():
         self._final_y = None
         self.type = content_type
 
+        # Default svg def attributes
+        self._svg_opacity = None
+        self._svg_scale = None
+        self._svg_rotate = None
+        self._svg_translate = None
+
         # Variables that will store output of render functions
         self.svgout = ''  # The svg template to produce the final valid svg string
         self.htmlout = ''  # The html template
@@ -195,11 +201,17 @@ class beampy_module():
         if Store.is_content(self._content.id):
             print(f'This module {self.signature} already exist in the Store, I will use {self.content_id}' )
             self._content.load_from_store()
+            # Update the size from the size of Store content
+            self.width = self.content_width
+            self.height = self.content_height
         else:
             # Check if the module is cached
             if self._content.is_cached:
                 # Load from cache
                 self._content.load_from_cache()
+                # Update the size from the size of Store content
+                self.width = self.content_width
+                self.height = self.content_height
             else:
                 # Render the module
                 self.pre_render()
@@ -367,26 +379,190 @@ class beampy_module():
     @property
     def svgdef(self):
         if 'svgdef' in self.data:
-            svgdef = self.data["svgdef"]
+
+            if self.width.value is None:
+                xcenter = None
+            else:
+                xcenter = self.width.value/2
+
+            if self.height.value is None:
+                ycenter = None
+            else:
+                ycenter = self.height.value/2
+
+            svgdef = self.data["svgdef"].format(opacity=self.svgopacity,
+                                                xcenter=-ycenter,
+                                                ycenter=-xcenter,
+                                                x=self.x.value,
+                                                y=self.y.value,
+                                                width=self.width.value,
+                                                height=self.height.value)
             return svgdef
 
         return None
 
     @svgdef.setter
     def svgdef(self, svgin):
-        """Create the svg group with the correct id
+        """Create the svg group with the correct id, let the opacity to be set
+        after as it does not depends on the rendering
         """
-        out = f'<g id="{self.content_id}" class="{self.name}">{svgin}</g>'
+        out = ' '.join([f'<g id="{self.content_id}" class="{self.name}"',
+                        '{opacity}',
+                        self.svgtransform,
+                        '>',
+                        svgin,
+                        '</g>'])
+
         if hasattr(self, 'data') and 'svgdef' in self.data:
             self.data['svgdef'] = out
         else:
             self.data = {'svgdef': out}
+
+    def add_content_data(self, key: str, data):
+        """Add extra data to the Content data dictionary.
+        """
+
+        if hasattr(self, 'data'):
+            if key in self.data:
+                print('The key %s alread exisit data will be replaced' % key)
+
+            self.data[key] = data
+        else:
+            self.data = {key: data}
 
     @property
     def svguse(self):
         """Return the svg <use> command for this element
         """
         return f'<use x="{self._final_x}" y="{self._final_y}" href="#{self.content_id}"/>'
+
+    @property
+    def opacity(self):
+        """Define the svg opacity. This value is appended to svgdef group.
+        """
+        return self._svg_opacity
+
+    @opacity.setter
+    def opacity(self, newopacity):
+        """Define the svg opacity, between 0 transparent and 1 opaque
+        """
+
+        if newopacity is None:
+            self._svg_opacity = None
+        else:
+            assert newopacity>0 and newopacity <= 1, "Opacity should be between 0 and 1"
+            self._svg_opacity = newopacity
+
+    @property
+    def svgopacity(self):
+        """Return the str format of svg opacity
+        """
+        out = ''
+        if self.opacity is not None:
+            out = f'opacity={self.opacity}'
+
+        return out
+
+    @property
+    def svgtransform(self):
+        """Create the svg form of transform tag that could be applied to any svg
+        group.
+
+        https://developer.mozilla.org/fr/docs/Web/SVG/Tutorial/Basic_Transformations
+        https://developer.mozilla.org/fr/docs/Web/SVG/Attribute/transform#general_transformation
+        """
+
+        out = []
+        if self.scale is not None:
+            out += ['scale(%0.3f)' % self.scale]
+
+        if self.translate is not None:
+            out += ['translate(%i, %i)' % (self.translate[0],
+                                           self.translate[1])]
+
+        if self.rotate is not None:
+            out += ['rotate(%s)' % ','.join(self.rotate)]
+
+        if len(out)>0:
+            out = f'transform="{" ".join(out)}"'
+        else:
+            out = ''
+
+        return out
+
+    @property
+    def scale(self):
+        return self._svg_scale
+
+    @scale.setter
+    def scale(self, nscale):
+        if nscale is not None:
+            self._svg_scale = float(nscale)
+        else:
+            self._svg_scale = None
+
+    @property
+    def translate(self):
+        return self._svg_translate
+
+    @translate.setter
+    def translate(self, new_translate):
+        """Add translation to the svg. Translation sould be given as a
+        list [X, Y]
+
+        Example:
+        --------
+
+        mymodule.translate = [10, 10]
+
+        """
+        if new_translate is not None:
+            assert len(new_translate) == 2, "Translate should be given as list of size 2: (X, Y)"
+
+            # Convert incoming translation
+            if isinstance(new_translate[0], (Position, Length)):
+                X = new_translate[0].value
+            else:
+                X = float(new_translate[0])
+
+            if isinstance(new_translate[1], (Position, Length)):
+                Y = new_translate[1].value
+            else:
+                Y = float(new_translate[1])
+
+            self._svg_translate = [X, Y]
+        else:
+            self._svg_translate = None
+
+    @property
+    def rotate(self):
+        return self._svg_rotate
+
+    @rotate.setter
+    def rotate(self, new_angle):
+        """Set the rotation of the svg group:
+        - Given as a single value (int or float) the rotation is done around the center.
+        - Given a list of size 3 define [angle, x_rotation, y_rotation], where
+          x, y are the coordinate of center of rotation
+
+        Reference:
+        ----------
+        - https://developer.mozilla.org/fr/docs/Web/SVG/Attribute/transform#rotate
+        """
+        if new_angle is not None:
+            print("Setting rotation is buggy at the moment !!!")
+            if isinstance(new_angle, (float, int)):
+                assert new_angle>0 and new_angle<=360, "angle of rotation should be between 0 and 360"
+                rot = ['%i' % new_angle,
+                       '{xcenter}',
+                       '{ycenter}'
+                       ]
+            if isinstance(new_angle, (tuple, list)):
+                rot = ['%i' % new_angle[0],
+                       '%i' % new_angle[1],
+                       '%i' % new_angle[2]]
+
+        self._svg_rotate = rot
 
     @property
     def width(self):

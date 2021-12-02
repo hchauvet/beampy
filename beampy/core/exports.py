@@ -277,6 +277,9 @@ def html5_export():
     tmpout = {}
     tmpscript = {}
     global_store = '<svg><defs>'
+    # Add glyphs TODO: make an optimizer to remove unusued one comming from
+    # cache
+    global_store += ''.join([Store.get_glyph(g)['svg'] for g in Store._glyphs])
     global_store_id = []
     for islide in range(len(Store)):
 

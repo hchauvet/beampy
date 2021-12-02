@@ -608,13 +608,13 @@ def inherit_function_args(function_name, args_dict):
 
     return args_dict
 
-def color_text( textin, color ):
 
+def color_text(textin, color):
     '''
     Adds Latex color to a string.
     '''
 
-    if "#" in color:
+    if color.startswith("#"):
         textin = r'{\color[HTML]{%s} %s }' % (color.replace('#', '').upper(),
                                               textin)
     else:

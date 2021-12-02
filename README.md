@@ -10,7 +10,7 @@
   - layer opertation
   - define module outside slide and call
   - test cache
-  
+  - test rotation (how does the origin works with groups/viewbox) 
   
 - [x] Re implement theme system
 - [x] Re implement cache system

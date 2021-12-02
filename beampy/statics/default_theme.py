@@ -36,14 +36,16 @@ THEME['slide'] = {
 }
 
 THEME['text'] = {
-    'size':20,
-    'font':'CMR',
+    'size': 20,
+    'font': 'CMR',
     'color':'#000000',
     'align':'',
     'x':'center',
     'y':'auto',
-    'width':None,
-    'usetex':True,
+    'width': None,
+    'height': None,
+    'usetex': True,
+    'margin': None,
     'va': '',
     'opacity':1,
     'extra_packages': []

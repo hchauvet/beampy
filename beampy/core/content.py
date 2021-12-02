@@ -12,6 +12,7 @@ import json
 from beampy.core.store import Store
 _log = logging.getLogger(__name__)
 
+
 class Content():
 
     def __init__(self, content, content_type, width, height, name,
@@ -91,7 +92,7 @@ class Content():
     @width.setter
     def width(self, width):
         self._width = width
-        Store.update_content_size(self)
+        Store.update_content_size(self, 'width')
 
     @property
     def height(self):
@@ -100,7 +101,7 @@ class Content():
     @height.setter
     def height(self, height):
         self._height = height
-        Store.update_content_size(self)
+        Store.update_content_size(self, 'height')
 
     @property
     def is_cached(self):
