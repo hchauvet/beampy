@@ -167,10 +167,23 @@ def create_folder_name():
 
     guess_scriptfilename = Path(sys.argv[0])
     if ('ipykernel' in guess_scriptfilename.name or 'ipython' in guess_scriptfilename.name):
-        cache_folder = guess_scriptfilename.home().joinpath('.beampy_cache_ipython')
+        cache_folder = guess_scriptfilename.home().joinpath('.cache','beampy_cache_ipython')
         print(f"Your in a ipython/notebook session I will put the cache in {cache_folder}")
     else:
         scriptname = guess_scriptfilename.name.replace(guess_scriptfilename.suffix, '')
         cache_folder = Path('./').absolute().joinpath(f'.beampy_cache_{scriptname}')
+
+    return cache_folder
+
+
+def create_global_folder_name():
+    """Create a folder for global beampy cache in the home directory of users
+    home/.cache folder.
+
+    This global folder is used to store general function of beampy, like result
+    of finding external programs, or the latex preamble file
+    """
+
+    cache_folder = Path('.').home().joinpath('.cache','beampy_cache')
 
     return cache_folder

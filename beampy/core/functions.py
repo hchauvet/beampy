@@ -270,16 +270,21 @@ def optimize_svg(svgfile_in):
 
     return svgout
 
-def latex2svg(latexstring, write_tmpsvg=False):
+
+def latex2svg(latexstring, cached_preamble=None, write_tmpsvg=False):
     """
         Command to render latex -> dvi -> svg
 
     Parameters
     ==========
 
-    write_tmpsvg: true or false optional,
-        Write the svg produced by dvisvgm to a file (if True)
-        otherwise the output is read from stdout
+    - cached_preamble: Path object or None,
+        Path to the header file for latex (i.e. caching of preamble compiled
+        with latex --ini "&latex my_preamble"). This file will be passed to
+        latex --fmt.
+    - write_tmpsvg: true or false optional,
+            Write the svg produced by dvisvgm to a file (if True)
+            otherwise the output is read from stdout
     """
 
     _log.debug('Run latex2svg function')
@@ -306,7 +311,12 @@ def latex2svg(latexstring, write_tmpsvg=False):
 
         #Run Latex
         #t = time.time()
-        tex = os.popen("cd "+tmppath+" && latex -interaction=nonstopmode "+f.name)
+        if cached_preamble is not None:
+            cmd = f'cd {tmppath} && latex -interaction=nonstopmod -fmt="{str(cached_preamble)}" {f.name}'
+        else:
+            cmd = f'cd {tmppath} && latex -interaction=nonstopmod {f.name}'
+
+        tex = os.popen(cmd)
         #print('latex run in %f'%(time.time()-t))
         #print tex.read() #To print tex output
         """
@@ -342,7 +352,7 @@ def latex2svg(latexstring, write_tmpsvg=False):
         if write_tmpsvg:
             _log.debug('Write dvisvgm output as an svg file')
             cmd = dvisvgmcmd
-            cmd += ' -n -a -n -a --linkmark=none -o {filename}.svg --verbosity=0 {filename}.dvi'
+            cmd += ' -n -a --linkmark=none -o {filename}.svg --verbosity=0 {filename}.dvi'
             cmd = cmd.format(filename=tmpname)
             res = os.popen(cmd)
             resp = res.read()
@@ -365,6 +375,38 @@ def latex2svg(latexstring, write_tmpsvg=False):
         _log.debug(type(outsvg))
 
         return outsvg
+
+
+def process_latex_header(texfile: object, texcommands: str):
+    """
+    Render the header of latex using the INI mode.
+
+    Parameters:
+    -----------
+    - texfile: a Path object from pathlib,
+        The file name to write the preamble
+    - texcommands: str,
+        The latex command to add to the file
+    """
+
+    texfile.write_text(texcommands)
+    tex = os.popen("cd "+str(texfile.parent)+rf' && latex -ini -interaction=nonstopmode "&latex {texfile.name}\dump"')
+    tex_outputs = tex.read()
+    tex.close() # close the os.popen
+
+    # Check that compilation is ok
+    if tex_outputs is None or 'error' in tex_outputs or '!' in tex_outputs:
+        print('Latex compilation error')
+        print(tex_outputs)
+
+        # Stop beampy compilation
+        sys.exit(1)
+
+    # Check that a .fmt file is created by latex
+
+    if not (texfile.parent / texfile.name.replace('.tex', '.fmt')).is_file():
+        print('No %s created for the header, something wront' % texfile.name.replace('.tex', '.fmt'))
+        sys.exit(1)
 
 
 def clean_ghostscript_warnings(rawsvg):

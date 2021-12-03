@@ -18,8 +18,11 @@ Latex Font
 """
 
 from beampy.core.store import Store
+from beampy.core.cache import create_global_folder_name
 from beampy.core.functions import (gcs, color_text, getsvgwidth, getsvgheight,
-                                   latex2svg, find_strings_in_with)
+                                   latex2svg, process_latex_header,
+                                   find_strings_in_with)
+
 from beampy.core._svgfunctions import (get_viewbox, get_baseline)
 
 from beampy.core.module import beampy_module
@@ -58,7 +61,31 @@ LATEX_FONT = {
                     'extra': None},
     'new century schoolbook': {'name': 'pnc',
                                'package': None,
-                               'extra': r'\renewcommand{\rmdefault}{pnc}'}
+                               'extra': r'\renewcommand{\rmdefault}{pnc}'},
+    'times': {"name": "ptm",
+              'package': 'mathptmx',
+              'extra': None},
+    'palatino': {"name": "ppl",
+                 'package': 'mathpazo',
+                 'extra': None},
+    'zapf chancery': {"name": "pzc",
+                     'package': 'chancery',
+                      'extra': None},
+    'charter': {"name": "pch",
+                'package': 'charter',
+                'extra': None},
+    'courier': {"name": "pcr",
+                'package': 'courier',
+                'extra': None},
+    'computer modern roman': {"name": "cmr",
+                              'package': 'type1ec',
+                              'extra': None},
+    'computer modern sans serif': {"name": "cmss",
+                                   'package': 'type1ec',
+                                   'extra': None},
+    'computer modern typewriter': {"name": "cmtt",
+                                   'package': 'type1ec',
+                                   'extra': None}
 }
 
 
@@ -66,7 +93,8 @@ class text(beampy_module):
 
     def __init__(self, textin=None, x=None, y=None, width=None, height=None,
                  margin=None, size=None, font=None, color=None, opacity=None,
-                 usetex=None, va=None, align=None, extra_packages=None, **kwargs):
+                 usetex=None, va=None, align=None, extra_packages=None,
+                 cache_latex_preamble=True, **kwargs):
 
         # Register the module
         super().__init__(x, y, width, height, margin, 'svg', **kwargs)
@@ -80,11 +108,12 @@ class text(beampy_module):
         self.textin = textin
         self.color = color
         self.align = align
+        self.cache_latex_preamble = cache_latex_preamble
 
         # Update the signature of the __init__ call
         self.update_signature(textin, x, y, width, height, margin,
                               size, font, color, opacity, usetex, va, align,
-                              extra_packages, **kwargs)
+                              extra_packages, cache_latex_preamble, **kwargs)
 
         # Load default from theme
         self.apply_theme()
@@ -112,7 +141,12 @@ class text(beampy_module):
         """
 
         #  Transform latex -> svg
-        svgtex = latex2svg(self.latex)
+        if self.cache_latex_preamble:
+            preamble_file = self.cache_preamble(self.preamble)
+            svgtex = latex2svg(self.latex, cached_preamble=preamble_file)
+        else:
+            svgtex = latex2svg(self.latex)
+
         if svgtex == '':
             print('Beampy input:')
             print(self.latex)
@@ -124,6 +158,9 @@ class text(beampy_module):
 
         #  update path id and store them in the Store
         soup = self.make_unique_glyphs(soup)
+
+        #  apply beampy theme to link
+        soup = self.update_link_style(soup)
 
         #  get the viewbox
         xbox, ybox, text_width, text_height = get_viewbox(soup)
@@ -232,7 +269,7 @@ class text(beampy_module):
         defined in beampy theme.
         """
 
-        links = svgsoup.find('a')
+        links = svgsoup.find_all('a')
         if links is not None:
             for link in links:
                 link_theme = Store.get_theme('link')
@@ -246,6 +283,8 @@ class text(beampy_module):
         """Return the latex formated of the module textin
         """
 
+        # Cache the preamble if needed
+
         if hasattr(self, 'color'):
             textin = color_text(self.textin, self.color)
         else:
@@ -256,9 +295,13 @@ class text(beampy_module):
             texalign = r'\centering'
         if 'right' in self.align:
             texalign = r'\flushright'
-        
-        latex = [self.preamble,
-                 self._latex_font_extra,
+
+        if self.cache_latex_preamble:
+            latex = []
+        else:
+            latex = [self.preamble]
+
+        latex += [self._latex_font_extra,
                  r'\begin{document}',
                  r'\begin{varwidth}{%0.2fpt}' % (self.width.value*(72.27/96)),
                  texalign,
@@ -282,8 +325,34 @@ class text(beampy_module):
                self.packages,
                ]
 
-        return '\n'.join(pre)
+        pre = '\n'.join(pre)
 
+        return pre
+
+    def cache_preamble(self, preamble: str):
+        """Manage latex caching of preamble
+        """
+        preamble_cache_file = ''
+
+        #  hash the preamble
+        prehash = hashfunction(preamble.encode('utf8')).hexdigest()
+
+        #  Get the global cache path
+        cache_path = create_global_folder_name()
+        #  Create it if needed
+        cache_path.mkdir(parents=True, exist_ok=True)
+
+        preamble_cache_file = cache_path / f'header_{prehash}.fmt'
+
+        if preamble_cache_file.is_file():
+            _log.debug('Use latex header from cache')
+
+        else:
+            _log.debug('Render the latex header')
+            process_latex_header(cache_path / f'header_{prehash}.tex',
+                                 preamble)
+
+        return preamble_cache_file
 
     @property
     def packages(self):
