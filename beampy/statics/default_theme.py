@@ -108,15 +108,17 @@ THEME['tableofcontents'] = {
 }
 
 THEME['video'] = {
-    'width': None,
+    'width': r'90%',
     'height': None,
+    'margin': 0,
     'x': 'center',
     'y': 'auto',
     'autoplay': False,
     'loop' : False,
     'control': True,
     'still_image_time': 0.0,
-    'embedded': True
+    'embedded': True,
+    'muted': False
 }
 
 THEME['animatesvg'] = {

@@ -210,6 +210,30 @@ class group(beampy_module):
 
         return f'<use x="{self._final_x}" y="{self._final_y}" href="#{self.content_id}_{self.slide_id}_{layer}"/>'
 
+    def html(self, layer):
+        """Rewrite html property of module as a function to export all html
+        'div' contained in group modules. This function is recursive as if we
+        have a group inside the modules the same function is called back.
+        """
+
+        divout = [f'<div id="group"',
+                  'style="position:absolute;',
+                  f'top:{self._final_y}px;',
+                  f'left:{self._final_x}px;',
+                  '">']
+
+        for mod in self.modules:
+            if layer in mod.layers:
+                if mod.type == 'html':
+                    divout += [mod.html]
+
+                if mod.type == 'group':
+                    divout += [mod.html(layer)]
+
+        divout += ['</div>']
+
+        return ''.join(divout)
+
     def group_width(self):
         """Compute the width of the group based on the module inside the group.
         group modules should have been positionned prior to compute the

@@ -72,7 +72,7 @@ class slide(object):
         self.svgout = []
         self.svgdefout = []  # Store module definition for slide
         self.svgdefsid = []  # Store defs id
-        self.htmlout = {}  # Html is a dict, each key dict is a layer htmlout[0] = [html, html, html] etc...
+        self.htmllayer = {}  # Html is a dict, each key dict is a layer htmlout[0] = [html, html, html] etc...
         self.scriptout = []
         self.animout = []
         self.svgheader = ''
@@ -130,28 +130,6 @@ class slide(object):
         # Add a module to the current slide
         self.modules += [module]
 
-    def add_rendered(self, svg=None, svgdefs=None, html=None, js=None,
-                     animate_svg=None, layer=0):
-        _log.debug('Add rendered')
-
-        if svg is not None:
-            self.svgout += [svg]
-
-        if svgdefs is not None:
-            _log.debug('svgdefs')
-            self.svgdefout += [svgdefs]
-
-        if html is not None:
-            if layer in self.htmlout:
-                self.htmlout[layer] += [html]
-            else:
-                self.htmlout[layer] = [html]
-
-        if js is not None:
-            self.scriptout += [js]
-
-        if animate_svg is not None:
-            self.animout += [animate_svg]
 
     def reset_rendered(self):
         self.svgout = []
@@ -191,43 +169,6 @@ class slide(object):
         from beampy.exports import display_matplotlib
         display_matplotlib(self.id, True)
 
-    def build_layout(self):
-        """
-            Function to build the layout of the slide,
-            elements defined in bacground inside the theme file
-        """
-
-        # Check if we have a background layout to render
-        if self.render_layout:
-            if self.args['layout'] is not None and 'function' in str(type(self.args['layout'])):
-
-                set_curentslide(self.id)
-                # Need to get the current group
-                curgroup = self.contents[self.cur_group_id]
-
-                # Need to store elements keys last index to retrieve elements added by theme layout function
-                first_elem_i = len(self.element_keys)
-                first_elem_in_group = len(curgroup.elementsid)
-
-                # Run the layout function (which contains beampy modules)
-                self.args['layout']()
-
-                # Store elements_keys created and pop them to insert
-                # them at the begining of the list (in the bakcground)
-                created_element_keys = self.element_keys[first_elem_i:]
-                self.element_keys = created_element_keys + self.element_keys[:first_elem_i]
-
-                #Whe need to todo the same for the elements contained in the group
-                curgroup.elementsid = curgroup.elementsid[first_elem_in_group:] + curgroup.elementsid[:first_elem_in_group]
-
-                # Loop over elements to add them to all layers in the slide
-                for eid in created_element_keys:
-                    self.contents[eid].add_layers(list(range(self.num_layers+1)))
-
-                #document._global_counter['slide'] = save_global_ct # restor the slide counter
-                set_lastslide()
-
-
     def __repr__(self):
         """
         Convenient informations to display for slide when using str(slide)
@@ -239,12 +180,22 @@ class slide(object):
         return out
 
     def render(self):
+        """Compute the final position of each modules in the slide and add the
+        final module content to the self.layers_content dictionnary. This
+        dictionnary is formarted as follow:
+
+        self.layers_content = {layer: {'html': ''.join([module.html]),
+                                       'svg': ''.join([module.svguse]) },
+                               'all': {'js': ''.join(module.javascript)}}
+        """
+
         print('-' * 20 + ' slide_%i ' % self.slide_num + '-' * 20)
 
-        self.svgdefout = []
-        self.svgdefsid = []
-        self.svgout = {}
-        self.svglayers = {}
+        # Init the dictionnary to get the final data
+        self.layers_content = {}
+
+        # Init content common to all layers
+        self.layers_content['all']  = {'js': []}
 
         # Process x='auto'
         if len(self.id_modules_auto_x) > 0:
@@ -268,18 +219,39 @@ class slide(object):
 
             # Export svg use for this module
             for layer in mod.layers:
+
+                #  Initialise dictionnary for given layer
+                if layer not in self.layers_content:
+                    self.layers_content[layer] = {'html': [],
+                                                  'svg': []}
+
                 if mod.type == 'group':
-                    svguse = mod.svguse(layer)
-                else:
-                    svguse = mod.svguse
+                    #  Group could contains "html" and "svg" modules, and they
+                    #  have a specific function to export their content.
+                    svg_content = mod.svguse(layer)
+                    self.layers_content[layer]['svg'] += [svg_content]
 
-                if layer in self.svgout:
-                    self.svgout[layer] += [svguse]
+                    html_content = mod.html(layer)
+                    self.layers_content[layer]['html'] += [html_content]
                 else:
-                    self.svgout[layer] = [svguse]
+                    if mod.type == 'svg':
+                        content = mod.svguse
 
-        for layer in self.svgout:
-            self.svglayers[layer] = ''.join(self.svgout[layer])
+                    if mod.type == 'html':
+                        content = mod.html
+
+                    self.layers_content[layer][mod.type] += [content]
+
+
+        # Join the modules content for each layers
+        for layer in self.layers_content:
+            if layer == 'all':
+                self.layers_content[layer]['js'] = ''.join(self.layers_content[layer]['js'])
+            else:
+                self.layers_content[layer]['html'] = ''.join(self.layers_content[layer]['html'])
+                self.layers_content[layer]['svg'] = ''.join(self.layers_content[layer]['svg'])
+
+
 
         self.export_header()
 
@@ -382,6 +354,7 @@ class slide(object):
         <svg width='{width}px' height='{height}px' style='background-color: {bgcolor};'
         xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="full"
         xmlns:xlink="http://www.w3.org/1999/xlink"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
         xmlns:dc="http://purl.org/dc/elements/1.1/"
         xmlns:cc="http://creativecommons.org/ns#"
         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"

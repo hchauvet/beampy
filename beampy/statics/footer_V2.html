@@ -153,24 +153,19 @@
  Beampy.toggleContent = function() {
      //get the video in the store for the current id_slide
      var videos = $("#html_store_slide_"+this.id_slide+"-"+this.layer+" video");
-     //if they are visible hidde them and reset their content to 0
-     if (videos.css('visibility') == 'visible'){
-         videos.css('visibility', 'hidden');
-         videos.each(function(){
-	     //reset the video to position 0 in time
-             this.pause();
-             this.currentTime = 0;
-         });
-     } else {
-    	 videos.css('visibility', 'visible');
-         videos.focus();
-     }
      //get the div in html_store_slide to set their visibility
      var divs = $("#html_store_slide_"+this.id_slide+"-"+this.layer+" div");
      if (divs.css('visibility') == 'visible'){
          divs.css('visibility', 'hidden');
+
+	     //reset the video to position 0 in time and pause it
+         videos.each(function(){
+             this.pause();
+             this.currentTime = 0;
+         });
      } else {
          divs.css('visibility', 'visible');
+         videos.focus();
      }
  }
  Beampy.animatesvg = function(anim_number, fps, number_of_frames){

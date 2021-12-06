@@ -393,10 +393,10 @@ class beampy_module():
             svgdef = self.data["svgdef"].format(opacity=self.svgopacity,
                                                 xcenter=-ycenter,
                                                 ycenter=-xcenter,
-                                                x=self.x.value,
-                                                y=self.y.value,
-                                                width=self.width.value,
-                                                height=self.height.value)
+                                                x=self._final_x,
+                                                y=self._final_y,
+                                                width=self.content_width,
+                                                height=self.content_height)
             return svgdef
 
         return None
@@ -435,6 +435,36 @@ class beampy_module():
         """Return the svg <use> command for this element
         """
         return f'<use x="{self._final_x}" y="{self._final_y}" href="#{self.content_id}"/>'
+
+    @property
+    def html(self):
+        """Return the <div id> of an html module
+        """
+        if 'html' in self.data:
+            return self.data['html'].format(x=self._final_x,
+                                            y=self._final_y,
+                                            opacity=self.opacity)
+        return None
+
+    @html.setter
+    def html(self, new_html):
+        """Create the html content of the module
+        """
+        divstyle = '; '.join(['left: {x}px',  #  x and y will be replaced on html call
+                              'top: {y}px',
+                              'opacity: {opacity}',
+                              'position: absolute'])
+
+        out =' '.join([f'<div id={self.name}',
+                       f'style="{divstyle}"',
+                       '>',
+                       new_html.strip(),
+                       '</div>'])
+
+        if hasattr(self, 'data') and 'html' in self.data:
+            self.data['html'] = out
+        else:
+            self.data = {'html': out}
 
     @property
     def opacity(self):

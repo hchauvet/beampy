@@ -85,7 +85,9 @@ LATEX_FONT = {
                                    'extra': None},
     'computer modern typewriter': {"name": "cmtt",
                                    'package': 'type1ec',
-                                   'extra': None}
+                                   'extra': None},
+    'cursive': {'name': 'pzc', 'package': 'chancery',
+                'extra': None}
 }
 
 

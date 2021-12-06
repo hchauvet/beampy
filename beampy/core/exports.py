@@ -263,11 +263,6 @@ def html5_export():
         width: 100%;
       }
 
-      video {
-        visibility: hidden;
-      }
-
-
       body.loaded { display: block;}
     </style>
 
@@ -276,6 +271,7 @@ def html5_export():
     # If we directly want to charge the content in pure html
     tmpout = {}
     tmpscript = {}
+    html_modules = ''
     global_store = '<svg><defs>'
     # Add glyphs TODO: make an optimizer to remove unusued one comming from
     # cache
@@ -312,16 +308,24 @@ def html5_export():
         for layer in range(slide.num_layers+1):
             print('write layer %i'%layer)
             # Export svg defs to the global store
-            if layer in slide.svglayers:
+            if layer in slide.layers_content:
                 # OLD .decode('utf-8', errors='replace') for py2
-                layer_content = slide.svglayers[layer]
+                svg_layer_content = slide.layers_content[layer]['svg']
+                html_layer_content = slide.layers_content[layer]['html']
+                html_modules += ''.join([f'<div id="html_store_slide_{islide}-{layer}"',
+                                         'style="position:absolute;top:0px;left:0px;',
+                                         'visibility:hidden;width:100%;height:100%;">',
+                                         html_layer_content,
+                                         '</div>'])
             else:
-                layer_content = '' #create an empty content (usefull when only html are present in one slide)
+                svg_layer_content = '' #create an empty content (usefull when only html are present in one slide)
 
-            global_store += "<g id='slide_{i}-{layer}'>{content}</g>".format(i=islide, layer=layer, content=layer_content)
+            global_store += f"<g id='slide_{islide}-{layer}'>{svg_layer_content}</g>"
+
             # Create an svg use for the given layer
-            tmpout[slide_id]['svg'] += ['<use xlink:href="#slide_{i}-{layer}"/>'.format(i=islide, layer=layer)]
-        
+            tmpout[slide_id]['svg'] += [f'<use xlink:href="#slide_{islide}-{layer}"/>']
+
+
         if slide.animout is not None:
             tmpout[slide_id]['svganimates'] = {}
             headers = []
@@ -339,12 +343,6 @@ def html5_export():
 
         if slide.scriptout is not None:
             tmpscript['slide_%i'%islide] = ''.join(slide.scriptout)
-
-        # TODO: Rewrite outside of svg global_store
-        if slide.htmlout is not None:
-            for layer in slide.htmlout:
-                global_store += '<div id="html_store_slide_%i-%i">%s</div>'%(islide, layer,
-                                                                             ''.join(slide.htmlout[layer]))
 
         print("Done in %0.3f seconds"%(time.time()-tnow))
 
@@ -368,7 +366,8 @@ def html5_export():
         #Python 2 backcompatibility
         output += "".join( global_store ).decode('utf8')
     
-    
+    # Add html_modules to output
+    output += html_modules
     # Create store divs for each slides
     output += '<script> slides = eval( ( %s ) );</script>'%jsonfile.read()
 
@@ -573,7 +572,7 @@ def export_svgdefs(modules: list, exported_id: list) -> (str, list):
         if m.type == 'group':
             tmp_id, tmp_svgdefs = m.svgdef
             for i in range(len(tmp_id)):
-                if tmp_id[i] not in exported_id:
+                if tmp_id[i] not in exported_id and tmp_svgdefs[i] is not None:
                     svgdef += [tmp_svgdefs[i]]
                     exported_id += [tmp_id[i]]
 
@@ -581,7 +580,7 @@ def export_svgdefs(modules: list, exported_id: list) -> (str, list):
             svgdef += [tmp_svgdef]
             exported_id += [tmp_id]
         else:
-            if m.content_id not in exported_id:
+            if m.content_id not in exported_id and m.svgdef is not None:
                 svgdef += [m.svgdef]
                 exported_id += [m.content_id]
 

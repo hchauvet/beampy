@@ -7,6 +7,7 @@ Created on Sun Oct 25 19:05:18 2015
 Class to manage text for beampy
 """
 from beampy.core.document import document
+from pathlib import Path
 from beampy.core.module import beampy_module
 from beampy.core.functions import gcs
 import base64
@@ -21,152 +22,98 @@ import subprocess
 
 
 class video(beampy_module):
-    """
-    Add video in webm/ogg/mp4 format
 
-    arguments
-    ---------
 
-    width = None -> document._width
-    heigh = None -> document._height
 
-    x ['center']: x position
-    y ['auto']: y position
+    def __init__(self, videofile, x=None, y=None, width=None, height=None,
+                 margin=None, autoplay=None, control=None, loop=None,
+                 muted=None, still_image_time=None, embedded=None, **kwargs):
 
-    autoplay [False]: To launch video when slide appears
+        #  Register the module
+        super().__init__(x, y, width, height, margin, 'html', **kwargs)
 
-    control [True]: Display video control bar
+        # Update the signature
+        self.update_signature(videofile, x, y, width, height, margin, autoplay,
+                              control, loop, muted, still_image_time, embedded,
+                              **kwargs)
 
-    loop [False]: Run video indefinitely
+        self.videofile = Path(videofile)
+        self.autoplay = autoplay
+        self.control = control
+        self.loop = loop
+        self.muted = muted
+        self.embedded = embedded
+        self.still_image_time = still_image_time
 
-    still_image_time [0]: extract the still image for pdf export at the given still_image_time in second
-    """
+        # Apply theme to None value
+        self.apply_theme()
 
-    def __init__(self, videofile, **kwargs):
-        """
-        Add video in webm/ogg/mp4 format
+        # Do some control on input videofilei
+        self.video_extension = self.videofile.suffix.replace('.', '')
+        if self.video_extension not in ['webm', 'ogg', 'mp4']:
+            raise Exception('Video need to be in webm/ogg/mp4(h.264) format!')
 
-        arguments
-        ---------
+        # Get the datetime of the file
+        self.mod_date = str(os.path.getmtime(str(self.videofile)))
+        self.args_for_cache_id = [self.mod_date, self.still_image_time,
+                                  self.embedded]
 
-        width = None -> document._width
-        heigh = None -> document._height
+        # Add the content and trigger render if needed
+        self.add_content(videofile, 'html')
 
-        x ['center']: x position
-        y ['auto']: y position
+    def render(self):
 
-        autoplay [False]: To launch video when slide appears
-
-        control [True]: Display video control bar
-
-        loop [False]: Run video indefinitely
-
-        still_image_time [0]: extract the still image for pdf export at the given still_image_time in second
-        """
-
-        self.type = 'html'
-
-        # Check function args
-        self.check_args_from_theme(kwargs)
-
-        # if no width is given get the default width
-        if self.width is None:
-            self.width = document._slides[gcs()].curwidth
-
-        # check extension
-        self.ext = None
-        if '.webm' in videofile.lower():
-            self.ext = 'webm'
-        elif '.ogg' in videofile.lower() or '.ogv' in videofile.lower():
-            self.ext = 'ogg'
-        elif '.mp4' in videofile.lower():
-            self.ext = 'mp4'
-        else:
-            print('Video need to be in webm/ogg/mp4(h.264) format!')
-            sys.exit(0)
-
-        if self.ext is not None:
-            self.content = videofile
-
-        # Special args for cache id
-        self.args_for_cache_id = ['width', 'still_image_time', 'embedded']
-        # Add the time stamp of the video file
-        fdate = str(os.path.getmtime( self.content ))
-        self.args['filedate'] = fdate
-        self.filedate = fdate
-        self.args_for_cache_id += ['filedate']
-
-        #Register the module
-        self.register()
-
-    def render( self ):
-        """
-        Render video (webm) encoded in base64 in svg command
-
-        Render Need to produce an html and an svg
-        """
-
-        # Read file and convert data to base64 if embedded option is True (default)
-        if self.embedded:
-            with open(self.content, 'rb') as fin:
-                videob64 = base64.b64encode( fin.read() ).decode('utf8')
-
-        #Get video image
-        size, imgframe = self.video_image()
-        #Get video size to get the ratio (to estimage the height)
-        _, _, vidw, vidh = size
-        scale_x = (self.width/float(vidw)).value
-        width = self.width
+        video_size, still_image = self.video_image()
+        _, _, vidw, vidh = video_size
+        scale_x = self.width.value/float(vidw)
 
         if self.height.value is None:
-            height = vidh * scale_x
-            print('Video size might be buggy, estimated height %ipx'%height)
-        else:
-            height = self.height.value
+            self.height = vidh * scale_x
+            print('Auto estimation of video height is buggy!')
 
-        #HTML tag for video
         if self.embedded:
-            videosrc = 'data:video/{ext};base64, {b64data}'.format(ext=self.ext, b64data=videob64)
+            videob64 = base64.b64encode(self.videofile.read_bytes()).decode('utf8')
+            videosrc = f'data:video/{self.video_extension};base64, {videob64}'
         else:
-            videosrc = self.content
+            videosrc = str(self.videofile)
 
-        output = """<video id='video' width="{width}px" {otherargs}><source type="video/{ext}" src="{src}"></video>"""
+        videoargs = []
 
-        #Check if we need autoplay
-        otherargs = ''
-        if self.autoplay == True:
-            otherargs += ' autoplay'
+        if self.autoplay:
+            videoargs += ['autoplay']
 
-        if self.control == True:
-            otherargs += ' controls="controls"'
+        if self.control:
+            videoargs += ['controls="controls"']
         else:
-            #Add click event to run video
-            otherargs += ' onclick="this.paused?this.play():this.pause();"'
+            videoargs += ['onclicks="this.paused?this.play():this.pause();"']
 
-        if self.loop :
-            otherargs += ' loop muted'
-            # this doesn't always work (Firefox: OK, Chromium: No)
+        if self.loop:
+            videoargs += ['loop']
 
-        output = output.format(width=width, otherargs=otherargs, ext=self.ext, src=videosrc)
-        self.htmlout = output
+        if self.muted:
+            videoargs += ['muted']
 
-        imgframe = base64.b64encode(imgframe).decode('utf8')
-        output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(str(width), str(height), imgframe)
-        self.svgout = output
+        videoargs = ' '.join(videoargs)
 
-        self.update_size(width, height)
-        #Needed to be used by cache (we need to set the rendered flag to true)
-        self.rendered = True
+        html_video = f"""
+<video id='video' width="{self.width.value}px" height="{self.height.value}px" {videoargs}>
+  <source type="video/{self.video_extension}" src="{videosrc}">
+</video>
+        """
+
+        self.html = html_video
+        self.content_width = self.width.value
+        self.content_height = self.height.value
 
     def video_image(self):
-        """
-            Function used to get the first image of a video
+        """Get the first image of a video
 
-            It use FFMPEG to extract one image
+        It use FFMPEG to extract one image
         """
 
         FFMPEG_CMD = document._external_cmd['video_encoder']
-        FFMPEG_CMD += ' -loglevel 8 -i "%s" -f image2 -ss %0.3f -vframes 1 -; exit 0'%(self.content, self.still_image_time)
+        FFMPEG_CMD += ' -loglevel 8 -i "%s" -f image2 -ss %0.3f -vframes 1 -; exit 0' % (self.videofile,
+                                                                                         self.still_image_time)
 
         #run_ffmpeg = subprocess.run(str(FFMPEG_CMD), stdout=subprocess.PIPE, shell=True)
         #img_out = run_ffmpeg.stdout
