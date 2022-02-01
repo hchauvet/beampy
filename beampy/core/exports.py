@@ -52,7 +52,7 @@ def save(output_file=None, format=None):
 
     document = Store.get_layout()
     _log.debug('Document at the begining of save method')
-    _log.debug(document.print_variables())
+    #_log.debug(document.print_variables())
 
     if document._quiet:
         sys.stdout = open(os.devnull, 'w')

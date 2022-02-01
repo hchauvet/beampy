@@ -106,10 +106,12 @@ class slide(object):
         # old self.cur_group_id
         # self.groupsid[0] = [g0.id]  # store groups id objects in this list
 
+        # TODO: The reserved space for the title should be taken from the THEME
         if title is not None:
             from beampy.modules.title import title as bptitle
             self.title_element = bptitle(title)
-            self.ytop = float(convert_unit(self.title.reserved_y))
+            # self.ytop = float(convert_unit(self.title.reserved_y))
+            # self.ytop = self.title_element.height.value
         else:
             self.ytop = 0
             self.title_element = None

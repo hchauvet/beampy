@@ -7,7 +7,8 @@ from beampy.core.document import document
 from beampy.core.store import Store
 from beampy.core.content import Content
 from beampy.core.functions import (get_command_line, print_function_args,
-                                   pre_cache_svg_image, convert_unit)
+                                   pre_cache_svg_image, convert_unit,
+                                   dict_deep_update)
 from beampy.core.geometry import Position, Length, relative_length
 
 from copy import deepcopy
@@ -226,6 +227,11 @@ class beampy_module():
         if not hasattr(self, '_signature'):
             self._signature = inspect.signature(self.__init__)
 
+        # Pay attention that signature apply to self, so when subclassing a
+        # module super().__init__ will get the signature of the child class
+        # __init__ (not the one of the parent). To accept all arguments don't
+        # forget to add *arg, **kwargs arguments at the en of the child __init__
+        # method.
         self._arguments = self._signature.bind(*args, **kwargs)
 
     @property
@@ -958,8 +964,7 @@ class beampy_module():
 
         # Merge default dictionary with the parent dictionary
         if parent is not None:
-            default_dict = dict(default_dict,
-                                **Store.theme(parent))
+            default_dict = dict_deep_update(Store.theme(parent), default_dict)
 
         if exclude is None:
             exclude = []

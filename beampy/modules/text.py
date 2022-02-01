@@ -96,7 +96,7 @@ class text(beampy_module):
     def __init__(self, textin=None, x=None, y=None, width=None, height=None,
                  margin=None, size=None, font=None, color=None, opacity=None,
                  usetex=None, va=None, align=None, extra_packages=None,
-                 cache_latex_preamble=True, **kwargs):
+                 cache_latex_preamble=True, *args, **kwargs):
 
         # Register the module
         super().__init__(x, y, width, height, margin, 'svg', **kwargs)
@@ -167,14 +167,13 @@ class text(beampy_module):
         #  get the viewbox
         xbox, ybox, text_width, text_height = get_viewbox(soup)
 
-        #  get the baseline
-        baseline = get_baseline(soup)
-
         #  we will remove the viewbox so we have to translate the use tags.
         #  by the starting point of the viewbox
         xoffset = -xbox
         yoffset = -ybox
         if self.va == 'baseline':
+            #  get the baseline
+            baseline = get_baseline(soup)
             yoffset = -float(baseline)
 
         tex_pt_to_px = 96/72.27 #  out svg is in px and not in pt

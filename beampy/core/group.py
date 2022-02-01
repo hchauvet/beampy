@@ -220,6 +220,8 @@ class group(beampy_module):
                   'style="position:absolute;',
                   f'top:{self._final_y}px;',
                   f'left:{self._final_x}px;',
+                  f'width:{self.content_width}px;',
+                  f'height:{self.content_height}px;',
                   '">']
 
         for mod in self.modules:
