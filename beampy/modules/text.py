@@ -113,9 +113,13 @@ class text(beampy_module):
         self.cache_latex_preamble = cache_latex_preamble
 
         # Update the signature of the __init__ call
-        self.update_signature(textin, x, y, width, height, margin,
-                              size, font, color, opacity, usetex, va, align,
-                              extra_packages, cache_latex_preamble, **kwargs)
+        self.update_signature(textin=textin, x=x, y=y, width=width,
+                              height=height, margin=margin, size=size,
+                              font=font, color=color, opacity=opacity,
+                              usetex=usetex, va=va, align=align,
+                              extra_packages=extra_packages,
+                              cache_latex_preamble=cache_latex_preamble, *args,
+                              **kwargs)
 
         # Load default from theme
         self.apply_theme()
