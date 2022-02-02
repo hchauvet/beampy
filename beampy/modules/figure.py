@@ -11,7 +11,7 @@ from beampy.core.functions import (convert_unit, optimize_svg, gcs,
                                    getsvgheight, convert_pdf_to_svg,
                                    convert_eps_to_svg,
                                    guess_file_type)
-
+from beampy.core._svgfunctions import get_svg_size
 from beampy.core.module import beampy_module
 from bs4 import BeautifulSoup
 from PIL import Image
@@ -66,113 +66,88 @@ class figure(beampy_module):
 
     """
 
-    def __init__(self, content, ext=None, **kwargs):
-        # The type of the module
-        self.type = 'svg'
+    def __init__(self, content, x=None, y=None, width=None, height=None,
+                 margin=None, ext=None, *args, **kwargs):
 
-        # Add the extra args to the module
-        self.check_args_from_theme(kwargs)
-        self.ext = ext
+        # Check content type
+        ext = find_content_ext(content, ext)
 
-        # Register the content
-        self.content = content
+        modtype = 'svg'
+        if ext == 'bokeh':
+            modtype = 'html'
+            if width is None:
+                width = int(content.plot_width)
+            if height is None:
+                height = int(content.plot_height)
+
+        elif ext == 'matplotlib':
+            width_inch, height_inch = content.get_size_inches()
+            if width is None:
+                width = convert_unit("%fin"%(width_inch))
+            if height is None:
+                height = convert_unit("%fin"%(height_inch))
+        else:
+            # Default with for static figure included in beampy
+            if width is None and height is None:
+                width = '95%'
+
+        # Register the module
+        super().__init__(x, y, width, height, margin, modtype, **kwargs)
+
+        # Update the signature
+        self.update_signature(content=content, x=x, y=y, width=width,
+                              height=height, margin=margin, ext=ext, *args,
+                              **kwargs)
+
+        # Apply theme default for None value and set arguments as attrs
+        self.apply_theme(exclude=['ext'])
 
         # Special args for cache id
-        self.args_for_cache_id = ['width', 'ext']
+        self.args_for_cache_id = [width,
+                                  ext]
 
-        # Check if the given filename is a string
-        if isinstance(self.content, str):
-            # Check extension
-            self.ext = guess_file_type(self.content, self.ext)
-
-        else:
-        # Check kind of objects that are passed to filename
-            # Bokeh plot
-            if "bokeh" in str(type(self.content)):
-                self.ext = 'bokeh'
-
-            # Mathplotlib figure
-            if "matplotlib" in str(type(self.content)):
-                self.ext = "matplotlib"
-
-        ######################################
-
-        # Check if the input filename can be treated
-        
-        if self.ext is None:
-            print("figure format can't be guessed.")
-            sys.exit(1)
-
-        # Bokeh image
-        if self.ext == 'bokeh':
-            self.type = 'html'
-
-            # Todo get width and height from a bokeh figure
-            if self.width is None:
-                self.width = int(self.content.plot_width)
-            if self.height is None:
-                self.height = int(self.content.plot_height)
-
-            # Do not cache this element if it's bokeh plot
+        # Some special for cache depends on type
+        if ext == 'bokeh':
             self.cache = False
 
-        # Mpl figure
-        if self.ext == 'matplotlib':
-
+        elif ext == 'matplotlib':
             # import close to force the closing of the input figure
             from matplotlib.pyplot import close
-            close(self.content) #close the figure
-
-            # Set figure default width when it was not given as arguement
-            if self.width is None:
-                width_inch, height_inch = self.content.get_size_inches()
-                self.width = convert_unit( "%fin"%(width_inch) )
-
-            # Create a special args to create a unique id for caching
+            close(content)
 
             # Generate the figure (in binary format as jpg) from the canvas
+            # and hash the jpg file
             with BytesIO() as tmpb:
-                self.content.canvas.print_jpg(tmpb)
+                content.canvas.print_jpg(tmpb)
                 tmpb.seek(0)
                 md5t = hashlib.md5( tmpb.read() ).hexdigest()
-                #print(md5t)
 
-            # Add this new arg
-            self.args['mpl_fig_hash'] = md5t
-            self.mpl_fig_hash = md5t
-            self.args_for_cache_id += ['mpl_fig_hash']
+            self.args_for_cache_id += [md5t]
 
-            
-        # Other filetype images
-        if self.ext not in ('matplotlib', 'bokeh'):
+        else:
+            # For files add the timestamp of file in cache
 
             # Add file timestamp to an arguments for caching
-            fdate = str(os.path.getmtime( self.content ))
-            self.args['filedate'] = fdate
-            self.filedate = fdate
-            self.args_for_cache_id += ['filedate']
+            fdate = str(os.path.getmtime(content))
+            self.args_for_cache_id += [fdate]
 
-            if self.width is None and self.height is None:
-                self.width = document._slides[gcs()].curwidth
-
-        # Add this module to the current slide + add positionner
-        self.register()
+        # Add the content this will run the render method if needed
+        self.add_content(content, modtype)
 
     def render(self):
         """
-            function to render figures
+            function to render figures to svg or html
         """
 
+        #  Ani content that can be reduced to svg (pdf, eps, matplotlib)
+        if self.ext in ('svg', 'pdf', 'eps', 'matplotlib'):
+            #  Convert pdf to svg
+            if self.ext == 'pdf':
+                figurein = convert_pdf_to_svg(self.content)
+            elif self.ext == 'eps':
+                figurein = convert_eps_to_svg(self.content)
 
-        # Svg // pdf render
-        if self.ext in ('svg', 'pdf', 'eps', 'matplotlib') :
-            #Convert pdf to svg
-            if self.ext == 'pdf' :
-                figurein = convert_pdf_to_svg( self.content )
-            elif self.ext == 'eps' :
-                figurein = convert_eps_to_svg( self.content )
-
-            #Convert matplotlib figure to svg
+            #  Convert matplotlib figure to svg
             elif self.ext == 'matplotlib':
 
                 #Store mpl svg to a stringIO object
@@ -183,17 +158,17 @@ class figure(beampy_module):
                     #store tmpf content as string in figurein variable
                     figurein = tmpf.read().encode('utf-8')
 
-            #General case for svg format
+            #  General case for svg format
             else:
-                #Check if a filename is given for a svg file or directly read the content value
+                # Check if a filename is given for a svg file or directly read
+                # the content value
                 if os.path.isfile(self.content):
-                    with open(self.content, 'r') as f:
+                    with open(self.content) as f:
                         figurein = f.read()
-  
                 else:
                     figurein = self.content
 
-            #test if we need to optimise the svg
+            # test if we need to optimise the svg
             if document._optimize_svg:
                 figurein = optimize_svg(figurein)
 
@@ -207,7 +182,6 @@ class figure(beampy_module):
                 imgs = soup.findAll('image')
                 if imgs:
                     for img in imgs:
-
                         #True width and height of embed svg image
                         width, height = int( float(img['width']) ) , int( float(img['height']) )
                         img_ratio = height/float(width)
@@ -217,74 +191,57 @@ class figure(beampy_module):
                             in_img =  BytesIO( base64.b64decode(b64content.split(';base64,')[1]) )
                             tmp_img = Image.open(in_img)
                             #print(tmp_img)
-                            out_img = resize_raster_image( tmp_img, max_width=self.positionner.width.value )
-                            out_b64 = base64.b64encode( out_img.read() ).decode('utf8')
+                            out_img = resize_raster_image(tmp_img,
+                                                          max_width=self.width.value)
+                            out_b64 = base64.b64encode(out_img.read()).decode('utf8')
 
                             #replace the resized image into the svg
                             img['xlink:href'] = 'data:image/%s;base64, %s'%(tmp_img.format.lower(), out_b64)
-                        except:
+                        except Exception as e:
                             print('Unable to reduce the image size')
-                            pass
+                            print(e)
 
-            svgtag = soup.find('svg')
 
-            svg_viewbox = svgtag.get("viewBox")
-
-            tmph = svgtag.get("height")
-            tmpw = svgtag.get("width")
-            if tmph is None or tmpw is None:
-                with tempfile.NamedTemporaryFile(mode='w', prefix='beampytmp', suffix='.svg') as f:
-                    try:
-                        f.write(figurein)
-                    except Exception as e:
-                        #python 2
-                        f.write(figurein.encode('utf8'))
-
-                    # force to write file content to disk
-                    f.file.flush()
-
-                    # get svg size using inkscape
-                    tmph = getsvgheight(f.name)
-                    tmpw = getsvgwidth(f.name)
-
-            svgheight = convert_unit(tmph)
-            svgwidth = convert_unit(tmpw)
-
-            if svg_viewbox is not None:
-                svgheight = svg_viewbox.split(' ')[3]
-                svgwidth = svg_viewbox.split(' ')[2]
-
+            #  Get the size of the svg
+            svgwidth, svgheight = get_svg_size(soup)
 
             # BS4 get the svg tag content without <svg> and </svg>
+            svgtag = soup.find('svg')
             tmpfig = svgtag.renderContents().decode('utf8')
 
             # Scale the figure according to the given width
-            if self.width.value is not None and self.height.value is None:
+            requested_width = self.width.value
+            requested_height = self.height.value
+
+            assert requested_width != 'scale' and requested_height != 'scale', "width and height could not be BOTH set to 'scale'"
+
+            if requested_width not in [None, 'scale'] and requested_height in [None, 'scale']:
                 # SCALE OK need to keep the original viewBox !!!
-                scale = (self.positionner.width/float(svgwidth)).value
-                figure_height = float(svgheight) * scale
-                figure_width = self.positionner.width.value
+                scale = (requested_width/svgwidth)
+                figure_height = svgheight * scale
+                figure_width = requested_width
 
             # Scale the figure according to the given height
-            if self.height.value is not None and self.width.value is None:
-                figure_height = self.positionner.height.value
-                scale = (self.positionner.height/float(svgheight)).value
-                figure_width = float(svgwidth) * scale
+            if requested_height not in [None, 'scale'] and requested_width in [None, 'scale']:
+                scale = requested_height/svgheight
+                figure_height = requested_height
+                figure_width = svgwidth * scale
 
             # Dont scale the figure let the user fix the width height
-            if self.height.value is not None and self.width.value is not None:
-                output = tmpfig
-                figure_height = self.positionner.height.value
-                figure_width = self.positionner.width.value
+            if requested_height not in [None, 'scale'] and requested_width not in [None, 'scale']:
+                figure_height = requested_width
+                figure_width = requested_height
             else:
-                # Apply the scaling to the figure
-                tmphead = '\n<g transform="scale(%0.5f)">' % (scale)
-                output = tmphead + tmpfig + '</g>\n'
+                # Apply the scaling to the final svg
+                self.scale = scale
 
-            #Update the final svg size
-            self.update_size(figure_width, figure_height)
-            #Add the final svg output of the figure
-            self.svgout = output
+            self.width = figure_width
+            self.height = figure_height
+
+            # Add the final content to the module
+            self.svgdef = tmpfig
+            self.content_width = figure_width
+            self.content_height = figure_height
 
         #Bokeh images
         if self.ext == 'bokeh':
@@ -300,10 +257,23 @@ class figure(beampy_module):
             goodscript = '\n'.join( ['["load_bokeh"] = function() {'] + tmp[1:-1] + ['};\n'] )
 
             #Add the htmldiv to htmlout
-            self.htmlout = "<div id='bk_resizer' width='{width}px' height='{height}px' style='width: {width}px; height: {height}px; transform-origin: left top 0px;'> {html} </div>"
-            self.htmlout = self.htmlout.format(width=self.positionner.width,
-                                               height=self.positionner.height,
-                                               html=figdiv)
+            requested_width = self.width.value
+            requested_height = self.height.value
+
+            # TODO: do scaling also for bokeh figure
+            assert requested_width in [None, 'scale'], "For Bokeh figure width could not bet None or 'scale'"
+            assert requested_height in [None, 'scale'], "For Bokeh figure height could not bet None or 'scale'"
+
+            htmlout = (f"<div id='bk_resizer' width='{requested_width}px' "
+                       f"height='{requested_height}px' "
+                       f"style='width: {requested_width}px; height: {requested_height}px; "
+                       "transform-origin: left top 0px;'> "
+                       f"{figdiv} </div>")
+
+            # Set the html to the beampy_module
+            self.html = htmlout
+            self.content_width = requested_width
+            self.content_height = requested_height
 
             #Add the script to scriptout
             self.jsout = goodscript
@@ -315,22 +285,25 @@ class figure(beampy_module):
             _,_,tmpwidth,tmpheight = tmp_img.getbbox()
 
             # Scale the figure according to the given width
-            if self.width.value is not None and self.height.value is None:
+            requested_width = self.width.value
+            requested_height = self.height.value
+
+            if requested_width not in [None, 'scale'] and requested_height in [None, 'scale']:
                 # SCALE OK need to keep the original viewBox !!!
-                scale = (self.positionner.width/float(tmpwidth)).value
+                scale = requested_width/float(tmpwidth)
                 figure_height = float(tmpheight) * scale
-                figure_width = self.positionner.width.value
+                figure_width = requested_width
 
             # Scale the figure according to the given height
-            if self.height.value is not None and self.width.value is None:
-                figure_height = self.positionner.height.value
-                scale = (self.positionner.height/float(tmpheight)).value
+            if requested_height not in [None, 'scale'] and requested_width in [None, 'scale']:
+                scale = requested_height/float(tmpheight)
+                figure_height = requested_height
                 figure_width = float(tmpwidth) * scale
 
             # Dont scale the figure let the user fix the width height
-            if self.height.value is not None and self.width.value is not None:
-                figure_height = self.positionner.height.value
-                figure_width = self.positionner.width.value
+            if requested_height not in [None, 'scale'] and requested_width not in [None, 'scale']:
+                figure_height = requested_height
+                figure_width = requested_width
 
             if document._resize_raster:
                 #Rescale figure to the good size (to improve size and display speed)
@@ -338,7 +311,6 @@ class figure(beampy_module):
                     print('Gif are not resized, the original size is taken!')
                     with open(self.content, "rb") as f:
                         figurein = base64.b64encode(f.read()).decode('utf8')
-
                 else:
                     out_img = resize_raster_image(tmp_img, max_width=figure_width)
                     figurein = base64.b64encode(out_img.read()).decode('utf8')
@@ -349,30 +321,23 @@ class figure(beampy_module):
 
             tmp_img.close()
 
-            if self.ext == 'png':
-                output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/png;base64, %s" />'%(figure_width,
-                                                                                                                figure_height,
-                                                                                                                figurein)
-                
-            if self.ext == 'jpeg':
-                output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/jpg;base64, %s" />'%(figure_width,
-                                                                                                                figure_height,
-                                                                                                                figurein)
-                
-            if self.ext == 'gif':
-                output = '<image x="0" y="0" width="%s" height="%s" xlink:href="data:image/gif;base64, %s" />'%(figure_width,
-                                                                                                                    figure_height,
-                                                                                                                    figurein)
+            b64format = {'gif': 'data:image/gif;base64',
+                         'jpeg': 'data:image/jpg;base64',
+                         'png': 'data:image/png;base64'}
 
-                    
-            # Update the final size of the figure
-            self.update_size(figure_width, figure_height)
+            outformat = b64format[self.ext]
+            output = (f'<image x="0" y="0" width="{figure_width}" '
+                      f'height="{figure_height}" '
+                      f'xlink:href="{outformat}, {figurein}" />')
+
             # Add the final svg to svgout
-            self.svgout = output
+            self.svgdef = output
 
-        #print self.width, self.height
-        #Update the rendered state of the module
-        self.rendered = True
+            # Update the final size of the figure
+            self.width = figure_width
+            self.height = figure_height
+            self.content_width = figure_width
+            self.content_height = figure_height
 
 
 def resize_raster_image(PILImage, max_width=document._width, jpegqual=96):
@@ -407,4 +372,36 @@ def resize_raster_image(PILImage, max_width=document._width, jpegqual=96):
     return  out_img
 
 
+def find_content_ext(content, ext=None) -> str:
+    """Check the type of incoming content and return it's type (extension)
 
+    Parameters:
+    -----------
+
+    - content, object or string:
+        The incomming content of the figure could be file given by a string, or
+        a matplotlib or boheh object.
+
+    - ext: string or None:
+        The given extension
+    """
+
+    # Check if the given filename is a string
+    if isinstance(content, str):
+        # Check extension
+        ext = guess_file_type(content, ext)
+    else:
+        # Check kind of objects that are passed to filename
+        # Bokeh plot
+        if "bokeh" in str(type(content)):
+            ext = 'bokeh'
+
+        # Mathplotlib figure
+        if "matplotlib" in str(type(content)):
+            ext = "matplotlib"
+
+    if ext is None:
+        print("figure format can't be guessed.")
+        sys.exit(1)
+
+    return ext

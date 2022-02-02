@@ -144,8 +144,10 @@ THEME['tikz'] = {
 THEME['figure'] = {
     'x':'center',
     'y':'auto',
-    'width':None,
-    'height':None
+    'width': None,
+    'height': None,
+    'margin': 0,
+    'opacity': 1
 }
 
 THEME['cite'] = {

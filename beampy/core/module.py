@@ -234,6 +234,13 @@ class beampy_module():
         # method.
         self._arguments = self._signature.bind(*args, **kwargs)
 
+        # Add the default arguments to attributes of the beampy_module
+        self._arguments.apply_defaults()
+        args = self._arguments.arguments
+        for key, value in args.items():
+            if key not in ['x', 'y', 'width', 'height', 'margin', 'args', 'kwargs']:
+                setattr(self, key, value)
+
     @property
     def signature(self):
         if not hasattr(self, '_arguments'):
@@ -482,6 +489,9 @@ class beampy_module():
     def opacity(self, newopacity):
         """Define the svg opacity, between 0 transparent and 1 opaque
         """
+
+        if isinstance(newopacity, str):
+            newopacity = int(newopacity)
 
         if newopacity is None:
             self._svg_opacity = None
@@ -1044,7 +1054,7 @@ class beampy_module():
             out += 'Content id: %s\n' % self._content.id
         out += 'width: %s, height: %s\n' % (str(self.width), str(self.height))
         out += 'x: %s, y: %s\n' % (self.x, self.y)
-
+        out += 'margin: %s' % str(self.margin)
         try:
             out += 'source (lines %i->%i):\n%s\n'%(self.call_lines[0], self.call_lines[1],
                                        self.call_cmd)

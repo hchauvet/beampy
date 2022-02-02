@@ -448,6 +448,23 @@ def clean_ghostscript_warnings(rawsvg):
     return good_svg
 
 
+def inkscape_get_size(svgfile: str) -> list:
+    """Get the width, height of an svgfile
+    """
+
+    inkscapecmd = document._external_cmd['inkscape']
+    cmd = f'{inkscapecmd} --actions="query-width;query-height;" {svgfile}'
+    req = os.popen(cmd)
+    res = req.readlines()
+
+    width = int(res[0].strip())
+    height = int(res[1].strip())
+
+    req.close()
+
+    return width, height
+
+
 def getsvgwidth( svgfile ):
     """
         get svgfile width using inkscape

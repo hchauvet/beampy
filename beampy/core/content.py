@@ -52,7 +52,6 @@ class Content():
         """
         to_hash = f'{self.content} {self._width} {self._height} {self.type} {self.args_for_id}'
         tid = hashlib.md5(to_hash.encode('utf8')).hexdigest()[:10]
-
         self.id = tid
 
     def load_from_store(self):

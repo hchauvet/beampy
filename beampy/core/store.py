@@ -77,6 +77,9 @@ class Store(metaclass=StoreMetaclass):
     # Beampy version
     _version = __version__
 
+    # Inkscape session
+    _inkscape_session = None
+
     @classmethod
     def __repr__(cls):
         return '%s' % str(cls._slides)
