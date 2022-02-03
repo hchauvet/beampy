@@ -866,6 +866,32 @@ class Position():
     def value(self, nvalue):
         self._value = nvalue
 
+    @property
+    def raw_value(self):
+        """Return the raw value stored in _value withour triggering the
+        computation.
+        """
+        return self._value
+
+    @property
+    def is_relative(self):
+        """Return True if the raw value is type(str) and ends with %
+        """
+
+        if isinstance(self.raw_value, str) and self.raw_value.endswith('%'):
+            return True
+
+        return False
+
+    @property
+    def is_defined(self):
+        """Return true or false if the _value is None or other
+        """
+        if self._value is None:
+            return False
+
+        return True
+    
     def __add__(self, newvalue):
         res = Delayed(operator.add, self.converter)(self, newvalue)
         return Position(self.bpmodule, res, self.axis)
@@ -900,6 +926,9 @@ class Position():
 
     def __repr__(self):
         return f'{self._value}'
+
+    def __eq__(self, other):
+        return self._value == other
 
 
 class Length():
@@ -960,6 +989,7 @@ class Length():
     def value(self):
         """Get the value, compute it if needed()
         """
+
         if isinstance(self._value, Delayed):
             print('compute length')
             res = self._value.compute()
@@ -971,6 +1001,33 @@ class Length():
     @value.setter
     def value(self, nvalue):
         self._value = nvalue
+
+    @property
+    def raw_value(self):
+        """Return the raw value stored in _value withour triggering the
+        computation.
+        """
+        return self._value
+
+    @property
+    def is_relative(self):
+        """Return True if the raw value is type(str) and ends with %
+        """
+
+        if isinstance(self.raw_value, str) and self.raw_value.endswith('%'):
+            return True
+
+        return False
+
+    @property
+    def is_defined(self):
+        """Return True if self._value is not None
+        """
+
+        if self._value is None:
+            return False
+
+        return True
 
     def __add__(self, newvalue):
         res = Delayed(operator.add, self.converter)(self, newvalue)
@@ -1007,6 +1064,8 @@ class Length():
     def __repr__(self):
         return f'{self._value}'
 
+    def __eq__(self, other):
+        return self._value == other
 
 def relative_length(length, axis='x', fallback_size=(1280, 720)):
     """Compute relative length, and return it's value in pixel.
@@ -1033,26 +1092,42 @@ def relative_length(length, axis='x', fallback_size=(1280, 720)):
     # Get the availale space
     if axis == 'x':
         if Store.get_current_slide_id() is None:
-            if Store.isgroup() and Store.group().width is not None:
-                space = Store.group().width.value
+            if Store.isgroup() and Store.group().width.is_defined:
+                if Store.group().width.is_relative:
+                    space = float(Store.group().width.raw_value.replace('%', ''))/100
+                    space *= fallback_size[0]
+                else:
+                    space = Store.group().width.value
             else:
                 space = fallback_size[0]
                 print('TODO: read Theme layout width, use fallback %i' % space)
         else:
-            if Store.isgroup() and Store.group().width is not None:
-                space = Store.group().width.value
+            if Store.isgroup() and Store.group().width.is_defined:
+                if Store.group().width.is_relative:
+                    space = float(Store.group().width.raw_value.replace('%', ''))/100
+                    space *= Store.get_current_slide().curwidth
+                else:
+                    space = Store.group().width.value
             else:
                 space = Store.get_current_slide().curwidth
     else:
         if Store.get_current_slide_id() is None:
-            if Store.isgroup() and Store.group().height is not None:
-                space = Store.group().height.value
+            if Store.isgroup() and Store.group().height.is_defined:
+                if Store.group().height.is_relative:
+                    space = float(Store.group().height.raw_value.replace('%', ''))/100
+                    space *= fallback_size[1]
+                else:
+                    space = Store.group().height.value
             else:
                 space = fallback_size[1]
                 print('TODO: read Theme layout height, use fallback %i' % space)
         else:
-            if Store.isgroup() and Store.group().height is not None:
-                space = Store.group().height.value
+            if Store.isgroup() and Store.group().height.is_defined:
+                if Store.group().height.is_relative:
+                    space = float(Store.group().height.raw_value.replace('%', ''))/100
+                    space *= fallback_size[1]
+                else:
+                    space = Store.group().height.value
             else:
                 space = Store.get_current_slide().curheight
 
@@ -1085,13 +1160,13 @@ def center_on_available_space(position, fallback_size=(1280, 720)):
 
     if position.axis == 'x':
         if Store.get_current_slide_id() is None:
-            if Store.isgroup() and Store.group().width is not None:
+            if Store.isgroup() and Store.group().width != None:
                 space = Store.group().width.value
             else:
                 space = fallback_size[0]
                 print('TODO: read Theme layout width, use fallback %i' % space)
         else:
-            if Store.isgroup() and Store.group().width is not None:
+            if Store.isgroup() and Store.group().width != None:
                 space = Store.group().width.value
             else:
                 space = Store.get_current_slide().curwidth
@@ -1100,13 +1175,13 @@ def center_on_available_space(position, fallback_size=(1280, 720)):
 
     else:
         if Store.get_current_slide_id() is None:
-            if Store.isgroup() and Store.group().height is not None:
+            if Store.isgroup() and Store.group().height != None:
                 space = Store.group().height.value
             else:
                 space = fallback_size[1]
                 print('TODO: read Theme layout height, use fallback %i' % space)
         else:
-            if Store.isgroup() and Store.group().height is not None:
+            if Store.isgroup() and Store.group().height != None:
                 space = Store.group().height.value
             else:
                 space = Store.get_current_slide().curheight

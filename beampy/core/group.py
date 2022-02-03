@@ -21,7 +21,7 @@ _log = logging.getLogger(__name__)
 class group(beampy_module):
 
     def __init__(self, x=None, y=None, width=None, height=None, margin=None,
-                 modules=None):
+                 modules=None, background=None):
         """Group beampy elements to manipulate them as a single beampy_module
 
         Parameters:
@@ -37,7 +37,9 @@ class group(beampy_module):
         # Init this as a module
         super().__init__(x, y, width, height, margin, 'group')
         # Update the default arguments
-        self.update_signature(self.x, self.y, self.width, self.height)
+        self.update_signature(self.x, self.y, self.width, self.height,
+                              self.margin, modules, background)
+
         self.apply_theme(exclude=['modules'])
 
         # Check in the store if their is a parent group object

@@ -235,11 +235,11 @@ class beampy_module():
         self._arguments = self._signature.bind(*args, **kwargs)
 
         # Add the default arguments to attributes of the beampy_module
-        self._arguments.apply_defaults()
-        args = self._arguments.arguments
-        for key, value in args.items():
-            if key not in ['x', 'y', 'width', 'height', 'margin', 'args', 'kwargs']:
-                setattr(self, key, value)
+        # self._arguments.apply_defaults()
+        #args = self._arguments.arguments
+        #for key, value in args.items():
+        #    if key not in ['x', 'y', 'width', 'height', 'margin', 'args', 'kwargs']:
+        #        setattr(self, key, value)
 
     @property
     def signature(self):
@@ -664,7 +664,6 @@ class beampy_module():
 
     @property
     def x(self):
-        # print("prop class")
         return self._x
 
     @property
@@ -695,12 +694,21 @@ class beampy_module():
             elif position == 'auto':
                 if self.slide_id is not None:
                     if Store.isgroup():
-                        Store.group().id_modules_auto_x += [self.id]
+                        if self.id not in Store.group().id_modules_auto_x:
+                            Store.group().id_modules_auto_x += [self.id]
+                        else:
+                            print('Info: prevent to add twice the same module to auto_x')
                     else:
-                        Store.get_slide(self.slide_id).id_modules_auto_x += [self.id]
+                        if self.id not in Store.get_slide(self.slide_id).id_modules_auto_x:
+                            Store.get_slide(self.slide_id).id_modules_auto_x += [self.id]
+                        else:
+                            print('Info: prevent to add twice the same module to auto_x')
                 else:
                     if Store.isgroup():
-                        Store.group().id_modules_auto_x += [self.id]
+                        if self.id not in Store.group().id_modules_auto_x:
+                            Store.group().id_modules_auto_x += [self.id]
+                        else:
+                            print('Info: prevent to add twice the same module to auto_x')
                     else:
                         raise IndexError("The module could not have x='auto' as it's defined outside of a slide or a group")
 
@@ -746,12 +754,21 @@ class beampy_module():
             elif position == 'auto':
                 if self.slide_id is not None:
                     if Store.isgroup():
-                        Store.group().id_modules_auto_y += [self.id]
+                        if self.id not in Store.group().id_modules_auto_y:
+                            Store.group().id_modules_auto_y += [self.id]
+                        else:
+                            print('Info: prevent to add twice the same module to auto_y')
                     else:
-                        Store.get_slide(self.slide_id).id_modules_auto_y += [self.id]
+                        if self.id not in Store.get_slide(self.slide_id).id_modules_auto_y:
+                            Store.get_slide(self.slide_id).id_modules_auto_y += [self.id]
+                        else:
+                            print('Info: prevent to add twice the same module to auto_y')
                 else:
                     if Store.isgroup():
-                        Store.group().id_modules_auto_y += [self.id]
+                        if self.id not in Store.group().id_modules_auto_y:
+                            Store.group().id_modules_auto_y += [self.id]
+                        else:
+                            print('Info: prevent to add twice the same module to auto_y')
                     else:
                         raise IndexError("The module could not have y='auto' as it's defined outside of a slide or group")
 
@@ -978,10 +995,14 @@ class beampy_module():
 
         if exclude is None:
             exclude = []
+        else:
+            assert isinstance(exclude, list), "exclude argument should be a list"
 
         for key, value in args.items():
-            # If the value is None look for it in the default_dict
-            if value is None and key not in exclude:
+            # If the value is None look for it in the default_dict Don't use
+            # "is" for comparison. It results as false if the value is a
+            # Position class (or a length class) object and not a None object
+            if value == None and key not in exclude:
                 if key in default_dict:
                     # Update the value in the object
                     setattr(self, key, default_dict[key])
@@ -1051,10 +1072,13 @@ class beampy_module():
         out = 'module: %s\n'%self.name
         out += 'Id: %s\n' % self.id
         if hasattr(self, '_content') and self._content is not None:
-            out += 'Content id: %s\n' % self._content.id
+            out += 'Content id: %s (width: %s, height: %s)\n' % (self._content.id,
+                                                                 self.content_width,
+                                                                 self.content_height)
+
         out += 'width: %s, height: %s\n' % (str(self.width), str(self.height))
         out += 'x: %s, y: %s\n' % (self.x, self.y)
-        out += 'margin: %s' % str(self.margin)
+        out += 'margin: %s\n' % str(self.margin)
         try:
             out += 'source (lines %i->%i):\n%s\n'%(self.call_lines[0], self.call_lines[1],
                                        self.call_cmd)
