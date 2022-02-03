@@ -687,7 +687,15 @@ class beampy_module():
 
         """
 
-        # String cases
+        # Dict case
+        if isinstance(position, dict):
+            assert position['anchor'] in ['left', 'center', 'right'], 'anchor (origine of the box) should "left" "center" or "right" for the x direction'
+            self.xorigine = position['anchor']
+            position = position['shift']
+        else:
+            self.xorigine = 'left'
+
+        # String case
         if isinstance(position, str):
             if position.startswith('+') or position.startswith('-'):
                 position = self.process_previous_position(position, 'x')
@@ -746,6 +754,14 @@ class beampy_module():
             When the position is given as a int or float: if position<1 will be a % of the
             current width, else if will be the position in pixel
         """
+
+        # Dict case
+        if isinstance(position, dict):
+            assert position['anchor'] in ['top', 'center', 'bottom'], 'anchor (origine of the box) should "top" "center" or "bottom" for the x direction'
+            self.yorigine = position['anchor']
+            position = position['shift']
+        else:
+            self.yorigine = 'top'
 
         # String cases
         if isinstance(position, str):
@@ -886,9 +902,39 @@ class beampy_module():
         should be computed before.
         """
 
-        # Run the processing for x and y
-        self._final_x = self.x.value
-        self._final_y = self.y.value
+        xf = self.x
+        yf = self.y
+
+        update_x = False
+        update_y = False
+
+        # Apply origine transformation
+        if self.xorigine == 'center':
+            xf = self.x - self.width/2
+            update_x = True
+
+        if self.xorigine == 'right':
+            xf = self.x - self.width.value
+            update_x = True
+
+        if self.yorigine == 'center':
+            yf = self.y - self.height.value/2
+            update_y = True
+
+        if self.yorigine == 'bottom':
+            yf = self.y - self.height.value
+            update_y = True
+
+        xfv = xf.value
+        yfv = yf.value
+
+        if update_x:
+            self.x = xfv
+        if update_y:
+            self.y = yfv
+        # Run the processing for x and y and store the final position
+        self._final_x = xfv
+        self._final_y = yfv
 
     def delete(self):
         # Remove from document
@@ -919,11 +965,10 @@ class beampy_module():
         # self.update_size(new_width, new_height)
 
         # Store your the render outputs to
-        self.data['svgdef'] = "a data thing"
+        self.svgdef = "a data thing"
         self.content_width = self.width.value
         self.content_height = self.height.value
 
-        self.rendered = True
 
     def run_render(self):
         """

@@ -20,11 +20,7 @@ DEFAULT_Y = {'align': 'top', 'reference': 'slide', 'shift': 0,
 #Define function for alignement shortcuts.
 def center(shift=0):
 
-    out = {'anchor': 'middle', 'shift': shift}
-
-    if isinstance(shift, str):
-        out['shift'] = float(convert_unit(shift))
-        out['unit'] = 'px'
+    out = {'anchor': 'center', 'shift': shift}
 
     return out
 
@@ -33,10 +29,6 @@ def top(shift=0):
 
     out = {'anchor': 'top', 'shift': shift}
 
-    if isinstance(shift, str):
-        out['shift'] = float(convert_unit(shift))
-        out['unit'] = 'px'
-
     return out
 
 
@@ -44,20 +36,12 @@ def bottom(shift=0):
 
     out = {'anchor': 'bottom', 'shift': shift}
 
-    if isinstance(shift, str):
-        out['shift'] = float(convert_unit(shift))
-        out['unit'] = 'px'
-
     return out
 
 
 def right(shift=0):
 
     out = {'anchor': 'right', 'shift': shift}
-
-    if isinstance(shift, str):
-        out['shift'] = float(convert_unit(shift))
-        out['unit'] = 'px'
 
     return out
 
