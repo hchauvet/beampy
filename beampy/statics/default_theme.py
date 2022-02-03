@@ -38,16 +38,16 @@ THEME['slide'] = {
 THEME['text'] = {
     'size': 20,
     'font': 'CMR',
-    'color':'#000000',
-    'align':'',
-    'x':'center',
-    'y':'auto',
-    'width': None,
+    'color': '#000000',
+    'align': '',
+    'x': 'center',
+    'y': 'auto',
+    'width': r'100%',
     'height': None,
     'usetex': True,
     'margin': None,
     'va': '',
-    'opacity':1,
+    'opacity': 1,
     'extra_packages': []
 }
 
@@ -56,7 +56,8 @@ THEME['group'] = {
     'y': 'auto',
     'width': r'95%',
     'height': r'95%',
-    'margin': 0
+    'margin': 0,
+    'background': None
 }
 
 THEME['title'] = {
@@ -119,6 +120,14 @@ THEME['video'] = {
     'still_image_time': 0.0,
     'embedded': True,
     'muted': False
+}
+
+THEME['svg'] = {
+    'width': None,
+    'height': None,
+    'margin': 0,
+    'x': 'center',
+    'y': 'auto'
 }
 
 THEME['animatesvg'] = {

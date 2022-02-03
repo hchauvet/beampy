@@ -6,7 +6,7 @@ Module to write raw svg commands in slides
 """
 
 from beampy.core.document import document
-from beampy.core.functions import (getsvgwidth, getsvgheight)
+from beampy.core.functions import inkscape_get_size
 from beampy.core.group import group
 from beampy.core.module import beampy_module
 from beampy.core.geometry import convert_unit
@@ -38,22 +38,24 @@ class svg(beampy_module):
     """
 
     
-    def __init__(self, svg_content, **kwargs):
-        # The input type of the module
-        self.type = 'svg'
+    def __init__(self, svg_content, x=None, y=None, width=None, height=None,
+                 margin=None, inkscape_size=True, *args, **kwargs):
 
-        # Need to call inkscape to get width and height
-        self.inkscape_size = True
-        
-        # Add args to the module
-        self.load_args(kwargs)
+        # inti the module
+        super().__init__(x, y, width, height, margin, 'svg')
 
-        super().__init__(self.x, self.y, self.width, self.height, svg_content, self.type)
-        # Save the content
-        #self.content = svg_content
-        
+        # Update the signature
+        self.update_signature(svg_content, self.x, self.y, self.width,
+                              self.height, self.margin, inkscape_size, *args, **kwargs)
+
+        #add arguments as attributes
+        self.set(svg_content=svg_content, inkscape_size=inkscape_size)
+
+        #apply theme to None
+        self.apply_theme(exclude=['inkscape_size'])
+
         #Register the module
-        #self.register()
+        self.add_content(svg_content, 'svg')
 
     def render(self):
         """
@@ -64,11 +66,10 @@ class svg(beampy_module):
         if self.inkscape_size:
             logging.debug('Run inkscape to get svg size')
             # Need to get the height and width of the svg command
-            tmpsvg = '<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny" xmlns:xlink="http://www.w3.org/1999/xlink">'
-            if self.out_svgdefs is not None:
-                tmpsvg += '<defs>%s</defs>' % (' '.join(self.out_svgdefs))
-
-            tmpsvg += ' %s</svg>' % (self.content)
+            tmpsvg = ('<svg xmlns="http://www.w3.org/2000/svg" version="1.2" '
+                      'baseProfile="tiny" '
+                      'xmlns:xlink="http://www.w3.org/1999/xlink">'
+                      f'{self.svg_content} </svg>')
 
             # Use NamedTemporaryFile, that automatically remove the file on close by default
             with tempfile.NamedTemporaryFile(mode='w', prefix='beampytmp', suffix='.svg') as f:
@@ -78,17 +79,21 @@ class svg(beampy_module):
                 f.file.flush()
                 
                 # Get the dimension of the svg using inkscape
-                svg_width = getsvgwidth(f.name)
-                svg_height = getsvgheight(f.name)
-
+                svg_width, svg_height = inkscape_get_size(f.name)
+                # update beampy module width/height
+                self.width = svg_width
+                self.height = svg_height
         else:
-            svg_width = convert_unit(self.width)
-            svg_height = convert_unit(self.height)
+            svg_width = self.width.value
+            svg_height = self.height.value
 
-        #Update the final svg size
-        #self.update_size(svg_width, svg_height)
-        #Add the final svg output of the figure
-        self.svgout = self.content
+        # Set the svg to beampy module
+        self.svgdef = self.svg_content
+
+        # Update the final width/height of the content
+        self.content_width = svg_width
+        self.content_height = svg_height
+
 
         #Set rendered flag to true (needed for the cache)
         self.rendered = True
