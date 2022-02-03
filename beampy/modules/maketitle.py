@@ -7,9 +7,8 @@ Created on Sun Oct 25 19:05:18 2015
 Beampy title module
 
 """
-from beampy.core.document import document
+from beampy.core.store import Store
 from beampy.core.group import group
-from beampy.core.functions import gcs
 from beampy.modules.text import text
 import datetime
 
@@ -17,16 +16,16 @@ import datetime
 def default_maketitle(titlein, author=None, subtitle=None, date=None,
                       title_width=None, vert_space=None, **kwargs):
 
-        args = document._theme['maketitle']
+        args = Store._theme['maketitle']
 
         if date in ('Today', 'today', 'now'):
             date = datetime.datetime.now().strftime("%d/%m/%Y")
 
         if title_width is None:
-            title_width = document._theme['document']['width']*0.75
+            title_width = Store._theme['document']['width']*0.75
 
         if vert_space is None:
-            vert_space = document._theme['document']['height']*0.05
+            vert_space = Store._theme['document']['height']*0.05
 
         with group(y='center'):
 
@@ -99,10 +98,10 @@ def maketitle(*args, **kwargs):
     # Check function arguments from THEME
 
     # The maketitle disable the layout that could be defined in THEME['slide']
-    slide = document._slides[ gcs() ]
+    slide = Store.get_current_slide()
     slide.render_layout = False
 
-    if callable(document._theme['maketitle']['template']):
-        document._theme['maketitle']['template'](*args, **kwargs)
+    if callable(Store._theme['maketitle']['template']):
+        Store._theme['maketitle']['template'](*args, **kwargs)
     else:
         default_maketitle(*args, **kwargs)
