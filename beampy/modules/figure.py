@@ -94,10 +94,12 @@ class figure(beampy_module):
         # Register the module
         super().__init__(x, y, width, height, margin, modtype, **kwargs)
 
+        # Add arguments as attributes
+        self.set(content=content, ext=ext)
+
         # Update the signature
-        self.update_signature(content=content, x=x, y=y, width=width,
-                              height=height, margin=margin, ext=ext, *args,
-                              **kwargs)
+        self.update_signature(content, self.x, self.y, self.width, self.height,
+                              self.margin, ext=ext, *args, **kwargs)
 
         # Apply theme default for None value and set arguments as attrs
         self.apply_theme(exclude=['ext'])
