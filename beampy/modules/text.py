@@ -101,23 +101,18 @@ class text(beampy_module):
         # Register the module
         super().__init__(x, y, width, height, margin, 'svg', **kwargs)
 
-        self.opacity = opacity
-        self.size = size
-        self.font = font
-        self.usetex = usetex
-        self.va = va
-        self.extra_packages = extra_packages
-        self.textin = textin
-        self.color = color
-        self.align = align
-        self.cache_latex_preamble = cache_latex_preamble
+
+        # Set the arguments as attributes
+        self.set(opacity=opacity, size=size, font=font, usetex=usetex, va=va,
+                 extra_packages=extra_packages, textin=textin, color=color,
+                 align=align, cache_latex_preamble=cache_latex_preamble)
 
         # Update the signature of the __init__ call
-        self.update_signature(textin=textin, x=x, y=y, width=width,
-                              height=height, margin=margin, size=size,
-                              font=font, color=color, opacity=opacity,
-                              usetex=usetex, va=va, align=align,
-                              extra_packages=extra_packages,
+        self.update_signature(textin=textin, x=self.x, y=self.y,
+                              width=self.width, height=self.height,
+                              margin=self.margin, size=size, font=font,
+                              color=color, opacity=opacity, usetex=usetex,
+                              va=va, align=align, extra_packages=extra_packages,
                               cache_latex_preamble=cache_latex_preamble, *args,
                               **kwargs)
 
@@ -128,7 +123,7 @@ class text(beampy_module):
 
         # Some compatibility with beampy v < 1.0
         if self.font == 'CMR':
-            self.font = 'serif'
+            self.font = 'sans-serif'
 
         # for Tex
         self._packages = []

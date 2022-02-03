@@ -37,13 +37,10 @@ class video(beampy_module):
                               control, loop, muted, still_image_time, embedded,
                               **kwargs)
 
-        self.videofile = Path(videofile)
-        self.autoplay = autoplay
-        self.control = control
-        self.loop = loop
-        self.muted = muted
-        self.embedded = embedded
-        self.still_image_time = still_image_time
+        # Add arguments as attributes
+        self.set(videofile=Path(videofile), autoplay=autoplay, control=control,
+                 loop=loop, muted=muted, embedded=embedded,
+                 still_image_time=still_image_time)
 
         # Apply theme to None value
         self.apply_theme()
