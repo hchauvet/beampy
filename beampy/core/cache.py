@@ -39,6 +39,9 @@ class Cache():
 
         if self.folder.exists():
             self.data = self.read()
+            # Restore glyphs to store
+            if 'glyphs' in self.data:
+                Store.load_all_glyphs(self.data['glyphs'])
         else:
             self.folder.mkdir()
             _log.debug('create cache dir')
@@ -70,8 +73,18 @@ class Cache():
     def save(self):
         """Save the data common dict on disk
         """
+
+        # Add glyph to data
+        self.export_glyphs()
+
         with gzip.open(self.index_fullpath, 'wb') as f:
             f.write(json.dumps(self.data).encode('utf-8'))
+
+    def export_glyphs(self):
+        """Export glyphs from Latex (dvisvgm) located in Store to the cache data
+        """
+
+        self.data['glyphs'] = Store.get_all_glyphs()
 
     def is_cached(self, file_id: str) -> bool:
         """Test if a given file_id is cached

@@ -309,6 +309,20 @@ class Store(metaclass=StoreMetaclass):
         return False
 
     @classmethod
+    def get_all_glyphs(cls):
+        """Export all glyphs in Store
+        """
+
+        return cls._glyphs
+
+    @classmethod
+    def load_all_glyphs(cls, glyphs):
+        """Replace _glpyhs with incomming glyphs attribute
+        """
+
+        cls._glyphs = glyphs
+
+    @classmethod
     def clear_all(cls):
         """
         Clear all data of the Store
