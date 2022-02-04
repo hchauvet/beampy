@@ -312,9 +312,9 @@ def latex2svg(latexstring, cached_preamble=None, write_tmpsvg=False):
         #Run Latex
         #t = time.time()
         if cached_preamble is not None:
-            cmd = f'cd {tmppath} && latex -interaction=nonstopmod -fmt="{str(cached_preamble)}" {f.name}'
+            cmd = f'cd {tmppath} && latex -interaction=nonstopmode -fmt="{str(cached_preamble)}" {f.name}'
         else:
-            cmd = f'cd {tmppath} && latex -interaction=nonstopmod {f.name}'
+            cmd = f'cd {tmppath} && latex -interaction=nonstopmode {f.name}'
 
         tex = os.popen(cmd)
         #print('latex run in %f'%(time.time()-t))
