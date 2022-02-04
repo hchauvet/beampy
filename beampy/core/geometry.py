@@ -865,7 +865,23 @@ class Position():
         if isinstance(self.raw_value, str) and self.raw_value.endswith('%'):
             return True
 
+        if isinstance(self.raw_value, float) and self.raw_value <= 1 and self.raw_value > 0:
+            return True
+
         return False
+
+    @property
+    def relative_value(self):
+        """Return the relative value as a float
+        """
+
+        if self.is_relative:
+            if isinstance(self.raw_value, str):
+                return float(self.raw_value.replace('%', ''))/100
+
+            return self.raw_value
+        else:
+            raise ValueError("This Position is not a relative position %s" % self.raw_value)
 
     @property
     def is_defined(self):
@@ -1001,7 +1017,23 @@ class Length():
         if isinstance(self.raw_value, str) and self.raw_value.endswith('%'):
             return True
 
+        if isinstance(self.raw_value, float) and self.raw_value <= 1 and self.raw_value > 0:
+            return True
+
         return False
+
+    @property
+    def relative_value(self):
+        """Return the relative value as a float
+        """
+
+        if self.is_relative:
+            if isinstance(self.raw_value, str):
+                return float(self.raw_value.replace('%', ''))/100
+
+            return self.raw_value
+        else:
+            raise ValueError("This length is not a relative length %s" % self.raw_value)
 
     @property
     def is_defined(self):
@@ -1051,6 +1083,7 @@ class Length():
     def __eq__(self, other):
         return self._value == other
 
+
 def relative_length(length, axis='x', fallback_size=(1280, 720)):
     """Compute relative length, and return it's value in pixel.
 
@@ -1078,7 +1111,7 @@ def relative_length(length, axis='x', fallback_size=(1280, 720)):
         if Store.get_current_slide_id() is None:
             if Store.isgroup() and Store.group().width.is_defined:
                 if Store.group().width.is_relative:
-                    space = float(Store.group().width.raw_value.replace('%', ''))/100
+                    space = Store.group().width.relative_value
                     space *= fallback_size[0]
                 else:
                     space = Store.group().width.value
@@ -1088,7 +1121,7 @@ def relative_length(length, axis='x', fallback_size=(1280, 720)):
         else:
             if Store.isgroup() and Store.group().width.is_defined:
                 if Store.group().width.is_relative:
-                    space = float(Store.group().width.raw_value.replace('%', ''))/100
+                    space = Store.group().width.relative_value
                     space *= Store.get_current_slide().curwidth
                 else:
                     space = Store.group().width.value
@@ -1098,7 +1131,7 @@ def relative_length(length, axis='x', fallback_size=(1280, 720)):
         if Store.get_current_slide_id() is None:
             if Store.isgroup() and Store.group().height.is_defined:
                 if Store.group().height.is_relative:
-                    space = float(Store.group().height.raw_value.replace('%', ''))/100
+                    space = Store.group().height.relative_value
                     space *= fallback_size[1]
                 else:
                     space = Store.group().height.value
@@ -1108,7 +1141,7 @@ def relative_length(length, axis='x', fallback_size=(1280, 720)):
         else:
             if Store.isgroup() and Store.group().height.is_defined:
                 if Store.group().height.is_relative:
-                    space = float(Store.group().height.raw_value.replace('%', ''))/100
+                    space = Store.group().height.relative_value
                     space *= fallback_size[1]
                 else:
                     space = Store.group().height.value
@@ -1144,13 +1177,13 @@ def center_on_available_space(position, fallback_size=(1280, 720)):
 
     if position.axis == 'x':
         if Store.get_current_slide_id() is None:
-            if Store.isgroup() and Store.group().width != None:
+            if Store.isgroup() and Store.group().width.is_defined:
                 space = Store.group().width.value
             else:
                 space = fallback_size[0]
                 print('TODO: read Theme layout width, use fallback %i' % space)
         else:
-            if Store.isgroup() and Store.group().width != None:
+            if Store.isgroup() and Store.group().width.is_defined:
                 space = Store.group().width.value
             else:
                 space = Store.get_current_slide().curwidth
@@ -1159,19 +1192,18 @@ def center_on_available_space(position, fallback_size=(1280, 720)):
 
     else:
         if Store.get_current_slide_id() is None:
-            if Store.isgroup() and Store.group().height != None:
+            if Store.isgroup() and Store.group().height.is_defined:
                 space = Store.group().height.value
             else:
                 space = fallback_size[1]
                 print('TODO: read Theme layout height, use fallback %i' % space)
         else:
-            if Store.isgroup() and Store.group().height != None:
+            if Store.isgroup() and Store.group().height.is_defined:
                 space = Store.group().height.value
             else:
                 space = Store.get_current_slide().curheight
 
         out_pos = space/2 - position.bpmodule.height/2
-
 
     return out_pos.value
 

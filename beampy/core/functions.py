@@ -457,8 +457,8 @@ def inkscape_get_size(svgfile: str) -> list:
     req = os.popen(cmd)
     res = req.readlines()
 
-    width = int(res[0].strip())
-    height = int(res[1].strip())
+    width = float(res[0].strip())
+    height = float(res[1].strip())
 
     req.close()
 

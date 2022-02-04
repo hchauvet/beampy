@@ -9,7 +9,7 @@ from beampy.core.content import Content
 from beampy.core.functions import (get_command_line, print_function_args,
                                    pre_cache_svg_image, convert_unit,
                                    dict_deep_update)
-from beampy.core.geometry import Position, Length, relative_length
+from beampy.core.geometry import Position, Length
 
 from copy import deepcopy
 import inspect

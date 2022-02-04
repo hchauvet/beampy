@@ -34,11 +34,15 @@ class group(beampy_module):
         self.init_width = width
         self.init_height = height
 
+
         # Init this as a module
         super().__init__(x, y, width, height, margin, 'group')
         # Update the default arguments
         self.update_signature(self.x, self.y, self.width, self.height,
                               self.margin, modules, background)
+
+        # Add arguments as attributes
+        self.set(background=background)
 
         self.apply_theme(exclude=['modules'])
 
@@ -152,10 +156,15 @@ class group(beampy_module):
         self.content_width = self.width.value
         self.content_height = self.height.value
 
+        # Fix the width and height
+        self.width = self.width.value
+        self.height = self.height.value
+
         # For group we define the signature after the renderering
         # to include the list of modules
-        self.update_signature(x=self.x, y=self.y, width=init_width,
-                              height=init_height, modules=content)
+        self.update_signature(x=self.x, y=self.y, width=self.width,
+                              height=self.height, margin=self.margin,
+                              modules=content, background=self.background)
 
     def export_svgdef(self) -> dict:
         """Dynamically export svgdef for each modules in the group.
@@ -523,13 +532,13 @@ class group_old(beampy_module):
         # Set the id to of the current group to this group id
         Store.get_slide(self.slide_id).cur_group_id = self.id
         # Check if we need to update the curwidth of slide
-        if self.width.value is not None:
+        if self.width.is_defined:
             Store.get_slide(self.slide_id).curwidth = self.width.value
         else:
             self.width.value = Store.get_slide(self.slide_id).curwidth
 
         # For the height check if a height is given in the group
-        if self.height.value is not None:
+        if self.height.is_defined:
             Store.get_slide(self.slide_id).curheight = self.height.value
 
         return self
@@ -540,11 +549,11 @@ class group_old(beampy_module):
             Store.get_slide(self.slide_id).cur_group_level = self.grouplevel - 1
 
         # Check if we need to update the curwidth of slide to the parent group
-        if self.parentid is not None and Store.get_slide(self.slide_id).contents[self.parentid].width.value is not None:
+        if self.parentid is not None and Store.get_slide(self.slide_id).contents[self.parentid].width.is_defined:
             Store.get_slide(self.slide_id).curwidth = Store.get_slide(self.slide_id).contents[self.parentid].width.value
 
         # Check if we need to update the curheight of slide to the parent group
-        if self.parentid is not None and Store.get_slide(self.slide_id).contents[self.parentid].height.value is not None:
+        if self.parentid is not None and Store.get_slide(self.slide_id).contents[self.parentid].height.is_defined:
             Store.get_slide(self.slide_id).curheight = Store.get_slide(self.slide_id).contents[self.parentid].height.value
 
         # Get the id of the parentgroup as the cur_group_id
