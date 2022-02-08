@@ -84,9 +84,6 @@ class group(beampy_module):
 
         svgout = {}
 
-        init_width = self.width.value
-        init_height = self.height.value
-
         # Create a new content with all those modules
         content = '('+', '.join([m.signature for m in self.modules])+')'
         self._content = Content(content, 'svg',
@@ -133,7 +130,7 @@ class group(beampy_module):
 
         # Need to re-compute the width and height of the group
         # from the "frozen" width/height (called content_width/content_height)
-        if init_width is None:
+        if self.init_width is None:
             g_width = self.group_width()
             self.width = g_width
 
@@ -142,7 +139,7 @@ class group(beampy_module):
             for m in self.modules:
                 m._final_x -= xmin
 
-        if init_height is None:
+        if self.init_height is None:
             g_height = self.group_height()
             self.height = g_height
 

@@ -77,6 +77,7 @@ def itemize(items_list, **kwargs):
     '''
 
     args = check_function_args(itemize, kwargs)
+    print(args)
     number = 1
 
     # Create an inside width (inside the group), if the width of the group is
