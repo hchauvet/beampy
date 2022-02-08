@@ -53,7 +53,8 @@ class video(beampy_module):
         # Get the datetime of the file
         self.mod_date = str(os.path.getmtime(str(self.videofile)))
         self.args_for_cache_id = [self.mod_date, self.still_image_time,
-                                  self.embedded]
+                                  self.embedded, self.autoplay, self.loop,
+                                  self.control, self.muted]
 
         # Add the content and trigger render if needed
         self.add_content(videofile, 'html')
