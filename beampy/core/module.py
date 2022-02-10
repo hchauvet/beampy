@@ -10,7 +10,7 @@ from beampy.core.functions import (get_command_line, print_function_args,
                                    pre_cache_svg_image, convert_unit,
                                    dict_deep_update)
 from beampy.core.geometry import Position, Length
-
+from string import Template
 from copy import deepcopy
 import inspect
 import logging
@@ -403,13 +403,17 @@ class beampy_module():
             else:
                 ycenter = self.height.value/2
 
-            svgdef = self.data["svgdef"].format(opacity=self.svgopacity,
-                                                xcenter=-ycenter,
-                                                ycenter=-xcenter,
-                                                x=self._final_x,
-                                                y=self._final_y,
-                                                width=self.content_width,
-                                                height=self.content_height)
+            # Cannot use format with {} as <style>line{color:red}</style> could
+            # be defined in svg
+            # To overcome this we use python Template and sage_substitute
+            svgdef = Template(self.data["svgdef"])
+            svgdef = svgdef.safe_substitute(opacity=self.svgopacity,
+                                            xcenter=-ycenter,
+                                            ycenter=-xcenter,
+                                            x=self._final_x,
+                                            y=self._final_y,
+                                            width=self.content_width,
+                                            height=self.content_height)
             return svgdef
 
         return None
