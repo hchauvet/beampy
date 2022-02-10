@@ -301,7 +301,7 @@ class beampy_module():
             if len(new_margin) == 2:
                 self._margin = [Length(new_margin[0], 'y'),
                                 Length(new_margin[1], 'x')] * 2
-            if len(new_margin) == 4:
+            elif len(new_margin) == 4:
                 self._margin = [Length(new_margin[0], 'y'),
                                 Length(new_margin[1], 'x'),
                                 Length(new_margin[3], 'y'),

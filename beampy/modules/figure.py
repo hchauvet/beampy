@@ -64,10 +64,12 @@ class figure(beampy_module):
         Height of the figure (the default is None, which implies that the width
         is width of the image).
 
+    optimize : boolean, optional
+        Use the svg optimizer to reduce it's size
     """
 
     def __init__(self, content, x=None, y=None, width=None, height=None,
-                 margin=None, ext=None, *args, **kwargs):
+                 margin=None, ext=None, optimize=None, *args, **kwargs):
 
         # Check content type
         ext = find_content_ext(content, ext)
@@ -95,18 +97,22 @@ class figure(beampy_module):
         super().__init__(x, y, width, height, margin, modtype, **kwargs)
 
         # Add arguments as attributes
-        self.set(content=content, ext=ext)
+        self.set(content=content, ext=ext, optimize=optimize)
 
         # Update the signature
         self.update_signature(content, self.x, self.y, self.width, self.height,
-                              self.margin, ext=ext, *args, **kwargs)
+                              self.margin, ext=ext, optimize=optimize, *args, **kwargs)
 
         # Apply theme default for None value and set arguments as attrs
-        self.apply_theme(exclude=['ext'])
+        self.apply_theme(exclude=['ext', 'optimize'])
+
+        if optimize is None:
+            self.optimize = document._optimize_svg
 
         # Special args for cache id
         self.args_for_cache_id = [width,
-                                  ext]
+                                  ext,
+                                  optimize]
 
         # Some special for cache depends on type
         if ext == 'bokeh':
@@ -171,7 +177,7 @@ class figure(beampy_module):
                     figurein = self.content
 
             # test if we need to optimise the svg
-            if document._optimize_svg:
+            if self.optimize:
                 figurein = optimize_svg(figurein)
 
             soup = BeautifulSoup(figurein, 'xml')
@@ -180,7 +186,7 @@ class figure(beampy_module):
             soup = make_global_svg_defs(soup)
 
             #Optimize the size of embeded svg images !
-            if document._resize_raster:
+            if self.optimize:
                 imgs = soup.findAll('image')
                 if imgs:
                     for img in imgs:

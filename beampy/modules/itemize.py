@@ -5,7 +5,8 @@
 Class to manage item lists for beampy
 """
 # TODO: Implement itemize with beampy module class
-
+from beampy.core.geometry import Length
+from beampy.core.store import Store
 from beampy.core.document import document
 from beampy.core.group import group
 from beampy.core.functions import convert_unit, color_text, check_function_args
@@ -77,25 +78,28 @@ def itemize(items_list, **kwargs):
     '''
 
     args = check_function_args(itemize, kwargs)
-    print(args)
+
+    # Convert Length to length objects
+    width = Length(args['width'], 'x')
+    # height = Length(args['height'], 'y')
+
     number = 1
 
     # Create an inside width (inside the group), if the width of the group is
     # given as percentage change it to 1.0 for the text.
-    if args['width'] is not None:
-        in_width = float(convert_unit(args['width'])) - float(convert_unit(args['item_indent']))
-        if in_width < 1.0:
-            in_width = 0.99
+    # Use margins todo that [top/bottom, left/right], or [left, top, right, bottom]
+    in_text_margin = [0, args['item_indent']]
 
-    else:
-        in_width = float(document._width) - float(convert_unit(args['item_indent']))
+
+    if args['item_spacing'] is None:
+        args['item_spacing'] = f'+{args["text_size"]}pt'
 
     if args['item_layers'] is not None:
         if len(items_list) != len(args['item_layers']):
             raise ValueError('Length of item_layers is not the same as the length of items_list')
 
 
-    with group(width=args['width'], x=args['x'], y=args['y']) as groupitem:
+    with group(width=width, x=args['x'], y=args['y']) as groupitem:
 
         for i, the_item in enumerate(items_list) :
 
@@ -115,12 +119,16 @@ def itemize(items_list, **kwargs):
             the_item = color_text( the_item, args['text_color'] )
 
             if i == 0 :
-                t = text( item_char + r' ' + the_item, x = args['item_indent'],
-                          y = 0, width=in_width, size=args['text_size'])
+                t = text( item_char + r' ' + the_item, x = 0,
+                          y = 0, width='100%', size=args['text_size'],
+                          margin=in_text_margin)
+
             else:
-                t = text( item_char + r' ' + the_item, x = args['item_indent'],
-                        y = args['item_spacing'], width=in_width,
+                t = text( item_char + r' ' + the_item, x = 0,
+                        y = args['item_spacing'], width='100%',
+                          margin=in_text_margin,
                           size=args['text_size'])
+
 
             # Add layers to item
             if args['item_layers'] is not None:

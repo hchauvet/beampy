@@ -54,6 +54,12 @@ class group(beampy_module):
             if Store.get_current_slide_id() is not None:
                 self.parent = Store.get_current_slide()
 
+        # Need to compute relative length for group
+        if self.width.is_relative:
+            self.width = self.width.value
+        if self.height.is_relative:
+            self.height = self.height.value
+
         Store.set_group(self)
 
         self.modules = modules

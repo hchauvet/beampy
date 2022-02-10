@@ -89,6 +89,7 @@ class Theme():
                 raise Exception("Not such theme file %s " % infile)
         else:
             # Case of a single name like (Simple or Simple_theme.py) is given
+            # TODO: FIX THAT '.' for local theme
             if str(infile.parent) == '.':
                 if '_theme.py' in str(infile):
                     tmpname = str(infile)

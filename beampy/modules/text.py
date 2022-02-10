@@ -132,7 +132,7 @@ class text(beampy_module):
 
         # Add agrs to check for id
         self.args_for_cache_id = [self.font, self.color,
-                                  self.size, self.va]
+                                  self.size, self.va, self.margin]
         # Add the content this will run the render method if needed
         self.add_content(textin, 'svg')
 
