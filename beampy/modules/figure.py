@@ -69,7 +69,8 @@ class figure(beampy_module):
     """
 
     def __init__(self, content, x=None, y=None, width=None, height=None,
-                 margin=None, ext=None, optimize=None, *args, **kwargs):
+                 margin=None, ext=None, optimize=None, resize_raster=None,
+                 *args, **kwargs):
 
         # Check content type
         ext = find_content_ext(content, ext)
@@ -97,22 +98,28 @@ class figure(beampy_module):
         super().__init__(x, y, width, height, margin, modtype, **kwargs)
 
         # Add arguments as attributes
-        self.set(content=content, ext=ext, optimize=optimize)
+        self.set(content=content, ext=ext, optimize=optimize,
+                 resize_raster=resize_raster)
 
         # Update the signature
         self.update_signature(content, self.x, self.y, self.width, self.height,
-                              self.margin, ext=ext, optimize=optimize, *args, **kwargs)
+                              self.margin, ext=ext, optimize=optimize,
+                              resize_raster=resize_raster, *args, **kwargs)
 
         # Apply theme default for None value and set arguments as attrs
-        self.apply_theme(exclude=['ext', 'optimize'])
+        self.apply_theme(exclude=['ext', 'optimize', 'resize_raster'])
 
         if optimize is None:
             self.optimize = document._optimize_svg
 
+        if resize_raster is None:
+            self.resize_raster = document._resize_raster
+
         # Special args for cache id
         self.args_for_cache_id = [width,
                                   ext,
-                                  optimize]
+                                  self.optimize,
+                                  self.resize_raster]
 
         # Some special for cache depends on type
         if ext == 'bokeh':
@@ -186,7 +193,7 @@ class figure(beampy_module):
             soup = make_global_svg_defs(soup)
 
             #Optimize the size of embeded svg images !
-            if self.optimize:
+            if self.resize_raster:
                 imgs = soup.findAll('image')
                 if imgs:
                     for img in imgs:
@@ -313,7 +320,7 @@ class figure(beampy_module):
                 figure_height = requested_height
                 figure_width = requested_width
 
-            if document._resize_raster:
+            if self.resize_raster:
                 #Rescale figure to the good size (to improve size and display speed)
                 if self.ext == 'gif':
                     print('Gif are not resized, the original size is taken!')
