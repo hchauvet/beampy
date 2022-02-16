@@ -850,6 +850,12 @@ class beampy_module():
         if previous_module is not None:
             if previous_operation == '+':
                 position = getattr(previous_module, axis) + offset
+
+                if axis == 'x':
+                    position = position + previous_module.total_width
+                else:
+                    position = position + previous_module.total_height
+
             else:
                 position = getattr(previous_module, axis) - offset
 
