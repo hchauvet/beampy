@@ -62,11 +62,17 @@ class video(beampy_module):
     def render(self):
 
         video_size, still_image = self.video_image()
-        _, _, vidw, vidh = video_size
-        scale_x = self.width.value/float(vidw)
+
 
         if self.height.value is None:
-            self.height = vidh * scale_x
+            if video_size is not None:
+                _, _, vidw, vidh = video_size
+                scale_x = self.width.value/float(vidw)
+                self.height = vidh * scale_x
+            else:
+                self.height = self.width.value * 9/16.
+                print('unable to get video size apply 16/9 ratio')
+                
             print('Auto estimation of video height is buggy!')
 
         if self.embedded:
