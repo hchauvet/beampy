@@ -424,7 +424,6 @@ class beampy_module():
         after as it does not depends on the rendering
         """
         out = ' '.join([f'<g id="{self.content_id}" class="{self.name}"',
-                        '{opacity}',
                         self.svgtransform,
                         '>',
                         svgin,
@@ -451,7 +450,10 @@ class beampy_module():
     def svguse(self):
         """Return the svg <use> command for this element
         """
-        return f'<use x="{self._final_x}" y="{self._final_y}" href="#{self.content_id}"/>'
+        return (f'<use x="{self._final_x}" y="{self._final_y}" '
+                f'href="#{self.content_id}" '
+                f'{self.svgopacity} '
+                '/>')
 
     @property
     def html(self):
@@ -509,7 +511,7 @@ class beampy_module():
         """
         out = ''
         if self.opacity is not None:
-            out = f'opacity={self.opacity}'
+            out = f'opacity="{self.opacity}"'
 
         return out
 
@@ -612,7 +614,8 @@ class beampy_module():
                        '%i' % new_angle[1],
                        '%i' % new_angle[2]]
 
-        self._svg_rotate = rot
+
+            self._svg_rotate = rot
 
     @property
     def width(self):
