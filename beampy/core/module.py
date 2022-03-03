@@ -451,7 +451,7 @@ class beampy_module():
         """Return the svg <use> command for this element
         """
         return (f'<use x="{self._final_x}" y="{self._final_y}" '
-                f'href="#{self.content_id}" '
+                f'xlink:href="#{self.content_id}" '
                 f'{self.svgopacity} '
                 '/>')
 

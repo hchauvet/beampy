@@ -181,11 +181,12 @@ def make_global_svg_defs(svg_soup):
     if svgdefs is not None:
         for tag in svgdefs.findAll(lambda x: x is not None and x.has_attr('id')):
             oldid = tag['id']
-            newid = "%s_%i"%(text_id, document._global_counter['svg_id'])
+            newid = "B%s_%i"%(text_id, document._global_counter['svg_id'])
             strsvg = re.sub(oldid+'"', newid+'"', strsvg)
 
             if tag.name in ['clipPath','linearGradient']:
                 strsvg = re.sub('(#'+oldid+')', '#'+newid, strsvg)
+                
 
             # print(oldid, newid)
             document._global_counter['svg_id'] += 1

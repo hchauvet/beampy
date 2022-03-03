@@ -80,6 +80,9 @@ class Store(metaclass=StoreMetaclass):
     # Inkscape session
     _inkscape_session = None
 
+    # UID counter for svg
+    _svg_id = 0
+
     @classmethod
     def __repr__(cls):
         return '%s' % str(cls._slides)
@@ -323,6 +326,20 @@ class Store(metaclass=StoreMetaclass):
         cls._glyphs = glyphs
 
     @classmethod
+    def svg_id(cls):
+        """
+        Return the current id to make unique id for svg
+        """
+        return cls._svg_id
+
+    @classmethod
+    def update_svg_id(cls):
+        """
+        Add one to the svg_id
+        """
+        cls._svg_id += 1
+
+    @classmethod
     def clear_all(cls):
         """
         Clear all data of the Store
@@ -338,6 +355,7 @@ class Store(metaclass=StoreMetaclass):
         cls._cache = None
         cls._current_group = None
         cls._glyphs = dict()
+        cls._svg_id = 0
 
 # Some functions to easily manipulate the store
 def get_module_position(content_id, slide_id=None):

@@ -350,18 +350,23 @@ class slide(object):
 
     def export_header(self):
         # Export the slide svg header
-        svg_template = """<?xml version="1.0" encoding="utf-8" standalone="no"?>
-        <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
-        "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-        <svg width='{width}px' height='{height}px' style='background-color: {bgcolor};'
-        xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="full"
-        xmlns:xlink="http://www.w3.org/1999/xlink"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml"
-        xmlns:dc="http://purl.org/dc/elements/1.1/"
-        xmlns:cc="http://creativecommons.org/ns#"
-        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-        shape-rendering="geometricPrecision"
-        >"""\
+        svg_template = ('<?xml version="1.0" encoding="utf-8" standalone="no"?> '
+        '<svg width="{width}px" height="{height}px" '
+        'style="background-color:{bgcolor};" '
+        'version="1.1" baseProfile="full" '
+        'xmlns="http://www.w3.org/2000/svg" '
+        'xmlns:svg="http://www.w3.org/2000/svg" '
+        'xmlns:xlink="http://www.w3.org/1999/xlink" '
+        'xmlns:ev="http://www.w3.org/2001/xml-events" '
+        'xmlns:xhtml="http://www.w3.org/1999/xhtml" '
+        'xmlns:dc="http://purl.org/dc/elements/1.1/" '
+        'xmlns:cc="http://creativecommons.org/ns#" '
+        'xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" '
+        'xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" '
+        'xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" '
+        'shape-rendering="geometricPrecision" '
+        '>'
+        '<rect width="{width}px" height="{height}px" fill="{bgcolor}"/>')
 
         header_template = svg_template.format(width=Store.get_layout()._width,
                                               height=Store.get_layout()._height,

@@ -7,6 +7,14 @@ Part of Beampy-Slideshow
 import tempfile
 from bs4 import BeautifulSoup
 from beampy.core.functions import inkscape_get_size, convert_unit
+from beampy.core.store import Store
+import re
+
+try:
+    from xxhash import xxh3_64 as hashfunction
+except Exception as e:
+    _log.debug('Beampy is faster using xxhash librabry, pip install xxhash')
+    from hashlib import md5 as hashfunction
 
 
 def get_viewbox(svg: object) -> list:
@@ -98,3 +106,39 @@ def get_svg_size(svg: object) -> list:
     height = convert_unit(height)
 
     return width, height
+
+
+def make_global_svg_defs(svg_soup: object) -> object:
+    """
+        Function to use global counter for id in svg defs and use
+
+        svg_soup a BeautifulSoup object of the svg file
+    """
+
+    #str_svg to replace modified id in all the svg content
+    strsvg = svg_soup.decode('utf8')
+
+    # OLD way only work on defs.... Find defs
+    # svgdefs = svg_soup.find('defs')
+    # New way find all id in the svg
+
+    #Create seed by hashing the entire svg file
+    seed = hashfunction(strsvg).hexdigest()[:5]
+
+    for tag in svg_soup.findAll(lambda x: x is not None and x.has_attr('id')):
+        oldid = tag['id']
+        newid = "S%s_%i"%(seed, Store.svg_id())
+        strsvg = re.sub(oldid+'"', newid+'"', strsvg)
+
+        if tag.name in ['clipPath','linearGradient']:
+            strsvg = re.sub(f'(#{oldid})', f'#{newid}', strsvg)
+                
+
+        # print(oldid, newid)
+        Store.update_svg_id()
+
+    #Reparse the new svg
+    soup = BeautifulSoup(strsvg, 'xml')
+    #print('Svg refs changed in %0.4fs'%(time.time() - tps))
+
+    return soup

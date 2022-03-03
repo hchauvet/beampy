@@ -31,9 +31,9 @@ else:
 
 
 def save_layout():
-    for islide in range(document._global_counter['slide']+1):
-        slide = document._slides["slide_%i" % islide]
-        slide.build_layout()
+    for islide in range(len(Store)):
+        slide = Store.get_slide(f'slide_{islide+1}')
+        # TODO: slide.build_layout()
 
 
 def reset_module_rendered_flag():
@@ -69,21 +69,18 @@ def save(output_file=None, format=None):
 
     if 'html' in file_ext or format == 'html5':
         document._output_format = 'html5'
-        #render_texts()
-        #save_layout()
+        # TODO: save_layout()
         output = html5_export()
 
     elif 'svg' in file_ext or format == "svg":
         document._output_format = 'svg'
-        render_texts()
-        save_layout()
+        # TODO: save_layout()
         output = svg_export(bdir+'/tmp')
         output_file = None
 
     elif 'pdf' in file_ext or format == 'pdf':
         document._output_format = 'pdf'
-        render_texts()
-        save_layout()
+        # TODO: save_layout()
         output = pdf_export(output_file)
 
         output_file = None
@@ -113,11 +110,12 @@ def save(output_file=None, format=None):
 def pdf_export(name_out):
 
     # External tools cmd
+    document = Store.get_layout()
     inkscapecmd = document._external_cmd['inkscape']
     pdfjoincmd = document._external_cmd['pdfjoin']
 
     # use inkscape to translate svg to pdf
-    svgcmd = inkscapecmd+" --without-gui  --file='%s' --export-pdf='%s' -d=300"
+    svgcmd = inkscapecmd+" --export-filename='%s' --export-dpi=300 %s"
     bdir = os.path.dirname(name_out)
 
     print('Render svg slides')
@@ -125,13 +123,13 @@ def pdf_export(name_out):
 
     print('Convert svg to pdf with inkscape')
     output_svg_names = []
-    for islide in range(document._global_counter['slide']+1):
+    for islide in range(len(Store)):
         print('slide %i'%islide)
-        for layer in range(document._slides['slide_%i'%islide].num_layers + 1):
+        for layer in range(Store.get_slide(f'slide_{islide+1}').num_layers + 1):
             print('layer %i'%layer)
             #Use inkscape to render svg to pdf
-            res = os.popen(svgcmd%(bdir+'/tmp/slide_%i-%i.svg'%(islide, layer),
-                                   bdir+'/tmp/slide_%i-%i.pdf'%(islide, layer))
+            res = os.popen(svgcmd%(bdir+'/tmp/slide_%i-%i.pdf'%(islide, layer),
+                                   bdir+'/tmp/slide_%i-%i.svg'%(islide, layer))
                           )
             res.close()
 
@@ -143,7 +141,7 @@ def pdf_export(name_out):
 
     res.close()
     msg = "Saved to %s"%name_out
-    #os.system('rm -rf %s'%(bdir+'/tmp/slide_*'))
+    os.system('rm -rf %s'%(bdir+'/tmp/slide_*'))
 
     return msg
 
@@ -162,49 +160,35 @@ def svg_export(dir_name, quiet=False):
     if dir_name[-1] != '/':
         dir_name += '/'
 
-    for islide in range(document._global_counter['slide']+1):
+    # The global svg glyphs need also to be added to the html5 page
+    # TODO: Optimize to export only glyphs used by this slide        
+    glyphs_svg = '<defs id="glyphs_store">'
+    glyphs_svg += '\n'.join([Store.get_glyph(g)['svg'] for g in Store._glyphs])
+    glyphs_svg += '</defs>'
+
+    for islide in range(len(Store)):
         print("Export slide %i"%islide)
 
-        slide = document._slides["slide_%i"%islide]
-
+        slide = Store.get_slide(f"slide_{islide+1}")
+        
         # Render the slide
-        slide.newrender()
+        slide.render()        
 
-        # The global svg glyphs need also to be added to the html5 page
-        if 'glyphs' in document._global_store:
-            # OLD .decode('utf-8',errors='replace') after the join for py2
-            if py3:
-                glyphs_svg = '<defs>%s</defs>' % (
-                    ''.join([glyph['svg'] for glyph in document._global_store['glyphs'].values()]))
-            else:
-                _log.debug('Encode output as utf-8, for python2 compatibility')
-                glyphs_svg = '<defs>%s</defs>' % (
-                    ''.join([glyph['svg'] for glyph in document._global_store['glyphs'].values()]).decode('utf-8', errors='replace'))
-                
-
-        else:
-            glyphs_svg = ''
-
-        # join all svg defs (old .decode('utf-8', errors='replace') after the join for py2)
-        if py3:
-            def_svg = '<defs>%s</defs>'%(''.join(slide.svgdefout))
-        else:
-            _log.debug('Encode output as utf-8, for python2 compatibility')
-            def_svg = '<defs>%s</defs>'%(''.join(slide.svgdefout).decode('utf-8', errors='replace'))
+        # Get the svgdefs
+        globals_id_svg_defs = []
+        tmp_svgdefs, tmp_id = export_svgdefs(slide.modules, globals_id_svg_defs)
+        svgdef = f'<defs>{tmp_svgdefs}</defs>'
             
         for layer in range(slide.num_layers + 1):
-
+            print('write layer %i'%layer)
             # save the list of rendered svg to a new dict as a string
-            tmp = slide.svgheader + glyphs_svg + def_svg
+            tmp = '\n'.join((slide.svgheader, 
+                             glyphs_svg, 
+                             svgdef))
 
             # Join all the svg contents (old .decode('utf-8', errors='replace') for py2)
-            if layer in slide.svglayers:
-                if py3:
-                    tmp += slide.svglayers[layer]
-                else:
-                    _log.debug('Encode output as utf-8, for python2 compatibility')
-                    tmp += slide.svglayers[layer].decode('utf-8', errors='replace')
-
+            if layer in slide.layers_content:
+                tmp += f"\n<g>{slide.layers_content[layer]['svg']}</g>\n"
             else:
                 tmp += '' #empty slide (when no svg are defined on slides)
 
@@ -212,11 +196,7 @@ def svg_export(dir_name, quiet=False):
             tmp += slide.svgfooter
 
             with io.open(dir_name+'slide_%i-%i.svg'%(islide, layer), 'w', encoding='utf8') as f:
-                if py3:
-                    f.write(tmp)
-                else:
-                    # For python 2
-                    f.write(tmp.decode('utf8', 'replace'))
+                f.write(tmp)                
 
     return "saved to "+dir_name
 
@@ -272,10 +252,14 @@ def html5_export():
     tmpout = {}
     tmpscript = {}
     html_modules = ''
-    global_store = '<svg><defs>'
     # Add glyphs TODO: make an optimizer to remove unusued one comming from
     # cache
-    global_store += ''.join([Store.get_glyph(g)['svg'] for g in Store._glyphs])
+    glyphs_store = ('<svg id="glyph_store"><defs>'
+                    '{glyphs}'
+                    '</defs></svg>')
+    glyphs_store = glyphs_store.format(glyphs=''.join([Store.get_glyph(g)['svg'] for g in Store._glyphs]))
+
+    global_store = glyphs_store + '<svg><defs>'
     global_store_id = []
     for islide in range(len(Store)):
 
@@ -312,11 +296,12 @@ def html5_export():
                 # OLD .decode('utf-8', errors='replace') for py2
                 svg_layer_content = slide.layers_content[layer]['svg']
                 html_layer_content = slide.layers_content[layer]['html']
-                html_modules += ''.join([f'<div id="html_store_slide_{islide}-{layer}"',
-                                         'style="position:absolute;top:0px;left:0px;',
-                                         'visibility:hidden;width:100%;height:100%;">',
-                                         html_layer_content,
-                                         '</div>'])
+                if html_layer_content != '':
+                    html_modules += ''.join([f'<div id="html_store_slide_{islide}-{layer}"',
+                                             'style="position:absolute;top:0px;left:0px;',
+                                             'visibility:hidden;width:100%;height:100%;">',
+                                             html_layer_content,
+                                             '</div>'])
             else:
                 svg_layer_content = '' #create an empty content (usefull when only html are present in one slide)
 
@@ -354,23 +339,13 @@ def html5_export():
     json.dump(tmpout, jsonfile, indent=None)
     jsonfile.seek(0)
 
-    # The global svg glyphs need also to be added to the html5 page
-    if 'glyphs' in document._global_store:
-        glyphs_svg='<svg id="glyph_store"><defs>%s</defs></svg>'%( ''.join( [ glyph['svg'] for glyph in document._global_store['glyphs'].values() ] ) )
-        output += glyphs_svg
-
     # Add the svg content
-    if py3:
-        output += "".join(global_store)
-    else:
-        #Python 2 backcompatibility
-        output += "".join( global_store ).decode('utf8')
+    output += "".join(global_store)
     
     # Add html_modules to output
     output += html_modules
     # Create store divs for each slides
     output += '<script> slides = eval( ( %s ) );</script>'%jsonfile.read()
-
 
     # Javascript output
     # format: scripts_slide[slide_i]['function_name'] = function() { ... }

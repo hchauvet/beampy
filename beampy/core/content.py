@@ -49,10 +49,16 @@ class Content():
 
     def create_id(self):
         """Create the id for this content
+        
+        It must be valid in XML documents. A stand-alone SVG document uses XML 1.0 syntax, which specifies that valid IDs only include 
+        designated characters (letters, digits, and a few punctuation marks), and do not start with a digit, a full stop (.) character,
+        or a hyphen-minus (-) character.
         """
+
         to_hash = f'{self.content} {self._width} {self._height} {self.type} {self.args_for_id}'
         tid = hashlib.md5(to_hash.encode('utf8')).hexdigest()[:10]
-        self.id = tid
+        # Add a 'B' to ensure XML validity
+        self.id = 'B'+tid
 
     def load_from_store(self):
         """Load the data content from the one in store

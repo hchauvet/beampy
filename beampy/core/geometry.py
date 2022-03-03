@@ -952,6 +952,7 @@ class Length():
 
         self._value = value
         self.axis = axis
+        self._cached_result = None
 
     def converter(self, value):
         """Convert the position to a numerical value.
@@ -978,7 +979,7 @@ class Length():
             assert isinstance(value, (int, float)), f"I was unable to convert your length {type(value)} to a number!"
 
         elif isinstance(value, float):
-            if value < 1.0:
+            if value <= 1.0:
                 value = int(round(relative_length(value, self.axis), 0))
             else:
                 value = int(round(value, 0))
@@ -991,8 +992,11 @@ class Length():
         """
 
         if isinstance(self._value, Delayed):
-            print('compute length')
-            res = self._value.compute()
+            if self._cached_result is None:
+                # print('-> compute length', self._cached_result)
+                self._cached_result = self._value.compute()
+
+            res = self._cached_result
         else:
             res = self.converter(self._value)
 
@@ -1001,6 +1005,7 @@ class Length():
     @value.setter
     def value(self, nvalue):
         self._value = nvalue
+        self._cached_result = None
 
     @property
     def raw_value(self):
