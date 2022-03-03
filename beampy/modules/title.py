@@ -18,8 +18,9 @@ class title(text):
             Add a title to a slide
         """
 
-        self.register()
-
+        # self.register()
+        self.name = 'title'
+        
         self.set(size=size, color=color, reserved_y=reserved_y, align=align,
                  va=va, opacity=opacity, font=font)
 
