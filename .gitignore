@@ -70,3 +70,6 @@ tests/pdf_out
 
 # For emacs autosave
 *.py~
+
+# For vscodium and vscode
+*.vscode
