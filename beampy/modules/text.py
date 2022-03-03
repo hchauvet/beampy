@@ -94,8 +94,8 @@ LATEX_FONT = {
 class text(beampy_module):
 
     def __init__(self, textin=None, x=None, y=None, width=None, height=None,
-                 margin=None, size=None, font=None, color=None, opacity=None,
-                 usetex=None, va=None, align=None, extra_packages=None,
+                 margin=None, size=None, font=None, color=None, opacity=None, 
+                 rotate=None, usetex=None, va=None, align=None, extra_packages=None,
                  cache_latex_preamble=True, *args, **kwargs):
 
         # Register the module
@@ -103,7 +103,7 @@ class text(beampy_module):
 
 
         # Set the arguments as attributes
-        self.set(opacity=opacity, size=size, font=font, usetex=usetex, va=va,
+        self.set(opacity=opacity, rotate=rotate, size=size, font=font, usetex=usetex, va=va,
                  extra_packages=extra_packages, textin=textin, color=color,
                  align=align, cache_latex_preamble=cache_latex_preamble)
 
@@ -111,7 +111,7 @@ class text(beampy_module):
         self.update_signature(textin=textin, x=self.x, y=self.y,
                               width=self.width, height=self.height,
                               margin=self.margin, size=size, font=font,
-                              color=color, opacity=opacity, usetex=usetex,
+                              color=color, opacity=opacity, rotate=rotate, usetex=usetex,
                               va=va, align=align, extra_packages=extra_packages,
                               cache_latex_preamble=cache_latex_preamble, *args,
                               **kwargs)
