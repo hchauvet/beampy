@@ -6,12 +6,11 @@ Created on Sun Oct 25 19:05:18 2015
 """
 
 from beampy.core.document import document
-from beampy.core.functions import (convert_unit, optimize_svg, gcs,
-                                   make_global_svg_defs, getsvgwidth,
+from beampy.core.functions import (convert_unit, optimize_svg, gcs, getsvgwidth,
                                    getsvgheight, convert_pdf_to_svg,
                                    convert_eps_to_svg,
                                    guess_file_type)
-from beampy.core._svgfunctions import get_svg_size
+from beampy.core._svgfunctions import (get_svg_size, make_global_svg_defs)
 from beampy.core.module import beampy_module
 from bs4 import BeautifulSoup
 from PIL import Image
