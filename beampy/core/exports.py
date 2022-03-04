@@ -4,6 +4,7 @@ Created on Fri May 15 16:48:01 2015
 
 @author: hugo
 """
+from multiprocessing import Pool
 from beampy.core.store import Store
 from beampy.core.functions import render_texts
 import json
@@ -121,19 +122,16 @@ def pdf_export(name_out):
     print('Render svg slides')
     aa = svg_export(bdir+'/tmp')
 
-    print('Convert svg to pdf with inkscape')
+    # Create slide names (with layers)
     output_svg_names = []
     for islide in range(len(Store)):
-        print('slide %i'%islide)
         for layer in range(Store.get_slide(f'slide_{islide+1}').num_layers + 1):
-            print('layer %i'%layer)
-            #Use inkscape to render svg to pdf
-            res = os.popen(svgcmd%(bdir+'/tmp/slide_%i-%i.pdf'%(islide, layer),
-                                   bdir+'/tmp/slide_%i-%i.svg'%(islide, layer))
-                          )
-            res.close()
-
             output_svg_names += ['slide_%i-%i'%(islide, layer)]
+
+    # Convert svg to pdf in a Pool of worker
+    print('Convert svg to pdf with inkscape')
+    with Pool() as p:
+        outcode = p.map(svgtopdf, [f'{bdir}/tmp/{svgf}' for svgf in output_svg_names])
 
     #join all pdf
     res = os.popen(pdfjoincmd+' %s -o %s'%(' '.join(['"'+bdir+'/tmp/%s.pdf"'%sname for sname in output_svg_names]), name_out))
@@ -569,3 +567,22 @@ def export_svgdefs(modules: list, exported_id: list, add_html_svgalt=False) -> (
     svgdef = '\n'.join(svgdef)
 
     return svgdef, exported_id
+
+
+def svgtopdf(filename: str, dpi=300):
+    """
+    Convert a file from svg to pdf using inkscape
+    """
+
+    # External tools cmd
+    document = Store.get_layout()
+    inkscapecmd = document._external_cmd['inkscape']
+
+    svgcmd = inkscapecmd+(f" --export-filename='{filename}.pdf'"
+                          f" --export-dpi={dpi} {filename}.svg")
+    
+    # TODO: use subprocess.Popen for finer stdout and manage error codes
+    res = os.popen(svgcmd)
+    retcode = res.close()
+
+    return retcode
