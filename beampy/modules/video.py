@@ -99,13 +99,17 @@ class video(beampy_module):
 
         videoargs = ' '.join(videoargs)
 
-        html_video = f"""
-<video id='video' width="{self.width.value}px" height="{self.height.value}px" {videoargs}>
-  <source type="video/{self.video_extension}" src="{videosrc}">
-</video>
-        """
+        html_video = (f"<video id='video' width='{self.width.value}px' height='{self.height.value}px' "
+                      f"{videoargs}>"
+                      f"<source type='video/{self.video_extension}' src='{videosrc}'>"
+                      "</video>")
 
         self.html = html_video
+        
+        self.html_svgalt = (f'<image x="0" y="0" width="{self.width.value}" '
+                            f'height="{self.height.value}" '
+                            f'xlink:href="data:image/png;base64, {base64.b64encode(still_image).decode("utf8")}" />')
+
         self.content_width = self.width.value
         self.content_height = self.height.value
 
@@ -116,7 +120,7 @@ class video(beampy_module):
         """
 
         FFMPEG_CMD = document._external_cmd['video_encoder']
-        FFMPEG_CMD += ' -loglevel 8 -i "%s" -f image2 -ss %0.3f -vframes 1 -; exit 0' % (self.videofile,
+        FFMPEG_CMD += ' -loglevel 8 -i "%s" -f image2 -ss %s -vframes 1 -; exit 0' % (self.videofile,
                                                                                          self.still_image_time)
 
         #run_ffmpeg = subprocess.run(str(FFMPEG_CMD), stdout=subprocess.PIPE, shell=True)
@@ -135,7 +139,7 @@ class video(beampy_module):
 
         #Save image to string
         outimg = StringIO()
-        out.save(outimg, 'JPEG')
+        out.save(outimg, 'PNG')
         out.close()
 
         strimg = outimg.getvalue()

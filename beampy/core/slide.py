@@ -181,7 +181,7 @@ class slide(object):
 
         return out
 
-    def render(self):
+    def render(self, add_html_svgalt=False):
         """Compute the final position of each modules in the slide and add the
         final module content to the self.layers_content dictionnary. This
         dictionnary is formarted as follow:
@@ -241,6 +241,9 @@ class slide(object):
 
                     if mod.type == 'html':
                         content = mod.html
+                        # For html_svgalt add a svg use for this element id
+                        if add_html_svgalt and mod.html_svgalt is not None:
+                            self.layers_content[layer]['svg'] += [mod.svguse]
 
                     self.layers_content[layer][mod.type] += [content]
 

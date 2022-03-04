@@ -429,10 +429,7 @@ class beampy_module():
                         svgin,
                         '</g>'])
 
-        if hasattr(self, 'data') and 'svgdef' in self.data:
-            self.data['svgdef'] = out
-        else:
-            self.data = {'svgdef': out}
+        self.add_content_data('svgdef', out)
 
     def add_content_data(self, key: str, data):
         """Add extra data to the Content data dictionary.
@@ -474,16 +471,37 @@ class beampy_module():
                               'opacity: {opacity}',
                               'position: absolute'])
 
-        out =' '.join([f'<div id={self.name}',
+        out =' '.join([f'<div id="html_{self.content_id}"',
+                       f'class="{self.name}"',
                        f'style="{divstyle}"',
                        '>',
                        new_html.strip(),
                        '</div>'])
 
-        if hasattr(self, 'data') and 'html' in self.data:
-            self.data['html'] = out
-        else:
-            self.data = {'html': out}
+        self.add_content_data('html', out)
+
+    @property
+    def html_svgalt(self):
+        """
+        Define an alternative svg for an html element.
+        This will be added to svg <defs> part and svguse
+        will refer to that element
+        """
+
+        if 'html_svgalt' in self.data:
+            return self.data['html_svgalt']
+
+        return None
+
+    @html_svgalt.setter
+    def html_svgalt(self, new_svgalt):
+        out = ' '.join([f'<g id="{self.content_id}" class="{self.name}-alt"',
+                        self.svgtransform,
+                        '>',
+                        new_svgalt,
+                        '</g>'])
+
+        self.add_content_data('html_svgalt', out)
 
     @property
     def opacity(self):

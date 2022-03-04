@@ -174,8 +174,9 @@ class group(beampy_module):
         Return a dictionnary of list of svgdef indexed by layer
         """
 
+        # TODO: remove empty svguse, and take care of svguse needed for html_svgalt 
         svgout = {}
-        for i, mod in enumerate(self.modules):
+        for mod in self.modules:
             for layer in mod.layers:
                 if mod.type == 'group':
                     svguse = mod.svguse(layer)
@@ -230,6 +231,9 @@ class group(beampy_module):
         have a group inside the modules the same function is called back.
         """
 
+        # TODO: Find a way to remove empty html group on export
+        # Warning this is a recursive function
+
         divout = [f'<div id="group"',
                   'style="position:absolute;',
                   f'top:{self._final_y}px;',
@@ -238,6 +242,7 @@ class group(beampy_module):
                   f'height:{self.content_height}px;',
                   '">']
 
+    
         for mod in self.modules:
             if layer in mod.layers:
                 if mod.type == 'html':

@@ -172,11 +172,12 @@ def svg_export(dir_name, quiet=False):
         slide = Store.get_slide(f"slide_{islide+1}")
         
         # Render the slide
-        slide.render()        
+        slide.render(add_html_svgalt=True)        
 
         # Get the svgdefs
         globals_id_svg_defs = []
-        tmp_svgdefs, tmp_id = export_svgdefs(slide.modules, globals_id_svg_defs)
+        tmp_svgdefs, tmp_id = export_svgdefs(slide.modules, globals_id_svg_defs, add_html_svgalt=True)
+        
         svgdef = f'<defs>{tmp_svgdefs}</defs>'
             
         for layer in range(slide.num_layers + 1):
@@ -531,7 +532,7 @@ def get_bokeh_includes():
     return css_out, js_out
 
 
-def export_svgdefs(modules: list, exported_id: list) -> (str, list):
+def export_svgdefs(modules: list, exported_id: list, add_html_svgalt=False) -> (str, list):
     """Export svgdef for each module in the list, if the module content_id is not in
     the exported_list. If the module is a group run export_svgdef to do the recursivity
 
@@ -551,12 +552,17 @@ def export_svgdefs(modules: list, exported_id: list) -> (str, list):
                     svgdef += [tmp_svgdefs[i]]
                     exported_id += [tmp_id[i]]
 
-            tmp_svgdef, tmp_id = export_svgdefs(m.modules, exported_id)
+            tmp_svgdef, tmp_id = export_svgdefs(m.modules, exported_id, add_html_svgalt)
             svgdef += [tmp_svgdef]
             exported_id += [tmp_id]
         else:
-            if m.content_id not in exported_id and m.svgdef is not None:
-                svgdef += [m.svgdef]
+            if m.content_id not in exported_id:
+                if m.svgdef is not None:
+                    svgdef += [m.svgdef]
+
+                if add_html_svgalt and m.html_svgalt is not None:
+                    svgdef += [m.html_svgalt]
+
                 exported_id += [m.content_id]
 
 
