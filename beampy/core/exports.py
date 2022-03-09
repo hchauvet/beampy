@@ -7,6 +7,8 @@ Created on Fri May 15 16:48:01 2015
 from multiprocessing import Pool
 from beampy.core.store import Store
 from beampy.core.functions import render_texts
+from beampy.core._svgfunctions import export_svgdefs
+from string import Template
 import json
 
 from io import StringIO
@@ -201,51 +203,41 @@ def svg_export(dir_name, quiet=False):
 
 
 def html5_export():
+    """
+    Export all slides and all layers as an html file
+    """
 
-    document = Store.get_layout()
+    # Read style (use python3 string Template)
+    with open(Store._beampy_dir.joinpath('statics', 'beampy.css'), 'r') as f:
+        css = Template(f.read())
 
-    with open(curdir+'statics/jquery.js','r') as f:
+    # Read jquery
+    with open(Store._beampy_dir.joinpath('statics', 'jquery.js'),'r') as f:
         jquery = f.read()
 
-    with open(curdir+'statics/header_V2.html','r') as f:
-        output = f.read()%jquery
+    # read html header
+    with open(Store._beampy_dir.joinpath('statics','header_V2.html'),'r') as f:
+        html_header = Template(f.read())
 
-    # Add the style
+    # read html footer
+    with open(Store._beampy_dir.joinpath('statics', 'footer_V2.html'), 'r') as f:
+        footer = Template(f.read())
+
+    # read beampyjs
+    with open(Store._beampy_dir.joinpath('statics', 'beampy.js'), 'r') as f:
+        beampyjs = f.read()
+
+    # Fill the template
+    document = Store.get_layout()
     htmltheme = document._theme['document']['html']
-    output += """
-    <!-- Default Style -->
-    <style>
-      * { margin: 0; padding: 0;
-        -moz-box-sizing: border-box; -webkit-box-sizing: border-box;
-        box-sizing: border-box; outline: none; border: none;
-        }
+    css = css.substitute(width = document._width,
+                        height = document._height,
+                        background_color = htmltheme['background_color'])
 
-      body {
-        width: """+str(document._width)+"""px;
-        height: """+str(document._height)+"""px;
-        margin-left: -"""+str(int(document._width/2))+"""px; margin-top: -"""+str(int(document._height/2))+"""px;
-        position: absolute; top: 50%; left: 50%;
-        overflow: hidden;
-        display: none;
-        background-color: #ffffff;
+    # Add jquery and css to html header
+    output = html_header.substitute(jquery = jquery,
+                                    css = css)
 
-      }
-
-      section {
-        position: absolute;
-        width: 100%; height: 100%;
-      }
-
-
-      html { background-color: """+str(htmltheme['background_color'])+""";
-        height: 100%;
-        width: 100%;
-      }
-
-      body.loaded { display: block;}
-    </style>
-
-    """
     # Loop over slides in the document
     # If we directly want to charge the content in pure html
     tmpout = {}
@@ -339,7 +331,7 @@ def html5_export():
     jsonfile.seek(0)
 
     # Add the svg content
-    output += "".join(global_store)
+    output += global_store
     
     # Add html_modules to output
     output += html_modules
@@ -363,10 +355,36 @@ def html5_export():
             output += cssbk + jsbk
             output
             
-    with open(curdir+'statics/footer_V2.html', 'r') as f:
-        output += f.read()
+    output += footer.substitute(beampy=beampyjs)
 
     return output
+
+
+def format_beampy_js(beampyjs: dict) -> str:
+    """ 
+    Format the javascripts defined in beampy slide to
+    a javascript format that could be called when a 
+    slide is loaded in html. 
+
+    To do so, we use the following convention:
+    - javascripts functions are encapsulated in
+      a functions that is called when the slide is
+      loaded in html
+
+      scripts_slide[slide_id][function_name] = function(){
+          js code
+      }
+
+    For Bokeh 
+    Parameters:
+    -----------
+
+    - beampyjs, dict:
+        The dictionnary with slide_id as key and javascript string as value.
+        beampyjs = {"slide_0": "alert(1)", "slide_1": "alert('cool from js')"}
+    """
+
+    print('TODO!!!')
 
 
 def check_content_type_change(slide, nothtml=True):
@@ -477,13 +495,8 @@ def get_bokeh_includes():
     """
 
     from bokeh.resources import CDN
-    try:
-        # Python 2
-        from urllib2 import URLError
-        from urllib2 import urlopen 
-    except:
-        from urllib.error import URLError
-        from urllib.request import urlopen
+    from urllib.error import URLError
+    from urllib.request import urlopen
         
 
     css_out = '<style>'
@@ -529,44 +542,6 @@ def get_bokeh_includes():
 
     return css_out, js_out
 
-
-def export_svgdefs(modules: list, exported_id: list, add_html_svgalt=False) -> (str, list):
-    """Export svgdef for each module in the list, if the module content_id is not in
-    the exported_list. If the module is a group run export_svgdef to do the recursivity
-
-    Returns
-    -------
-
-    list of svgdef and list of updated exported_id
-    """
-
-    svgdef = []
-    for m in modules:
-        # Special case of group which exports id with layer
-        if m.type == 'group':
-            tmp_id, tmp_svgdefs = m.svgdef
-            for i in range(len(tmp_id)):
-                if tmp_id[i] not in exported_id and tmp_svgdefs[i] is not None:
-                    svgdef += [tmp_svgdefs[i]]
-                    exported_id += [tmp_id[i]]
-
-            tmp_svgdef, tmp_id = export_svgdefs(m.modules, exported_id, add_html_svgalt)
-            svgdef += [tmp_svgdef]
-            exported_id += [tmp_id]
-        else:
-            if m.content_id not in exported_id:
-                if m.svgdef is not None:
-                    svgdef += [m.svgdef]
-
-                if add_html_svgalt and m.html_svgalt is not None:
-                    svgdef += [m.html_svgalt]
-
-                exported_id += [m.content_id]
-
-
-    svgdef = '\n'.join(svgdef)
-
-    return svgdef, exported_id
 
 
 def svgtopdf(filename: str, dpi=300):

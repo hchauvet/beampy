@@ -1,0 +1,39 @@
+:root{
+    --slideWidth: ${width}px;
+    --slideHeight: ${height}px;
+    --slideBG: $background_color ;
+}
+
+* {
+    margin: 0; padding: 0;
+    -moz-box-sizing: border-box; -webkit-box-sizing: border-box;
+    box-sizing: border-box; 
+    outline: none; 
+    Sborder: none;
+}
+
+body {
+    width: var(--slideWidth);
+    height: var(--slideHeight);
+    margin-left: calc(var(--slideWidth)/-2); 
+    margin-top: calc(var(--slideHeight)/-2);
+    position: absolute; top: 50%; left: 50%;
+    overflow: hidden;
+    display: none;
+    background-color: #ffffff;
+}
+
+section {
+    position: absolute;
+    width: 100%; height: 100%;
+}
+
+html { 
+    background-color: var(--slideBG);
+    height: 100%;
+    width: 100%;
+}
+
+body.loaded {
+    display: block;
+}
