@@ -142,3 +142,42 @@ def make_global_svg_defs(svg_soup: object) -> object:
     #print('Svg refs changed in %0.4fs'%(time.time() - tps))
 
     return soup
+
+
+def export_svgdefs(modules: list, exported_id: list, add_html_svgalt=False) -> (str, list):
+    """Export svgdef for each module in the list, if the module content_id is not in
+    the exported_list. If the module is a group run export_svgdef to do the recursivity
+
+    Returns
+    -------
+
+    list of svgdef and list of updated exported_id
+    """
+
+    svgdef = []
+    for m in modules:
+        # Special case of group which exports id with layer
+        if m.type == 'group':
+            tmp_id, tmp_svgdefs = m.svgdef
+            for i in range(len(tmp_id)):
+                if tmp_id[i] not in exported_id and tmp_svgdefs[i] is not None:
+                    svgdef += [tmp_svgdefs[i]]
+                    exported_id += [tmp_id[i]]
+
+            tmp_svgdef, tmp_id = export_svgdefs(m.modules, exported_id, add_html_svgalt)
+            svgdef += [tmp_svgdef]
+            exported_id += [tmp_id]
+        else:
+            if m.content_id not in exported_id:
+                if m.svgdef is not None:
+                    svgdef += [m.svgdef]
+
+                if add_html_svgalt and m.html_svgalt is not None:
+                    svgdef += [m.html_svgalt]
+
+                exported_id += [m.content_id]
+
+
+    svgdef = '\n'.join(svgdef)
+
+    return svgdef, exported_id

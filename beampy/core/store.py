@@ -5,6 +5,9 @@ The beampy store is used to store beampy slideshow content using the class
 variable conservation in python
 """
 import logging
+import os
+from pathlib import Path
+
 from .._version import __version__
 _log = logging.getLogger(__name__)
 
@@ -77,6 +80,9 @@ class Store(metaclass=StoreMetaclass):
     # Beampy version
     _version = __version__
 
+    # Beampy directory
+    _beampy_dir = Path(os.path.dirname(__file__)).parent.absolute()
+
     # Inkscape session
     _inkscape_session = None
 
@@ -96,6 +102,9 @@ class Store(metaclass=StoreMetaclass):
         """
 
         # Add the slide object to the slides dict
+        if newslide.id in cls._slides:
+            _log.info('Slide %i already in store, it will be replaced')
+
         cls._slides[newslide.id] = newslide
 
         #update the current slide
@@ -356,6 +365,7 @@ class Store(metaclass=StoreMetaclass):
         cls._current_group = None
         cls._glyphs = dict()
         cls._svg_id = 0
+        
 
 # Some functions to easily manipulate the store
 def get_module_position(content_id, slide_id=None):

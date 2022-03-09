@@ -101,9 +101,13 @@ class SourceManager(object):
 
         # Is the script launch from python ./my_file.py
         if '.py' in guess_filename:
-            with open(guess_filename, 'r') as f:
-                self.python_code = f.readlines()
-            self.source = self.return_filesource
+            if Path(guess_filename).is_file():
+                with open(guess_filename, 'r') as f:
+                    self.python_code = f.readlines()
+                self.source = self.return_filesource
+            else:
+                _log.info('Unable to open file %s as source file' % guess_filename)
+                self.source = self.return_nonesource
             
         # Ipython case
         if '<ipython-input-' in guess_filename or 'In' in globals():

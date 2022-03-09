@@ -7,10 +7,27 @@ from beampy.core.store import Store
 from beampy.core.document import document
 from beampy.core.functions import (check_function_args, convert_unit,
                                    set_curentslide, set_lastslide)
+from beampy.core._svgfunctions import export_svgdefs
 from beampy.core.group import group
 from beampy.core.layers import unique_layers, get_maximum_layer
 from beampy.core.geometry import horizontal_distribute, vertical_distribute
+
+from string import Template
+import json
+from io import StringIO
+from pathlib import Path
+from tempfile import gettempdir
+
 import logging
+import sys
+
+try:
+    from IPython import get_ipython
+    from IPython.display import display
+    _IPY_ = get_ipython()
+except:
+    _IPY_ = None
+
 _log = logging.getLogger(__name__)
 
 
@@ -34,12 +51,12 @@ class slide(object):
 
     """
 
-    def __init__(self, title=None, **kwargs):
+    def __init__(self, title=None, slide_num=None, **kwargs):
 
         # Add a slide to the global counter
         # if 'slide' in document._global_counter:
         #    document._global_counter['slide'] += 1
-        #else:
+        # else:
         #    document._global_counter['slide'] = 0
 
         # Init group counter
@@ -49,7 +66,14 @@ class slide(object):
         self.args = check_function_args(slide, kwargs)
 
         # The id for this slide
-        self.slide_num = len(Store)+1
+        if slide_num is None:
+            self.slide_num = len(Store)+1
+        else:
+            if slide_num > len(Store)+1:
+                raise IndexError(f'slide_num should be <= {len(Store)+1}')
+            else:
+                self.slide_num = slide_num
+
         self.id = 'slide_%i' % self.slide_num
         # Set this slide as the curent slide (where components will be added)
         # document._curentslide = self.id
@@ -57,8 +81,8 @@ class slide(object):
         # Change from dict to class
         self.tmpout = ''
         self.modules = []  # will store modules
-        self.id_modules_auto_x = [] # will store modules with x='auto'
-        self.id_modules_auto_y = [] # will store modules with y='auto'
+        self.id_modules_auto_x = []  # will store modules with x='auto'
+        self.id_modules_auto_y = []  # will store modules with y='auto'
         self.contents = {}
         self.element_keys = []
         self.cpt_anim = 0
@@ -72,12 +96,14 @@ class slide(object):
         self.svgout = []
         self.svgdefout = []  # Store module definition for slide
         self.svgdefsid = []  # Store defs id
-        self.htmllayer = {}  # Html is a dict, each key dict is a layer htmlout[0] = [html, html, html] etc...
+        # Html is a dict, each key dict is a layer htmlout[0] = [html, html, html] etc...
+        self.htmllayer = {}
         self.scriptout = []
         self.animout = []
         self.svgheader = ''
         self.svgfooter = '\n</svg>\n'
-        self.svglayers = {}  # Store slide final svg (without svg defs stored in self.svgdefout) for the given layer
+        # Store slide final svg (without svg defs stored in self.svgdefout) for the given layer
+        self.svglayers = {}
 
         # Do we need to render the THEME layout on this slide
         self.render_layout = True
@@ -132,16 +158,17 @@ class slide(object):
         # Add a module to the current slide
         self.modules += [module]
 
-
     def reset_rendered(self):
         self.svgout = []
         self.svgdefout = []  # Store module definition for slide
-        self.htmlout = {}  # Html is a dict, each key dict is a layer htmlout[0] = [html, html, html] etc...
+        # Html is a dict, each key dict is a layer htmlout[0] = [html, html, html] etc...
+        self.htmlout = {}
         self.scriptout = []
         self.animout = []
         self.svgheader = ''
         self.svgfooter = '\n</svg>\n'
-        self.svglayers = {}  # Store slide final svg (without svg defs stored in self.svgdefout) for the given layer
+        # Store slide final svg (without svg defs stored in self.svgdefout) for the given layer
+        self.svglayers = {}
 
     def __enter__(self):
         return self
@@ -149,6 +176,9 @@ class slide(object):
     def __exit__(self, type, value, traceback):
         # Check layers inside this slide
         self.check_modules_layers()
+
+        if _IPY_ is not None:
+            display(self)
 
     def check_modules_layers(self):
         """
@@ -181,6 +211,25 @@ class slide(object):
 
         return out
 
+    def _repr_html_(self):
+        """ Ipython special html export,
+        render the slide as HTML inside an iframe
+        """
+        from IPython.display import IFrame, clear_output
+
+        # Save the slide html to a tmp folder
+        tmp_html_file = Path('./').joinpath('beampy_cache_ipython')
+        if not tmp_html_file.is_dir():
+            tmp_html_file.mkdir(parents=True)
+
+        tmp_html_file = tmp_html_file.joinpath(f'BP_slide_{self.id}.html')
+        with open(tmp_html_file, 'w') as f:
+            f.write(self.to_html())
+
+        clear_output()
+
+        return IFrame(tmp_html_file, '100%', 400)._repr_html_()
+
     def render(self, add_html_svgalt=False):
         """Compute the final position of each modules in the slide and add the
         final module content to the self.layers_content dictionnary. This
@@ -197,7 +246,7 @@ class slide(object):
         self.layers_content = {}
 
         # Init content common to all layers
-        self.layers_content['all']  = {'js': []}
+        self.layers_content['all'] = {'js': []}
 
         # Process x='auto'
         if len(self.id_modules_auto_x) > 0:
@@ -216,8 +265,8 @@ class slide(object):
             # Need to check if we already have the definition of this module
             # This is done globally by the render function
             # if mod.content_id not in self.svgdefsid:
-                # self.svgdefout += [mod.svgdef]
-                # self.svgdefsid += [mod.content_id]
+            # self.svgdefout += [mod.svgdef]
+            # self.svgdefsid += [mod.content_id]
 
             # Export svg use for this module
             for layer in mod.layers:
@@ -247,16 +296,16 @@ class slide(object):
 
                     self.layers_content[layer][mod.type] += [content]
 
-
         # Join the modules content for each layers
         for layer in self.layers_content:
             if layer == 'all':
-                self.layers_content[layer]['js'] = ''.join(self.layers_content[layer]['js'])
+                self.layers_content[layer]['js'] = ''.join(
+                    self.layers_content[layer]['js'])
             else:
-                self.layers_content[layer]['html'] = ''.join(self.layers_content[layer]['html'])
-                self.layers_content[layer]['svg'] = ''.join(self.layers_content[layer]['svg'])
-
-
+                self.layers_content[layer]['html'] = ''.join(
+                    self.layers_content[layer]['html'])
+                self.layers_content[layer]['svg'] = ''.join(
+                    self.layers_content[layer]['svg'])
 
         self.export_header()
 
@@ -312,16 +361,16 @@ class slide(object):
                 curgroup.positionner.place((document._width, document._height))
                 # Export the svg of the slide at a given layer in the slide.svglayers store
                 for layer in curgroup.layers:
-                    print('export layer %i'%layer)
+                    print('export layer %i' % layer)
                     # Check if the layer contain svg outputs (for instance video only layer could exists)
                     try:
-                        self.svglayers[layer] = curgroup.export_svg_layer(layer)
+                        self.svglayers[layer] = curgroup.export_svg_layer(
+                            layer)
                     except Exception as e:
                         # TODO ADD a log to this try
                         print('no svg for layer %i' % layer)
 
-
-                #Need to deal with html module
+                # Need to deal with html module
                 if document._output_format == 'html5':
                     for eid in curgroup.htmlid:
                         # print('Render html %s' % eid)
@@ -344,9 +393,9 @@ class slide(object):
                     out = ''
                     out += '<g><line x1="400" y1="0" x2="400" y2="600" style="stroke: #777"/></g>'
                     out += '<g><line x1="0" y1="%0.1f" x2="800" y2="%0.1f" style="stroke: #777"/></g>' % (
-                    self.ytop + available_height / 2.0, self.ytop + available_height / 2.0)
+                        self.ytop + available_height / 2.0, self.ytop + available_height / 2.0)
                     out += '<g><line x1="0" y1="%0.1f" x2="800" y2="%0.1f" style="stroke: #777"/></g>' % (
-                    self.ytop, self.ytop)
+                        self.ytop, self.ytop)
                     self.add_rendered(svg=out)
 
         self.export_header()
@@ -354,24 +403,156 @@ class slide(object):
     def export_header(self):
         # Export the slide svg header
         svg_template = ('<?xml version="1.0" encoding="utf-8" standalone="no"?> '
-        '<svg width="{width}px" height="{height}px" '
-        'style="background-color:{bgcolor};" '
-        'version="1.1" baseProfile="full" '
-        'xmlns="http://www.w3.org/2000/svg" '
-        'xmlns:svg="http://www.w3.org/2000/svg" '
-        'xmlns:xlink="http://www.w3.org/1999/xlink" '
-        'xmlns:ev="http://www.w3.org/2001/xml-events" '
-        'xmlns:xhtml="http://www.w3.org/1999/xhtml" '
-        'xmlns:dc="http://purl.org/dc/elements/1.1/" '
-        'xmlns:cc="http://creativecommons.org/ns#" '
-        'xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" '
-        'xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" '
-        'xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" '
-        'shape-rendering="geometricPrecision" '
-        '>'
-        '<rect width="{width}px" height="{height}px" fill="{bgcolor}"/>')
+                        '<svg width="{width}px" height="{height}px" '
+                        'style="background-color:{bgcolor};" '
+                        'version="1.1" baseProfile="full" '
+                        'xmlns="http://www.w3.org/2000/svg" '
+                        'xmlns:svg="http://www.w3.org/2000/svg" '
+                        'xmlns:xlink="http://www.w3.org/1999/xlink" '
+                        'xmlns:ev="http://www.w3.org/2001/xml-events" '
+                        'xmlns:xhtml="http://www.w3.org/1999/xhtml" '
+                        'xmlns:dc="http://purl.org/dc/elements/1.1/" '
+                        'xmlns:cc="http://creativecommons.org/ns#" '
+                        'xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" '
+                        'xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" '
+                        'xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" '
+                        'shape-rendering="geometricPrecision" '
+                        '>'
+                        '<rect width="{width}px" height="{height}px" fill="{bgcolor}"/>')
 
         header_template = svg_template.format(width=Store.get_layout()._width,
                                               height=Store.get_layout()._height,
                                               bgcolor=self.args['background'])
         self.svgheader = header_template
+
+    def to_html(self) -> str:
+        """
+        Process this slide, and create an HTML string or file with only this slide.
+
+        Return a string with a valid HTML
+        """
+
+        # First render the slide
+        self.render()
+
+        # TODO: create an optimizer to only export glyphs used in this slide
+        #       this could be done using regex to get id starting with "gXXX"
+        # Export glyphs
+        glyphs_store = ('<svg id="glyph_store"><defs>'
+                        '{glyphs}'
+                        '</defs></svg>')
+        glyphs_store = glyphs_store.format(glyphs=''.join(
+            (g['svg'] for g in Store.get_all_glyphs().values())))
+
+        exported_defs_id = []
+        svg_defs, tmp_id = export_svgdefs(
+            self.modules, exported_id=exported_defs_id)
+
+        # Beampy use json to make reference to a given slide-layer in the HTML/JS world.
+        slide_id = 'slide_0'
+        tmpout = {slide_id: {'svg': [],
+                             'layers_nums': self.num_layers,
+                             'svg_header': self.svgheader,
+                             'svg_footer': self.svgfooter}
+                  }
+
+        layer_defs = ''
+        html_modules = ''
+        for layer in range(self.num_layers+1):
+            if layer in self.layers_content:
+                svg_layer_content = self.layers_content[layer]['svg']
+                html_layer_content = self.layers_content[layer]['html']
+                if html_layer_content != '':
+                    html_modules += ''.join([f'<div id="html_store_slide_0-{layer}"',
+                                             'style="position:absolute;top:0px;left:0px;',
+                                             'visibility:hidden;width:100%;height:100%;">',
+                                             html_layer_content,
+                                             '</div>'])
+            else:
+                # create an empty content (usefull when only html are present in one slide)
+                svg_layer_content = ''
+
+            layer_defs += f"<g id='slide_0-{layer}'>{svg_layer_content}</g>"
+            tmpout[slide_id]['svg'] += [
+                f'<use xlink:href="#slide_0-{layer}"/>']
+
+        if self.animout is not None:
+            tmpout[slide_id]['svganimates'] = {}
+            headers = []
+            for ianim, data in enumerate(self.animout):
+                headers += [data['header']]
+                data.pop('header')
+                tmpout[slide_id]['svganimates'][data['anim_num']] = data
+
+            # Add cached images to global_store
+            # old comparision headers != []
+            if len(headers) > 0:
+                # OLD .decode('utf-8', errors='replace') after join for py2
+                tmp = ''.join(headers)
+                layer_defs += f"{tmp}"
+
+        if self.scriptout is not None:
+            tmpscript = {slide_id: ''.join(self.scriptout)}
+        else:
+            tmpscript = None
+
+        # the defs part of svg
+        global_defs = glyphs_store + \
+            f'<svg><defs>{svg_defs}\n{layer_defs}</defs></svg>'
+
+        # Load statics parts
+        # Read style (use python3 string Template)
+        with open(Store._beampy_dir.joinpath('statics', 'beampy.css'), 'r') as f:
+            css = Template(f.read())
+
+        # Read jquery
+        with open(Store._beampy_dir.joinpath('statics', 'jquery.js'), 'r') as f:
+            jquery = f.read()
+
+        # read html header
+        with open(Store._beampy_dir.joinpath('statics', 'header_V2.html'), 'r') as f:
+            html_header = Template(f.read())
+
+        # read html footer
+        with open(Store._beampy_dir.joinpath('statics', 'footer_V2.html'), 'r') as f:
+            footer = Template(f.read())
+
+        # read beampyjs
+        with open(Store._beampy_dir.joinpath('statics', 'beampy.js'), 'r') as f:
+            beampyjs = f.read()
+
+        # Create the html output file
+        document = Store.get_layout()
+        htmltheme = document._theme['document']['html']
+        css = css.substitute(width=document._width,
+                             height=document._height,
+                             background_color=htmltheme['background_color'])
+
+        # Add jquery and css to html header
+        html_content = html_header.substitute(jquery=jquery,
+                                              css=css)
+
+        # Add svg defs to the html
+        html_content += global_defs
+        # Add html modules div to the html
+        html_content += html_modules
+
+        # Create a json file of all slides javascript defs
+        jsonfile = StringIO()
+        json.dump(tmpout, jsonfile, indent=None)
+        jsonfile.seek(0)
+        # eval this json file in javascript
+        html_content += f'<script>slides=eval(({jsonfile.read()}));</script>'
+
+        # Add javascript added by users in beampy to the html
+        # TODO: re-implement js-output for beampy-V1
+        special_js = ''
+
+        # Add the footer of
+        html_content += footer.substitute(beampy=beampyjs)
+
+        # write cache file
+        if Store.cache() is not None:
+            Store.cache().save()
+
+        return html_content
