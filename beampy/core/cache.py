@@ -43,7 +43,7 @@ class Cache():
             if 'glyphs' in self.data:
                 Store.load_all_glyphs(self.data['glyphs'])
         else:
-            self.folder.mkdir()
+            self.folder.mkdir(parents=True)
             _log.debug('create cache dir')
 
         # Do we need to erase cache due to a change in beampy version
@@ -180,7 +180,7 @@ def create_folder_name():
 
     guess_scriptfilename = Path(sys.argv[0])
     if ('ipykernel' in guess_scriptfilename.name or 'ipython' in guess_scriptfilename.name):
-        cache_folder = guess_scriptfilename.home().joinpath('.cache','beampy_cache_ipython')
+        cache_folder = Path('./').absolute().joinpath('beampy_cache_ipython')
         print(f"Your in a ipython/notebook session I will put the cache in {cache_folder}")
     else:
         scriptname = guess_scriptfilename.name.replace(guess_scriptfilename.suffix, '')
@@ -197,6 +197,6 @@ def create_global_folder_name():
     of finding external programs, or the latex preamble file
     """
 
-    cache_folder = Path('.').home().joinpath('.cache','beampy_cache')
+    cache_folder = Path('./').home().joinpath('.cache','beampy_cache')
 
     return cache_folder
