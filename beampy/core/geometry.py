@@ -807,7 +807,7 @@ class Position():
         """
         if isinstance(value, (Position, Length)):
             #value = getattr(value.bpmodule, value.axis)._value
-            value = value._value
+            value = value.value
 
         if isinstance(value, (list, tuple)):
             if self.axis == 'x':
@@ -966,7 +966,7 @@ class Length():
         """
 
         if isinstance(value, (Length, Position)):
-            value = value._value
+            value = value.value
 
         if isinstance(value, str):
 
