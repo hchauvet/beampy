@@ -6,7 +6,7 @@ Part of Beampy-Slideshow
 """
 import tempfile
 from bs4 import BeautifulSoup
-from beampy.core.functions import inkscape_get_size, convert_unit
+from beampy.core.functions import convert_unit
 from beampy.core.store import Store
 import re
 
@@ -181,3 +181,20 @@ def export_svgdefs(modules: list, exported_id: list, add_html_svgalt=False) -> (
     svgdef = '\n'.join(svgdef)
 
     return svgdef, exported_id
+
+
+def inkscape_get_size(svgfile: str) -> list:
+    """Get the width, height of an svgfile
+    """
+
+    inkscapecmd = document._external_cmd['inkscape']
+    cmd = f'{inkscapecmd} --actions="query-width;query-height;" {svgfile}'
+    req = os.popen(cmd)
+    res = req.readlines()
+
+    width = float(res[0].strip())
+    height = float(res[1].strip())
+
+    req.close()
+
+    return width, 
