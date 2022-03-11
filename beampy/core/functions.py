@@ -5,7 +5,6 @@ Created on Fri May 15 16:45:51 2015
 @author: hugo
 """
 
-from beampy.core.document import document
 from beampy.core.store import Store
 from bs4 import BeautifulSoup
 import re
@@ -118,86 +117,6 @@ def pre_cache_svg_image(svg_frames):
     return out_svg_frames, all_images
 
 
-def make_global_svg_defs_new_but_buggy(svg_soup):
-    """
-        Function to change svg refs and id to a global counter
-        to avoid miss-called elements in slides
-
-        Input -> svg_soup: beautifulsoup object of the svg
-    """
-
-
-    # Test if it exist a svg_id global counter
-    if 'svg_id' not in document._global_counter:
-        document._global_counter['svg_id'] = 0  # init the counter
-
-    # Get all id from defined object in <defs>
-    for defs in svg_soup.find_all('defs'):
-        tags_to_replace = find_svg_tags.findall(str(defs))
-
-
-        base_name = "beampy"
-        for cpt, tag in enumerate(tags_to_replace):
-            #print(tag)
-            #print({'xlink:href': '#%s'%tag})
-            #Some use of this defs
-            new_tag = "%s_%i"%(base_name, document._global_counter['svg_id'])
-            for elem in svg_soup.find_all(attrs={'xlink:href': '#%s'%tag}):
-                elem['xlink:href'] = "#%s"%new_tag
-
-            #Inside defs get the good one to change
-            for elem in svg_soup.find_all(attrs={'id': tag}):
-                elem['id'] = new_tag
-
-            document._global_counter['svg_id'] += 1
-
-    #print('Svg refs changed in %0.4fs'%(time.time() - tps))
-
-    return svg_soup
-
-
-def make_global_svg_defs(svg_soup):
-    """
-        Function to use global counter for id in svg defs and use
-
-        svg_soup a BeautifulSoup object of the svg file
-    """
-
-    # Test if it exist a svg_id global counter
-    if 'svg_id' not in document._global_counter:
-        document._global_counter['svg_id'] = 0  #init the counter
-
-    #str_svg to replace modified id in all the svg content
-    strsvg = svg_soup.decode('utf8')
-
-    #Find defs
-    svgdefs = svg_soup.find('defs')
-    #change_tags = ['path','clipPath','symbol','image', 'mask']
-    #change_tags = ['clipPath','mask','symbol','image']
-    #print(strsvg, svgdefs)
-
-    #Create unique_id_ with time
-    text_id =  ("%0.4f"%time.time()).split('.')[-1]
-    if svgdefs is not None:
-        for tag in svgdefs.findAll(lambda x: x is not None and x.has_attr('id')):
-            oldid = tag['id']
-            newid = "B%s_%i"%(text_id, document._global_counter['svg_id'])
-            strsvg = re.sub(oldid+'"', newid+'"', strsvg)
-
-            if tag.name in ['clipPath','linearGradient']:
-                strsvg = re.sub('(#'+oldid+')', '#'+newid, strsvg)
-                
-
-            # print(oldid, newid)
-            document._global_counter['svg_id'] += 1
-
-    #Reparse the new svg
-    soup = BeautifulSoup(strsvg, 'xml')
-    #print('Svg refs changed in %0.4fs'%(time.time() - tps))
-
-    return soup
-
-
 def horizontal_centering(object_width, xinit=0, page_width=None):
     """
         Function to center and object on the page_width
@@ -209,7 +128,7 @@ def horizontal_centering(object_width, xinit=0, page_width=None):
     """
 
     if page_width == None:
-        page_width = document._width
+        page_width = Store.get_layout()._width
 
     if page_width > object_width:
         available_space = (page_width - object_width)
@@ -291,7 +210,7 @@ def latex2svg(latexstring, cached_preamble=None, write_tmpsvg=False):
     _log.debug('Run latex2svg function')
     _log.debug(latexstring)
 
-    dvisvgmcmd = document._external_cmd['dvisvgm']
+    dvisvgmcmd = Store.get_layout()._external_cmd['dvisvgm']
 
     # Create variable to store name of the created temp file
     tmpname = None
@@ -449,81 +368,36 @@ def clean_ghostscript_warnings(rawsvg):
     return good_svg
 
 
-def inkscape_get_size(svgfile: str) -> list:
-    """Get the width, height of an svgfile
-    """
-
-    inkscapecmd = document._external_cmd['inkscape']
-    cmd = f'{inkscapecmd} --actions="query-width;query-height;" {svgfile}'
-    req = os.popen(cmd)
-    res = req.readlines()
-
-    width = float(res[0].strip())
-    height = float(res[1].strip())
-
-    req.close()
-
-    return width, height
-
-
-def getsvgwidth( svgfile ):
-    """
-        get svgfile width using inkscape
-    """
-
-    inkscapecmd = document._external_cmd['inkscape']
-
-    cmd = inkscapecmd + ' -z -W %s'%svgfile
-    req = os.popen(cmd)
-    res = req.read()
-    req.close()
-
-    return res
-
-def getsvgheight( svgfile ):
-    """
-        get svgfile height using inkscape
-    """
-
-    inkscapecmd = document._external_cmd['inkscape']
-
-    cmd = inkscapecmd + ' -z -H %s'%svgfile
-    req = os.popen(cmd)
-    res = req.read()
-    req.close()
-
-    return res
-
-
 def gcs():
     """
         Fonction get current slide of the doc
     """
 
-    return document._curentslide
+    return Store.get_current_slide_id()
 
 def set_curentslide(slide_id):
     """
     Set the curent slide to the given slide_id
     """
-
-    document._curentslide = slide_id
+    raise NotImplemented
+    # Store.set_curentslide(slide_id)
 
 def set_lastslide():
     '''
     Set the curent slide as the last slide added in the presentation
     '''
+    raise NotImplemented
+    # last_slide_id = 'slide_%i' % (document._global_counter['slide'])
+    # document._curentslide = last_slide_id
 
-    last_slide_id = 'slide_%i' % (document._global_counter['slide'])
-    document._curentslide = last_slide_id
 
-
-def gce(doc=document):
+def gce():
     """
         Function to get the current element number
     """
 
-    return doc._global_counter['element']
+    # TODO: return doc._global_counter['element']
+    raise NotImplemented
 
 
 def epstopdf(eps_input_file, pdf_output_file):
@@ -533,7 +407,7 @@ def epstopdf(eps_input_file, pdf_output_file):
 
     '''
 
-    return check_call([document._external_cmd['epstopdf'],
+    return check_call([Store.get_layout()._external_cmd['epstopdf'],
                        eps_input_file, pdf_output_file])
 
 def pdf2svg(pdf_input_file, svg_output_file):
@@ -543,7 +417,7 @@ def pdf2svg(pdf_input_file, svg_output_file):
 
     '''
 
-    return check_call([document._external_cmd['pdf2svg'],
+    return check_call([Store.get_layout()._external_cmd['pdf2svg'],
                        pdf_input_file, svg_output_file])
 
 
@@ -616,7 +490,7 @@ def load_args_from_theme(function_name, args):
     for key in args:
         if args[key] == "" or args[key] is None:
             try:
-                args[key] = document._theme[function_name][key]
+                args[key] = Store.theme(function_name)[key]
             except KeyError:
                 print("[Beampy] No theme propertie for %s in %s" % (key, element_id))
 
@@ -630,7 +504,7 @@ def check_function_args( function, arg_values_dict, lenient = False ):
     """
 
     function_name = function.__name__
-    default_dict = document._theme[function_name]
+    default_dict = Store.theme(function_name)
     outdict = {}
 
     for key, value in arg_values_dict.items():
@@ -656,13 +530,13 @@ def check_function_args( function, arg_values_dict, lenient = False ):
 def print_function_args(function_name):
     #Pretty print of function arguments with default values
     print("Allowed arguments for %s"%(function_name))
-    for key, value in document._theme[function_name].items():
+    for key, value in Store.theme(function_name).items():
         print("%s: [%s] %s"%(key, str(value), type(value)))
 
 def inherit_function_args(function_name, args_dict):
     #Allow to add args defined for an other function to the args_dict
 
-    for key, value in document._theme[function_name].items():
+    for key, value in Store.theme(function_name).items():
         if key not in args_dict:
             args_dict[key] = value
 
@@ -745,16 +619,22 @@ def get_command_line(func_name):
     frame,filename,nline,function_name,lines,index = inspect.stack()[-1]
     """
 
+    sourcemanager = Store.get_layout()._source_code
+
     frame, filename, nline, function_name, lines, index = inspect.stack()[-1]
-    # print(nline, func_name)
+    
+    # On IPython nline gives a weird thing
+    if sourcemanager._IPY_ != False:
+        nline = len(sourcemanager._IPYsource.split('\n'))
+
     if not isinstance(func_name, str):
         # func_name = func_name.func_name
         func_name = func_name.__name__
 
     # print(frame,filename,nline,function_name,lines,index)
     start = None
-    src = document._source_code.source(stop=nline).split('\n')
-    # print(src)
+    src = sourcemanager.source(stop=nline).split('\n')
+
     for cpt, line in enumerate(src[::-1]):
         if func_name+'(' in line:
             # print(line)
@@ -764,7 +644,12 @@ def get_command_line(func_name):
     # print start
     if start is not None:
         stop = nline-1
-        source = document._source_code.source(start+1, nline).replace('\n', '')
+        if not sourcemanager._IPY_:
+            source = sourcemanager.source(start+1, nline).replace('\n', '')
+        else:
+            stop = stop - 1
+            source = sourcemanager.source(start, stop).replace('\n', '')
+            start = start + 1
     else:
         start = 0
         stop = 0
@@ -802,190 +687,6 @@ def guess_file_type(file_name, file_type=None):
             raise TypeError('Unknown file type '+ext+' for file name: ' + file_name + '.' )
 
     return file_type
-
-
-# Function to render texts in document
-def render_texts(elements_to_render=None, extra_packages=None):
-    r"""
-    Function to merge all text in the document to run latex only once
-    This function build the .tex file and then call two external programs
-    .tex -> latex -> .dvi -> dvisvgm -> svgfile
-
-    Parameters:
-    -----------
-
-    elements_to_render, list of beampy_module (optional):
-        List of beampy_module object to render (the default is None,
-        which render all text module in all slides).
-
-    extra_packages, list of string (optional):
-        Give a list of extra latex packages to use in the latex
-        template. Latex packages should be given as follow:
-        [r'\usepackage{utf8x}{inputenc}']
-    """
-
-    if elements_to_render is None:
-        elements_to_render = []
-
-    if extra_packages is None:
-        extra_packages = []
-
-    print('Render texts of slides with latex')
-    latex_header = r"""
-    \documentclass[crop=true, multi=varwidth]{standalone}
-    \usepackage[utf8x]{inputenc}
-    \usepackage{fix-cm}
-    \usepackage[hypertex]{hyperref}
-    \usepackage[svgnames]{xcolor}
-    \renewcommand{\familydefault}{\sfdefault}
-    \usepackage{varwidth}
-    \usepackage{amsmath}
-    \usepackage{amsfonts}
-    \usepackage{amssymb}
-    %s
-    \begin{document}
-    """ % ('\n'.join(extra_packages + document._latex_packages))
-    latex_pages = []
-    latex_footer = r"\end{document}"
-
-    # logging.debug(latex_header)
-    #Loop over slide
-    t = time.time()
-    cpt_page = 1
-    elements_pages = []
-
-
-    if elements_to_render == []:
-        for islide in range(len(document._slides)-1):
-            # don't loop over document._slides keys directly as they will be ordered differentyl in py2 and py3
-            sid = 'slide_%i' % (islide+1)
-            #Loop over content in the slide
-            for cid in document._slides[sid].element_keys:
-                e = document._slides[sid].contents[cid]
-                #Check if it's a text element, is it cached?, render it to latex syntax
-                if e.type == 'text' and e.usetex and not e.rendered:
-                    elements_to_render += [e]
-
-
-    for e in elements_to_render:
-        if e.cache and document._cache is not None:
-            _log.debug('Render_texts test cache for element %s(id=%s) on slide: %s' % (e.name, e.id, e.slide_id))
-            ct_cache = document._cache.is_cached(e.slide_id, e)
-            if ct_cache is False:
-                # Run the pre_rendering
-                e.pre_render()
-
-                try:
-                    latex_pages += [e.latex_text]
-                    elements_pages += [{"element": e, "page": cpt_page}]
-                    cpt_page += 1
-                except Exception as e:
-                    print(e)
-        else:
-
-            e.pre_render()
-
-            try:
-                latex_pages += [e.latex_text]
-                elements_pages += [{"element": e, "page": cpt_page}]
-                cpt_page += 1
-            except Exception as e:
-                print(e)
-
-
-    _log.debug(latex_header+'\n \\newpage \n'.join(latex_pages)+latex_footer)
-    # Write the file to latex
-    if len(latex_pages) > 0:
-        # get the location of tempdir
-        tmppath = tempfile.gettempdir()
-
-        # Create a None tempory filename
-        tmpname = None
-
-        # Create a variable to store the latex output
-        tex_outputs = None
-
-        # Use tempfile.NamedTemporaryFile to create a text file with .tex suffix and beampytmp prefix
-        # NamedTemporaryFile automaticly close the file at the end of the context by default
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.tex', prefix='beampytmp') as f:
-            # Get the name of the file
-            tmpname, extension = os.path.splitext(f.name)
-
-            # Write down the latex code to this file
-            f.write(latex_header)
-            f.write('\n \\newpage \n'.join(latex_pages))
-            f.write(latex_footer)
-
-            print('Latex file writen in %f'%(time.time()-t))
-
-            # Flush the file content so that latex can see it
-            f.file.flush()
-
-            #Run Latex using subprocess
-            #t = time.time()
-            cmd = "cd "+tmppath+" && latex -interaction=nonstopmode --halt-on-error "+f.name
-            _log.debug(cmd)
-
-            tex = os.popen(cmd)
-            #print('Latex run in %f'%(time.time()-t))
-            tex_outputs = tex.read()
-            _log.debug(tex_outputs)
-            tex.close() # close os.popen
-
-
-        # to test the output of latex file
-        """
-        with open('test_text_py2.tex', 'w') as f:
-            f.write(latex_header)
-            f.write('\n \\newpage \n'.join(latex_pages))
-            f.write(latex_footer)
-        """
-
-        if tex_outputs is None or 'error' in tex_outputs or '!' in tex_outputs:
-            print(tex_outputs)
-            print('Latex compilation error')
-            #Remove temp files generated by latex
-            for f in glob.glob(tmpname+'*'):
-                os.remove(f)
-
-            # Stop Beampy compilation
-            sys.exit(1)
-
-        #Upload svg to each elements
-        dvisvgmcmd = document._external_cmd['dvisvgm']
-
-        t = time.time()
-        if tmpname is not None:
-            cmd = dvisvgmcmd+' -n -s -p1- --linkmark=none -v0 '+tmpname+'.dvi'
-            allsvgs = check_output(cmd, shell=True).decode('utf8', errors='replace')
-            allsvgs = allsvgs.splitlines()
-
-            #To split the data get the xml syntax <? xml ....?>
-            schema = get_xml_tag(allsvgs)
-            _log.debug('Schema to cut svg %s'%(str(schema)))
-            assert schema is not None
-
-            # Check if their is warning emitted by dvisvgm inside the svgfile
-            allsvgs = clean_ghostscript_warnings(allsvgs)
-
-            #Join all svg lines and split them each time you find the schema
-            svg_list = ''.join(allsvgs).split(schema)
-            if svg_list[0] == '':
-                svg_list = svg_list[1:]
-
-            _log.debug('Size of svg %i and size of latex pages %i'%(len(svg_list), len(elements_pages)))
-            assert len(svg_list) == len(elements_pages)
-
-            #Process all pages to svg
-            for i, ep in enumerate(elements_pages):
-                #Loop over content in the slide
-                ep['element'].svgtext = schema + svg_list[i]
-
-        print('DVI -> SVG in %f'%(time.time()-t))
-
-        #Remove temp files generated by latex
-        for f in glob.glob(tmpname+'*'):
-            os.remove(f)
 
 
 PYTHON_XMLFIND_REGEX = re.compile(r'<\?xml[^>]+>')
@@ -1083,18 +784,60 @@ def find_strings_in_with(source_code: str, module_name: str) -> list:
     list of texts found inside the with statement
     """
 
-    tmp = ['(?:with.*?'+module_name+r'\(.*?\):.*?\"{3})(.*?)(?:\"{3})']
-    tmp += ['(?:with.*?'+module_name+r'\(.*?\):.*?\'{3})(.*?)(?:\'{3})']
-    tmp = '|'.join(tmp)
-    re_pattern = re.compile(tmp, re.DOTALL)
+    # First try to find indentation level of the source 
+    pattern1 = r'(?:with.+text.+:[\n\r])(\s+)'
+    indent_level=len(re.findall(pattern1, source_code, re.MULTILINE)[0])
 
-    groups = re_pattern.findall(source_code)
+    # Parse the indented block in the source file to keep only valid indented regions
+    # TODO: this implementation is dirty!!!
+    start_text = False
+    keep_text = []
+    cur_tripple_quotes = None
+    for line in source_code.splitlines():
+        # trick to test blank line len(line.strip())>0
+        if start_text and line and len(line.strip())>0:
+            if line.startswith(' '*indent_level) or cur_tripple_quotes is not None:
+                keep_text += [line.strip()]
+            
+                # Need to handle case when tripple quote are used 
+                # as they could remove indentation inside
+                if '"""' in line:
+                    if cur_tripple_quotes != '"""':
+                        cur_tripple_quotes = '"""'
+                    else:
+                        cur_tripple_quotes = None
+                    
+                if "'''" in line:
+                    if cur_tripple_quotes != "'''":
+                        cur_tripple_quotes = "'''"
+                    else: 
+                        cur_tripple_quotes = None
+            
+            else:
+                if cur_tripple_quotes is None:
+                    break
 
-    texts_parts = []
+        
+        if not start_text and 'text' in line:
+            start_text = True
+        
+    
+    indented_part = '\n'.join(keep_text)
 
-    # two groups when for """ and one for '''
-    for tmptext in groups[0]:
-        if tmptext != '':
-            texts_parts += [tmptext.strip()]
+    patterns_2 = [r'(?:^\"{3}[\r\n]?)([\s\S]*?)(?:\"{3})',
+                  r'(?:^\'{3}[\r\n]?)([\s\S]*?)(?:\'{3})',
+                  r'(?<=\")([^\"]+)(?=\")',
+                  r'(?<=\')([^\"]+)(?=\')']
 
-    return texts_parts
+    all_groups = re.findall('|'.join(patterns_2), 
+                            indented_part, 
+                            re.MULTILINE)
+    
+    # export text_parts finded with regexp
+    text_parts = []
+    for groups in all_groups:
+        for g in groups:
+            if g != '':
+                text_parts += [g.strip()]
+
+    return text_parts

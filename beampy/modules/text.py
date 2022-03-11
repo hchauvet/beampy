@@ -19,7 +19,7 @@ Latex Font
 
 from beampy.core.store import Store
 from beampy.core.cache import create_global_folder_name
-from beampy.core.functions import (gcs, color_text, getsvgwidth, getsvgheight,
+from beampy.core.functions import (gcs, color_text, 
                                    latex2svg, process_latex_header,
                                    find_strings_in_with)
 
@@ -117,7 +117,7 @@ class text(beampy_module):
                               **kwargs)
 
         # Load default from theme
-        self.apply_theme()
+        self.apply_theme(exclude=['textin'])
 
         # TODO: Parse the incomming text to add decoration or special commands
 
@@ -133,8 +133,10 @@ class text(beampy_module):
         # Add agrs to check for id
         self.args_for_cache_id = [self.font, self.color, self.size, self.va,
                                   self.margin, self.align]
-        # Add the content this will run the render method if needed
-        self.add_content(textin, 'svg')
+
+        if textin is not None:
+            # Add the content this will run the render method if needed
+            self.add_content(textin, 'svg')
 
     def render(self):
         """Transform the latex to svg and clean the output svg. Make svg id unique and
@@ -419,6 +421,23 @@ class text(beampy_module):
 
         else:
             raise KeyError("No such font available fonts:\n %s " % '\n'.join(LATEX_FONT.keys()))
+
+    def process_with(self):
+        """
+        Parse the text enclosed contain in the with statement.
+        with text():
+            "bla bla bla bla"
+
+            '''this is a cool thing
+            do you think'''
+
+            'yeahhhhhhh'
+        """
+        
+        source = Store.get_layout()._source_code.source(start=self.start_line-1)
+        input_texts = find_strings_in_with(source, 'text')
+        self.textin = r'\\'.join([r"%s" % t for t in input_texts])
+        self.add_content(self.textin, self.type)
 
 class textOld(beampy_module):
     r"""
