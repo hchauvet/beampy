@@ -6,7 +6,6 @@ Created on Fri May 15 16:48:01 2015
 """
 from multiprocessing import Pool
 from beampy.core.store import Store
-from beampy.core.functions import render_texts
 from beampy.core._svgfunctions import export_svgdefs
 from string import Template
 import json

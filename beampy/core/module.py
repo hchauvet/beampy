@@ -304,8 +304,8 @@ class beampy_module():
             elif len(new_margin) == 4:
                 self._margin = [Length(new_margin[0], 'y'),
                                 Length(new_margin[1], 'x'),
-                                Length(new_margin[3], 'y'),
-                                Length(new_margin[4], 'x')]
+                                Length(new_margin[2], 'y'),
+                                Length(new_margin[3], 'x')]
             else:
                 raise TypeError("The size of margin list should be 2 or 4, not %s" % len(new_margin))
         elif new_margin is None:
@@ -926,6 +926,8 @@ class beampy_module():
         """Compute the position of the module and store the result in
         self._final_x, self._final_y variables.
 
+        The final position are done according to margin defined in the module (left and top)
+        
         The computation of Position and Length will fix the relative length used
         for "%" operations.
 
@@ -939,7 +941,7 @@ class beampy_module():
         update_x = False
         update_y = False
 
-        # Apply origine transformation
+        # Apply origin transformation
         if self.xorigine == 'center':
             xf = self.x - self.width/2
             update_x = True
@@ -963,7 +965,11 @@ class beampy_module():
             self.x = xfv
         if update_y:
             self.y = yfv
-        # Run the processing for x and y and store the final position
+
+        # Add left and top margins to final position
+        xfv = xfv + self.margin[1]
+        yfv = yfv + self.margin[0]
+
         self._final_x = xfv
         self._final_y = yfv
 
@@ -1218,12 +1224,6 @@ class beampy_module():
 
         return out
 
-    def export_html(self):
-
-        out = """<div style="visibility: hidden; position: absolute; left: %spx; top: %spx;"> %s </div></br>"""
-        out = out%(self.positionner.x['final'], self.positionner.y['final'], self.htmlout)
-
-        return out
 
     def export_animation(self):
         # Export animation of list of svg

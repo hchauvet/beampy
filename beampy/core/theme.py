@@ -42,7 +42,7 @@ class Theme():
         """
 
         # Load the default theme
-        default = self.load_theme(bproot.joinpath('statics/default_theme.py'))
+        default = self.load_theme(bproot.joinpath('statics', 'default_theme.py'))
 
         if theme_file is not None:
             abs_path_to_theme = self.parse_file(theme_file)

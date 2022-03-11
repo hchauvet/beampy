@@ -348,6 +348,7 @@ class Store(metaclass=StoreMetaclass):
         """
         cls._svg_id += 1
 
+
     @classmethod
     def clear_all(cls):
         """
@@ -365,7 +366,7 @@ class Store(metaclass=StoreMetaclass):
         cls._current_group = None
         cls._glyphs = dict()
         cls._svg_id = 0
-        
+
 
 # Some functions to easily manipulate the store
 def get_module_position(content_id, slide_id=None):

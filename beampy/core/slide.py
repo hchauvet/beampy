@@ -115,10 +115,11 @@ class slide(object):
         #document._slides[self.id] = self
 
         # Store the current TOC position
-        if len(document._TOC) > 0:
-            self.TOCposition = document._TOC[-1]
-        else:
-            self.TOCposition = 0
+        # TODO: Re-implement TOC !!!
+        #if len(document._TOC) > 0:
+        #    self.TOCposition = document._TOC[-1]
+        #else:
+        self.TOCposition = 0
 
         # Manage groups inside one slide the lower level of group is 0 and correspond
         # to the main slide

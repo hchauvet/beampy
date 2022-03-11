@@ -7,8 +7,9 @@ Created on Fri May 22 18:28:59 2015
 import sys
 from distutils.spawn import find_executable
 from beampy.core.theme import Theme
+from beampy.core.cache import Cache
+from beampy.core.store import Store
 
-from beampy import __version__ as bpversion
 # Auto change path
 import os
 import glob
@@ -20,6 +21,15 @@ bppath = Path(os.path.dirname(__file__))
 bppath = str(bppath.parent)  + '/'
 basename = os.path.basename(__file__)
 script_file_name = os.path.basename(sys.argv[0]).split('.')[0]
+
+try:
+    from IPython import get_ipython
+    from IPython.display import display
+    _IPY_ = get_ipython()
+    if _IPY_ is None:
+        _IPY_ == False
+except:
+    _IPY_ = False
 
 import logging
 _log = logging.getLogger(__name__)
@@ -58,71 +68,79 @@ class SourceManager(object):
         If filename is given, use this name to find the frame in the stack
         """
         
+        self._IPY_ = _IPY_
+
         # Loop over frames
-        all_frames = inspect.stack()
-        cframe = None
-        for f in all_frames:
-
-            # If a filename is given check if we find it in the stack
-            if filename is not None:
-                if filename in f[1]:
-                    cframe = f[0]
-                    break
-
-            # Or check if we find module and if this module come from a .py file
-            if  '<module>' in f[3]:
-                _log.debug(f)
-                # Test if the source of the module is a file
-                if '.py' in f[1]:
-                    cframe = f[0]
-                    break
-                
-        if cframe is None:
-            _log.info('No .py found in the stack... some modules will not work properly')
+        if not _IPY_:
+            all_frames = inspect.stack()
+            cframe = None
             for f in all_frames:
-                _log.debug(f)
-            
-            cframe = all_frames[-1][0]
-            
-        #cframe = inspect.stack()[-1][0]
-        # cur_frame = inspect.currentframe().f_code
-        cur_frame = cframe.f_code
-        
-        guess_filename = cur_frame.co_filename
-        self.python_code = None
-        _log.debug(guess_filename)
-        
-        # Default
-        self.source = self.return_nonesource
-        self.join_char = ''
 
-        if guess_filename == '':
-            guess_filename = sys.argv[0]
+                # If a filename is given check if we find it in the stack
+                if filename is not None:
+                    if filename in f[1]:
+                        cframe = f[0]
+                        break
 
-        # Is the script launch from python ./my_file.py
-        if '.py' in guess_filename:
-            if Path(guess_filename).is_file():
-                with open(guess_filename, 'r') as f:
-                    self.python_code = f.readlines()
-                self.source = self.return_filesource
-            else:
-                _log.info('Unable to open file %s as source file' % guess_filename)
-                self.source = self.return_nonesource
+                # Or check if we find module and if this module come from a .py file
+                if  '<module>' in f[3]:
+                    _log.debug(f)
+                    # Test if the source of the module is a file
+                    if '.py' in f[1]:
+                        cframe = f[0]
+                        break
+                
+            if cframe is None:
+                _log.info('No .py found in the stack... some modules will not work properly')
+                for f in all_frames:
+                    _log.debug(f)
             
-        # Ipython case
-        if '<ipython-input-' in guess_filename or 'In' in globals():
+                cframe = all_frames[-1][0]
+            
+            #cframe = inspect.stack()[-1][0]
+            # cur_frame = inspect.currentframe().f_code
+            cur_frame = cframe.f_code
+        
+            guess_filename = cur_frame.co_filename
+            self.python_code = None
+            _log.debug(guess_filename)
+        
+            # Default
+            self.source = self.return_nonesource
+            self.join_char = ''
+
+            if guess_filename == '':
+                guess_filename = sys.argv[0]
+
+            # Is the script launch from python ./my_file.py
+            if '.py' in guess_filename:
+                if Path(guess_filename).is_file():
+                    with open(guess_filename, 'r') as f:
+                        self.python_code = f.readlines()
+                    self.source = self.return_filesource
+                else:
+                    _log.info('Unable to open file %s as source file' % guess_filename)
+                    self.source = self.return_nonesource
+        else:
+            # Ipython case
             self.source = self.return_ipythonsource
+            self._IPYsource = ''
             self.join_char = '\n'
 
-        # Need to record the stdin
-        if 'stdin' in guess_filename:
-            print("todo")
+            # Register the events to ipython
+            load_ipython_extension(_IPY_)
 
+
+        
     def return_filesource(self, start=0, stop=-1):
         return ''.join(self.python_code[start:stop])
 
     def return_ipythonsource(self, start=0, stop=-1):
-        return '\n'.join(In[-1].split('\n')[start:stop])
+        """
+        Return the last '_iXX' of the globals() dict
+        """
+        
+        return '\n'.join(self._IPYsource.split('\n')[start:stop])
 
     def return_nonesource(self):
         return ''
@@ -132,50 +150,13 @@ class SourceManager(object):
 
 
 class document():
-
     """
-       Main function to define the document style etc...
+       Define the layout of slides and global options for beampy
     """
 
-    __version__ = bpversion
-    # Global variables to sotre data
-    _contents = {}
-    _slides = {}
-    _curentslide = None
-    _global_counter = {}
-    _width = 0
-    _height = 0
-    _guide = False
-    _text_box = False
-    _optimize_svg = True
-    _output_format = 'html5'
-    _theme = Theme()
-    _cache = None
-    _pdf_animations = False
-    _resize_raster = True
-    _source_code = []  # Store the source code of the input script
-    _rendered = False  # Store the state of the entire document (allow multiformat output)
-
-    # Store data that need to be globally loaded in html like raster
-    # contents images, video, etc...  Format of an entry in the list:
-    # {'type': 'svg (or html)', 'content': the data to be loaded}
-    _global_store = {}
-
-    # Define path to external commands (see default THEME file)
-    _external_cmd = {}
-
-    # Define quiet state for docuement
-    _quiet = False
-
-    # Store extra latex packages globally
-    _latex_packages = []
-
-    # The TOC format should be TOC = ['title':'Subsublevel title', level:1]
-    _TOC = []
     
-    # REMOVE globals=globals(), locals=locals() they are useless
-    
-    def __init__(self, quiet=False, latex_packages=None, source_filename=None, **kwargs):
+    def __init__(self, width=None, height=None, optimize=None, cache=True, resize_raster=True, theme=None, 
+                 quiet=False, latex_packages=None, source_filename=None, auto_register=True, **kwargs):
         """
   
           Create document to store slides
@@ -195,28 +176,20 @@ class document():
             latex_packages = []
 
         if quiet:
-            document._quiet = True
+            self._quiet = True
             sys.stdout = open(os.devnull, 'w')
+        else:
+            self._quiet = False
 
-        # reset if their is old variables
-        self.reset()
         
-        # A document is a dictionnary that contains all the slides
-        self.data = self._contents
-        
-        # To store different counters
-        self.global_counter = self._global_counter
-
         self.source_filename = source_filename
         
-        # Check if we want to load a new theme
-        if 'theme' in kwargs:
-            theme = kwargs['theme']
-
-            document._theme = Theme(theme)
+        
+        # Load the Theme
+        self._theme = Theme(theme)
 
         # Store extra latex packages globally
-        document._latex_packages = latex_packages
+        self._latex_packages = latex_packages
         
         # Load document options from THEME
         self.set_options(kwargs)
@@ -224,22 +197,16 @@ class document():
         # Load external tools
         self.link_external_programs()
 
+        # Add this document to the layout in the store
+        if auto_register:
+            Store.add_layout(self)
+
         # Load the source code of the current presentation
-        self.get_source_code(source_filename)
-
-        # Output the storage of slide etc... in debug logger
-        _log.debug('Document class before adding slides')
-        _log.debug('From classmethod (class not instantiated)')
-        _log.debug(document.print_variables())
-
-        # Print the header message
-        print("="*20 + " BEAMPY START " + "="*20)
+        self._source_code = SourceManager(source_filename)
 
     def set_options(self, input_dict):
         # Get document option from THEME
-        default_options = self._theme['document']
-        if 'theme' in input_dict:
-            default_options['theme'] = input_dict['theme']
+        default_options = Store.theme('document')
 
         good_values = {}
         for key, value in input_dict.items():
@@ -268,38 +235,8 @@ class document():
         document._optimize_svg = good_values['optimize']
         document._resize_raster = good_values['resize_raster']
         document._output_format = good_values['format']
-        
-        if not document._cache:
-            document._cache = None
-        else:
-            if self.source_filename is not None:
-                cache_file = './.beampy_cache_%s' % (self.source_filename)
-            else:
-                cache_file = './.beampy_cache_%s' % (script_file_name)
-                
-            print("\nChache file to %s" % (cache_file))
-            document._cache = cache_slides(cache_file, self)
 
         self.options = good_values
-
-    def reset(self):
-        document._contents = {}
-        document._slides = {}
-        document._global_counter = {}
-        document._width = 0
-        document._height = 0
-        document._guide = False
-        document._text_box = False
-        document._theme = Theme()
-        document._cache = None
-        document._external_cmd = {}
-        document._resize_raster = True
-        document._output_format = 'html5'
-        document._TOC = []
-
-        document._global_store = {}
-        document._external_cmd = {}
-        document._latex_packages = []
 
     def link_external_programs(self):
         # Function to link [if THEME['document']['external'] = 'auto'
@@ -307,6 +244,7 @@ class document():
 
         #Loop over options
         missing = False
+        self._external_cmd = dict()
         for progname, cmd in self.options['external_app'].items():
             if cmd == 'auto':
 
@@ -315,20 +253,20 @@ class document():
                     find_ffmpeg = find_executable('ffmpeg')
                     find_avconv = find_executable('avconv')
                     if find_ffmpeg is not None:
-                        document._external_cmd[progname] = find_ffmpeg
+                        self._external_cmd[progname] = find_ffmpeg
                     elif find_avconv is not None:
-                        document._external_cmd[progname] = find_avconv
+                        self._external_cmd[progname] = find_avconv
                     else:
                         missing = True
                 else:
                     find_app = find_executable(progname)
                     if find_app is not None:
-                        document._external_cmd[progname] = find_app
+                        self._external_cmd[progname] = find_app
                     else:
                         missing = True
 
             else:
-                document._external_cmd[progname] = cmd
+                self._external_cmd[progname] = cmd
 
             if missing:
                 if progname == 'video':
@@ -339,17 +277,19 @@ class document():
                 print('Missing external tool: %s, please install it before running Beampy'%name)
                 #sys.exit(1)
 
-        outprint = '\n'.join(['%s:%s'%(k, v) for k, v in document._external_cmd.items()])
+        outprint = '\n'.join(['%s:%s'%(k, v) for k, v in self._external_cmd.items()])
         print('Linked external programs\n%s'%outprint)
 
-    def get_source_code(self, sourcefilename=None):
-        document._source_code = SourceManager(sourcefilename)
+    def IPYupdate_source(self, info):
+        """
+        Trigger event from Ipython to update the source of the current cell
+        """
+        
+        # Add an empty new line at the end
+        self._source_code._IPYsource = info.raw_cell + '\n'
 
     def __repr__(self):
-        output = '''
-        Document class infos:
-        %s
-        '''
+        output = 'Document class infos:\n %s'
 
         allvars = vars(self)
         private = ''
@@ -364,32 +304,6 @@ class document():
 
         return output % (private+'\n\n'+other)
 
-    @classmethod
-    def print_variables(cls):
-        """
-        Print information on the document class and the content of its
-        private data and methods.
-        """
-
-        # Calling cls.__repr__(cls) works for python 3.x but not for
-        # python 2.7
-
-        output = '''Document class infos:
-        %s
-        '''
-
-        allvars = vars(cls)
-        private = ''
-        other = ''
-        
-        for k in allvars:
-            fmt = '%s: %s\n' % (k, str(allvars[k]))
-            if k.startswith('_'):
-                private += fmt
-            else:
-                other += fmt
-                
-        return output % (private+'\n\n'+other)
     
 def section(title):
     """
@@ -447,3 +361,11 @@ def subsubsection(title):
                           'slide': islide, 'id':hash(time())})
 
     
+
+def load_ipython_extension(ip):
+    """
+    Add and event callback to ipython 
+    https://ipython.readthedocs.io/en/stable/config/callbacks.html
+    """
+
+    ip.events.register('pre_run_cell', Store.get_layout().IPYupdate_source)
