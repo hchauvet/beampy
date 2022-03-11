@@ -6,7 +6,7 @@ Module to write raw svg commands in slides
 """
 
 from beampy.core.document import document
-from beampy.core.functions import inkscape_get_size
+from beampy.core._svgfunctions import inkscape_get_size
 from beampy.core.group import group
 from beampy.core.module import beampy_module
 from beampy.core.geometry import convert_unit

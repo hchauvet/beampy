@@ -2,7 +2,7 @@
 from beampy.core.document import document
 from beampy.core.group import group
 from beampy.core.geometry import center
-from beampy.core.functions import set_curentslide, set_lastslide, render_texts
+from beampy.core.functions import set_curentslide, set_lastslide
 from beampy.modules.text import text
 from beampy.modules.svg import circle, rectangle
 

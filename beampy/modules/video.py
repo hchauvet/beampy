@@ -6,7 +6,7 @@ Created on Sun Oct 25 19:05:18 2015
 
 Class to manage text for beampy
 """
-from beampy.core.document import document
+from beampy.core.store import Store
 from pathlib import Path
 from beampy.core.module import beampy_module
 from beampy.core.functions import gcs
@@ -119,7 +119,7 @@ class video(beampy_module):
         It use FFMPEG to extract one image
         """
 
-        FFMPEG_CMD = document._external_cmd['video_encoder']
+        FFMPEG_CMD = Store.get_layout()._external_cmd['video_encoder']
         FFMPEG_CMD += ' -loglevel 8 -i "%s" -f image2 -ss %s -vframes 1 -; exit 0' % (self.videofile,
                                                                                          self.still_image_time)
 

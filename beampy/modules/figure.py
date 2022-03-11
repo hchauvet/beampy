@@ -6,8 +6,7 @@ Created on Sun Oct 25 19:05:18 2015
 """
 
 from beampy.core.document import document
-from beampy.core.functions import (convert_unit, optimize_svg, gcs, getsvgwidth,
-                                   getsvgheight, convert_pdf_to_svg,
+from beampy.core.functions import (convert_unit, optimize_svg, gcs, convert_pdf_to_svg,
                                    convert_eps_to_svg,
                                    guess_file_type)
 from beampy.core._svgfunctions import (get_svg_size, make_global_svg_defs)
@@ -354,10 +353,14 @@ class figure(beampy_module):
             self.content_height = figure_height
 
 
-def resize_raster_image(PILImage, max_width=document._width, jpegqual=96):
+def resize_raster_image(PILImage, max_width=None, jpegqual=96):
     """
     Function to reduce the size of a given image keeping it's aspect ratio
     """
+
+    if max_width == None:
+        max_width = Store.get_layout()._width
+
     img_w, img_h = PILImage.size
     img_ratio = img_h/float(img_w)
 
