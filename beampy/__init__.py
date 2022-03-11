@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Beampy main file
+Beampy main file to manage imports
 """
+from beampy._version import __version__
 
-__version__ = '0.5.5.post2'
+__all__ = ['__version__']
 
-from beampy.commands import *
-from beampy.core.functions import *
-from beampy.core.exports import *
-from beampy.core.geometry import *
+# from beampy.commands import *
+from beampy.modules import *
+from beampy.modules import __all__ as modules_all 
+__all__ += modules_all
+
+from beampy.core import *
+from beampy.core import __all__ as core_all
+__all__ += core_all
