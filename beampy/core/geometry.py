@@ -225,7 +225,7 @@ class Position():
             assert isinstance(value, (int, float)), f"I was unable to convert your position {type(value)} to a number!"
 
         elif isinstance(value, float):
-            if value < 1.0:
+            if value < 1.0 and value > 0:
                 value = int(round(relative_length(value, self.axis), 0))
             else:
                 value = int(round(value, 0))
@@ -377,7 +377,7 @@ class Length():
             assert isinstance(value, (int, float)), f"I was unable to convert your length {type(value)} to a number!"
 
         elif isinstance(value, float):
-            if value <= 1.0:
+            if value <= 1.0 and value > 0:
                 value = int(round(relative_length(value, self.axis), 0))
             else:
                 value = int(round(value, 0))
