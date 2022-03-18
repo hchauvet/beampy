@@ -8,6 +8,7 @@ import tempfile
 from bs4 import BeautifulSoup
 from beampy.core.functions import convert_unit
 from beampy.core.store import Store
+import os
 import re
 
 try:
@@ -187,7 +188,7 @@ def inkscape_get_size(svgfile: str) -> list:
     """Get the width, height of an svgfile
     """
 
-    inkscapecmd = document._external_cmd['inkscape']
+    inkscapecmd = Store.get_layout()._external_cmd['inkscape']
     cmd = f'{inkscapecmd} --actions="query-width;query-height;" {svgfile}'
     req = os.popen(cmd)
     res = req.readlines()
@@ -197,4 +198,4 @@ def inkscape_get_size(svgfile: str) -> list:
 
     req.close()
 
-    return width, 
+    return width, height
