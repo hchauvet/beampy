@@ -785,7 +785,7 @@ def find_strings_in_with(source_code: str, module_name: str) -> list:
     """
 
     # First try to find indentation level of the source 
-    pattern1 = r'(?:with.+text.+:[\n\r])(\s+)'
+    pattern1 = r'(?:with.*text.*:.*[\n\r])(\s+)'
     indent_level=len(re.findall(pattern1, source_code, re.MULTILINE)[0])
 
     # Parse the indented block in the source file to keep only valid indented regions
