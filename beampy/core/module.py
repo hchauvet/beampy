@@ -45,7 +45,7 @@ class beampy_module():
     svgdefs = []
     svgdefsargs = []
 
-    def __init__(self, x, y, width, height, margin, content_type='svg', **kwargs):
+    def __init__(self, x, y, width, height, margin, content_type='svg', add_to_slide=True, **kwargs):
         """Beampy module is the base class for each elements added to slide or group in
         Beampy-slideshow. Modules create a Content (with a given size)
         registered to the Store. A unique ID is created for the Content and
@@ -85,12 +85,24 @@ class beampy_module():
         content_type : str in ['svg', 'html', 'js']
             The type of the content
 
+        add_to_slide : bool,
+            If this is set to False the module will not be added to the current slide. 
+            The default value is True. This argument is usefull when you use an other 
+            beampy module to build a more complex one for instance.
+
         **kwargs, any key=value list:
             will be added to the class variables to use them in the render for
             exemple.
 
         """
 
+        # Add kwards as variable of the class
+        self.set(**kwargs)
+
+        # Define variable used by register methods first
+        self.add_to_slide = add_to_slide
+
+        # register the module to the Store and the slide or group if needed.
         self.register()
 
         # Store the layers where this module should be printed
@@ -124,11 +136,12 @@ class beampy_module():
         self.htmlout = ''  # The html template
         self.jsout = ''  # The javascript template to produce the valid javascrpit output
         self.animout = ''  # Store multiple rasters for animation
-
-        # Add kwards as variable of the class
-        self.set(**kwargs)
-
+        
+        
     def register(self):
+        """
+        Register the module the current slide or groupe or store
+        """
         # Function to register the module (run the function add to slide)
 
         # Store the list of groups id where the module is finally located (used for html element to
@@ -139,7 +152,10 @@ class beampy_module():
         self.name = self.get_name()
 
         # Add the id of the current slide for the module
-        self.set_slide_id()
+        if self.add_to_slide:
+            self.set_slide_id()
+        else:
+            self.slide_id = None
 
         # Add module to his slide or to the current group
         if self.slide_id is not None:
@@ -1432,7 +1448,7 @@ class beampy_module():
         Need to be redefined by each module to adjust the behaviours
         of "with :"
         """
-        raise NotImplementedError("With statement not implemented for this module")
+        raise NotImplementedError("With statement action not implemented for this module")
 
     def above(self, other_element):
         """

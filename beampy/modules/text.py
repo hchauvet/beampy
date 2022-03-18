@@ -436,7 +436,7 @@ class text(beampy_module):
         
         source = Store.get_layout()._source_code.source(start=self.start_line-1)
         input_texts = find_strings_in_with(source, 'text')
-        self.textin = r'\\'.join([r"%s" % t for t in input_texts])
+        self.textin = '\n'.join([t for t in input_texts])
         self.add_content(self.textin, self.type)
 
 class textOld(beampy_module):
