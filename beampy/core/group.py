@@ -229,29 +229,34 @@ class group(beampy_module):
         """Rewrite html property of module as a function to export all html
         'div' contained in group modules. This function is recursive as if we
         have a group inside the modules the same function is called back.
+
+        Take care to not export empty group
         """
 
-        # TODO: Find a way to remove empty html group on export
-        # Warning this is a recursive function
-
-        divout = [f'<div id="group"',
-                  'style="position:absolute;',
-                  f'top:{self._final_y}px;',
-                  f'left:{self._final_x}px;',
-                  f'width:{self.content_width}px;',
-                  f'height:{self.content_height}px;',
-                  '">']
-
-    
+        layer_divs = []
         for mod in self.modules:
             if layer in mod.layers:
                 if mod.type == 'html':
-                    divout += [mod.html]
+                    modhtml = mod.html
+                    if modhtml is not None:
+                        layer_divs += [modhtml]
 
                 if mod.type == 'group':
-                    divout += [mod.html(layer)]
+                    gphtml = mod.html(layer)
+                    if gphtml != '':
+                        layer_divs += [gphtml]
 
-        divout += ['</div>']
+        divout = []
+        if len(layer_divs)>0:
+            divout = [f'<div id="group"',
+                      'style="position:absolute;',
+                      f'top:{self._final_y}px;',
+                      f'left:{self._final_x}px;',
+                      f'width:{self.content_width}px;',
+                      f'height:{self.content_height}px;',
+                      '">']
+            divout += layer_divs
+            divout += ['</div>']
 
         return ''.join(divout)
 
