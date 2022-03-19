@@ -231,7 +231,7 @@ class slide(object):
 
         return IFrame(tmp_html_file, '100%', 400)._repr_html_()
 
-    def render(self, add_html_svgalt=False):
+    def render(self, svgaltdef=False):
         """Compute the final position of each modules in the slide and add the
         final module content to the self.layers_content dictionnary. This
         dictionnary is formarted as follow:
@@ -291,9 +291,9 @@ class slide(object):
 
                     if mod.type == 'html':
                         content = mod.html
-                        # For html_svgalt add a svg use for this element id
-                        if add_html_svgalt and mod.html_svgalt is not None:
-                            self.layers_content[layer]['svg'] += [mod.svguse]
+                        # For svgaltdef add a svg use for this element id
+                        if svgaltdef and mod.svgaltdef is not None:
+                            self.layers_content[layer]['svg'] += [mod.svguse]        
 
                     self.layers_content[layer][mod.type] += [content]
 
@@ -307,97 +307,6 @@ class slide(object):
                     self.layers_content[layer]['html'])
                 self.layers_content[layer]['svg'] = ''.join(
                     self.layers_content[layer]['svg'])
-
-        self.export_header()
-
-    def newrender(self):
-        """
-        Render the slide content.
-        - Transform module to svg or html
-        - Loop over groups
-        - Place modules
-        - write the final svg
-        """
-        print('-' * 20 + ' slide_%i ' % self.num + '-' * 20)
-
-        if self.title_element is not None:
-            self.title_element.add_layers(list(range(self.num_layers+1)))
-
-        # First loop over slide's modules to render them (to get height and width)
-        # Todo: do that using multiprocessing
-        for i, key in enumerate(self.element_keys):
-            elem = self.contents[key]
-
-            if elem.type != 'group':
-                if not elem.rendered:
-                    # Run the pre render method of each modules
-                    elem.pre_render()
-                    # print('main loop run_render')
-                    elem.run_render()
-
-                assert elem.width.value is not None
-                assert elem.height.value is not None
-                # print(elem.width, elem.height)
-            else:
-                # Run the pre render method for groups
-                elem.pre_render()
-
-        # Loop over group level (from the max -> 0)
-        print('Number of group levels %i' % max(self.groupsid))
-
-        for level in range(max(self.groupsid), -1, -1):
-
-            for curgroupid in self.groupsid[level]:
-
-                curgroup = self.contents[curgroupid]
-
-                curgroup.compute_group_size()
-                # print(curgroup.width, curgroup.height)
-
-                # Render the current group (this export final module svg to slide storage)
-                curgroup.render()
-
-            if level == 0:
-                # The last group (i.e the main frame need to be placed)
-                curgroup.positionner.place((document._width, document._height))
-                # Export the svg of the slide at a given layer in the slide.svglayers store
-                for layer in curgroup.layers:
-                    print('export layer %i' % layer)
-                    # Check if the layer contain svg outputs (for instance video only layer could exists)
-                    try:
-                        self.svglayers[layer] = curgroup.export_svg_layer(
-                            layer)
-                    except Exception as e:
-                        # TODO ADD a log to this try
-                        print('no svg for layer %i' % layer)
-
-                # Need to deal with html module
-                if document._output_format == 'html5':
-                    for eid in curgroup.htmlid:
-                        # print('Render html %s' % eid)
-                        elem = self.contents[eid]
-                        # Resolve absolute positionning
-                        xgroupsf = sum([self.contents[g].positionner.x['final']
-                                        for g in elem.groups_id])
-                        ygroupsf = sum([self.contents[g].positionner.y['final']
-                                        for g in elem.groups_id])
-                        # print(xgroupsf, elem.positionner.x['final'], ygroupsf)
-                        elem.positionner.x['final'] += xgroupsf
-                        elem.positionner.y['final'] += ygroupsf
-                        for layer in elem.layers:
-                            htmlo = elem.export_html()
-                            self.add_rendered(html=htmlo, layer=layer)
-
-                # Add grid and fancy stuff...
-                if document._guide:
-                    available_height = document._height - self.ytop
-                    out = ''
-                    out += '<g><line x1="400" y1="0" x2="400" y2="600" style="stroke: #777"/></g>'
-                    out += '<g><line x1="0" y1="%0.1f" x2="800" y2="%0.1f" style="stroke: #777"/></g>' % (
-                        self.ytop + available_height / 2.0, self.ytop + available_height / 2.0)
-                    out += '<g><line x1="0" y1="%0.1f" x2="800" y2="%0.1f" style="stroke: #777"/></g>' % (
-                        self.ytop, self.ytop)
-                    self.add_rendered(svg=out)
 
         self.export_header()
 

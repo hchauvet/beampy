@@ -19,6 +19,7 @@ import base64
 import tempfile
 import os
 import sys
+from pathlib import Path
 from urllib.parse import quote
 # Try to import bokeh
 try:
@@ -229,6 +230,7 @@ class figure(beampy_module):
 
             assert requested_width != 'scale' and requested_height != 'scale', "width and height could not be BOTH set to 'scale'"
 
+            scale = 1
             if requested_width not in [None, 'scale'] and requested_height in [None, 'scale']:
                 # SCALE OK need to keep the original viewBox !!!
                 scale = (requested_width/svgwidth)
@@ -244,7 +246,7 @@ class figure(beampy_module):
             # Dont scale the figure let the user fix the width height
             if requested_height not in [None, 'scale'] and requested_width not in [None, 'scale']:
                 figure_height = requested_width
-                figure_width = requested_height
+                figure_width = requested_height       
             else:
                 # Apply the scaling to the final svg
                 # Scaling is applied directly to figure width heigh
@@ -256,16 +258,32 @@ class figure(beampy_module):
             self.height = figure_height
 
             # Add the final content to the module
-            # Test to use <img tag with data URI Marche pas!!!
+            # Use <image tag with data URI, DO NOT LET Firefox or Chrome do the scaling 
+            # this could end with terrible display calculation time
             svgin = str(soup)
             # protect some special char for uri
             # https://codepen.io/tigt/post/optimizing-svgs-in-data-uris
             svgin = svgin.replace('"', "'")
             svgin = quote(svgin, safe=' =:/')
 
-            svginimg = f'<image x="0" y="0" width="{figure_width}" height="{figure_height}" xlink:href="data:image/svg+xml;charset=utf8,{svgin}" />'
+
+            svginimg = (f'<image x="0" y="0" width="{figure_width}" '
+                        f'height="{figure_height}" '
+                        'preserveAspectRatio="none" '
+                        'style="image-rendering:optimizeQuality" '
+                        f'xlink:href="data:image/svg+xml;charset=utf8,{svgin}" '
+                        f'/>')
+
+            # The sodipodi link is for inkscape, as it's unable to open data:image/svg+xml 
+            # correctly f'sodipodi:absref="{Path(self.content).absolute()}" ' but this is 
+            # not perfectly rendered 
+            # An alternative for inkscape directly import the raw svg structure in a group
+            svgaltimg = (f'<g transform="scale({scale})">'
+                         f'{tmpfig} '
+                         '</g>')
+
             self.svgdef = svginimg
-            # self.svgdef = tmpfig
+            self.svgaltdef = svgaltimg
             self.content_width = figure_width
             self.content_height = figure_height
 

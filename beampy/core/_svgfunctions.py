@@ -145,7 +145,7 @@ def make_global_svg_defs(svg_soup: object) -> object:
     return soup
 
 
-def export_svgdefs(modules: list, exported_id: list, add_html_svgalt=False) -> (str, list):
+def export_svgdefs(modules: list, exported_id: list, svgaltdef=False) -> (str, list):
     """Export svgdef for each module in the list, if the module content_id is not in
     the exported_list. If the module is a group run export_svgdef to do the recursivity
 
@@ -165,16 +165,14 @@ def export_svgdefs(modules: list, exported_id: list, add_html_svgalt=False) -> (
                     svgdef += [tmp_svgdefs[i]]
                     exported_id += [tmp_id[i]]
 
-            tmp_svgdef, tmp_id = export_svgdefs(m.modules, exported_id, add_html_svgalt)
+            tmp_svgdef, tmp_id = export_svgdefs(m.modules, exported_id, svgaltdef)
             svgdef += [tmp_svgdef]
             exported_id += [tmp_id]
         else:
             if m.content_id not in exported_id:
-                if m.svgdef is not None:
-                    svgdef += [m.svgdef]
-
-                if add_html_svgalt and m.html_svgalt is not None:
-                    svgdef += [m.html_svgalt]
+                tmp = m.export_svgdefs(svgaltdef)
+                if tmp is not None:
+                    svgdef += [tmp]
 
                 exported_id += [m.content_id]
 

@@ -497,27 +497,38 @@ class beampy_module():
         self.add_content_data('html', out)
 
     @property
-    def html_svgalt(self):
+    def svgaltdef(self):
         """
         Define an alternative svg for an html element.
         This will be added to svg <defs> part and svguse
         will refer to that element
         """
 
-        if 'html_svgalt' in self.data:
-            return self.data['html_svgalt']
+        if 'svgaltdef' in self.data:
+            return self.data['svgaltdef']
 
         return None
 
-    @html_svgalt.setter
-    def html_svgalt(self, new_svgalt):
+    @svgaltdef.setter
+    def svgaltdef(self, new_svgalt):
         out = ' '.join([f'<g id="{self.content_id}" class="{self.name}-alt"',
                         self.svgtransform,
                         '>',
                         new_svgalt,
                         '</g>'])
 
-        self.add_content_data('html_svgalt', out)
+        self.add_content_data('svgaltdef', out)
+
+    def export_svgdefs(self, svgaltdef=False):
+        """
+        Export the module svgdefs, check if we export the svgaltdef (designed for inkscape svg export) 
+        of the svgdef (optimised for html display). 
+        """
+
+        if svgaltdef and self.svgaltdef is not None:
+            return self.svgaltdef
+    
+        return self.svgdef
 
     @property
     def opacity(self):
@@ -1113,32 +1124,6 @@ class beampy_module():
                     else:
                         _log.debug('Your argument %s is not defined in the Theme' % (key))
 
-    def add_svgdef(self, svgdef, svgdefsargs=None):
-        """
-        Function to add svg clipPath or filter.
-
-        Parameters:
-        -----------
-
-        svgdef: string,
-            The svg syntax to add to <defs> environnement. This svg
-            syntax could include arguments as python string format
-            replacement (like '{width}') that will be replaced by
-            their value (store as instance of the class, like
-            self.width for '{width}') when render is executed.
-
-        svgdefargs: list of string optional
-            The list of arguments as string to format in the svgdef.
-        """
-
-        if svgdefsargs is None:
-            svgdefsargs = []
-
-        assert isinstance(svgdefsargs, list)
-
-        self.svgdefs += [svgdef]
-        self.svgdefsargs += [svgdefsargs]
-
     def render_svgdefs(self):
         """
         Function to render the svgdefs
@@ -1182,61 +1167,6 @@ class beampy_module():
                                        self.call_cmd)
         except:
             out += 'source : fail\n'
-
-        return out
-
-    # Export methods (how the final svg/html/multisvg is written down)
-    # add a group/div object with the good x, y, positions
-    def export_svg(self):
-        """
-            function to export rendered svg in a group positionned in the slide
-        """
-
-        out = '<g transform="translate(%s,%s)" class="%s">' % (self.positionner.x['final'],
-                                                    self.positionner.y['final'], self.name)
-
-        out += self.svgout
-
-        if document._text_box:
-            out +="""<rect x="0"  y="0" width="%s" height="%s"
-            style="stroke:#009900;stroke-width: 1;stroke-dasharray: 10 5;
-            fill: none;" />""" % (self.positionner.width.value,
-                                  self.positionner.height.value)
-
-        if self.svg_decoration != '':
-            out += self.svg_decoration.format(width=self.positionner.width.value,
-                                              height=self.positionner.height.value)
-
-        out += '</g>'
-
-        return out
-
-    def export_svg_def(self):
-        """
-            function to export rendered svg in a group positionned in the slide
-        """
-
-        # Todo: add data- to element like data-python="self.call_cmd.strip()"
-        out = '<g id="%s" transform="translate(%s,%s)" class="%s" >' % (self.id,
-                                                                        self.positionner.x['final'],
-                                                                        self.positionner.y['final'],
-                                                                        self.name)
-
-        out += self.svgout
-
-        if document._text_box:
-            out +="""<rect x="0"  y="0" width="%s" height="%s"
-            style="stroke:#009900;stroke-width: 1;stroke-dasharray: 10 5;
-            fill: none;" />""" % (self.positionner.width.value,
-                                  self.positionner.height.value)
-
-        if self.svg_decoration != '':
-            out += self.svg_decoration.format(width=self.positionner.width.value,
-                                              height=self.positionner.height.value)
-
-        out += '</g>'
-
-        logging.debug(str(self.name), type(out))
 
         return out
 

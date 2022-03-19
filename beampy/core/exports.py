@@ -161,9 +161,9 @@ def svg_export(dir_name, quiet=False):
 
     # The global svg glyphs need also to be added to the html5 page
     # TODO: Optimize to export only glyphs used by this slide        
-    glyphs_svg = '<defs id="glyphs_store">'
+    glyphs_svg = '<svg id="glyphs_store"><defs>'
     glyphs_svg += '\n'.join([Store.get_glyph(g)['svg'] for g in Store._glyphs])
-    glyphs_svg += '</defs>'
+    glyphs_svg += '</defs></svg>'
 
     for islide in range(len(Store)):
         print("Export slide %i"%islide)
@@ -171,13 +171,13 @@ def svg_export(dir_name, quiet=False):
         slide = Store.get_slide(f"slide_{islide+1}")
         
         # Render the slide
-        slide.render(add_html_svgalt=True)        
+        slide.render(svgaltdef=True)        
 
         # Get the svgdefs
         globals_id_svg_defs = []
-        tmp_svgdefs, tmp_id = export_svgdefs(slide.modules, globals_id_svg_defs, add_html_svgalt=True)
+        tmp_svgdefs, tmp_id = export_svgdefs(slide.modules, globals_id_svg_defs, svgaltdef=True)
         
-        svgdef = f'<defs>{tmp_svgdefs}</defs>'
+        svgdef = f'<svg id="svgdef_store"><defs>{tmp_svgdefs}</defs></svg>'
             
         for layer in range(slide.num_layers + 1):
             print('write layer %i'%layer)

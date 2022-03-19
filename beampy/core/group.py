@@ -172,6 +172,8 @@ class group(beampy_module):
     def export_svgdef(self) -> dict:
         """Dynamically export svgdef for each modules in the group.
         Return a dictionnary of list of svgdef indexed by layer
+
+        svgdef in a group is a recursive export of module svg <use> tags.
         """
 
         # TODO: remove empty svguse, and take care of svguse needed for html_svgalt 

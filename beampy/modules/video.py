@@ -106,9 +106,9 @@ class video(beampy_module):
 
         self.html = html_video
         
-        self.html_svgalt = (f'<image x="0" y="0" width="{self.width.value}" '
-                            f'height="{self.height.value}" '
-                            f'xlink:href="data:image/png;base64, {base64.b64encode(still_image).decode("utf8")}" />')
+        self.svgaltdef = (f'<image x="0" y="0" width="{self.width.value}" '
+                          f'height="{self.height.value}" '
+                          f'xlink:href="data:image/png;base64, {base64.b64encode(still_image).decode("utf8")}" />')
 
         self.content_width = self.width.value
         self.content_height = self.height.value
