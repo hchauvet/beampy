@@ -9,7 +9,7 @@ from beampy.core.document import document
 from beampy.core.functions import (convert_unit, optimize_svg, gcs, convert_pdf_to_svg,
                                    convert_eps_to_svg,
                                    guess_file_type)
-from beampy.core._svgfunctions import (get_svg_size, make_global_svg_defs)
+from beampy.core._svgfunctions import (get_svg_size, get_viewbox, make_global_svg_defs)
 from beampy.core.module import beampy_module
 from bs4 import BeautifulSoup
 from PIL import Image
@@ -19,6 +19,7 @@ import base64
 import tempfile
 import os
 import sys
+from urllib.parse import quote
 # Try to import bokeh
 try:
     import bokeh
@@ -246,13 +247,25 @@ class figure(beampy_module):
                 figure_width = requested_height
             else:
                 # Apply the scaling to the final svg
-                self.scale = scale
+                # Scaling is applied directly to figure width heigh
+                # This perform better in webkit engine than do scaling at the rendering time
+                # self.scale = scale
+                pass
 
             self.width = figure_width
             self.height = figure_height
 
             # Add the final content to the module
-            self.svgdef = tmpfig
+            # Test to use <img tag with data URI Marche pas!!!
+            svgin = str(soup)
+            # protect some special char for uri
+            # https://codepen.io/tigt/post/optimizing-svgs-in-data-uris
+            svgin = svgin.replace('"', "'")
+            svgin = quote(svgin, safe=' =:/')
+
+            svginimg = f'<image x="0" y="0" width="{figure_width}" height="{figure_height}" xlink:href="data:image/svg+xml;charset=utf8,{svgin}" />'
+            self.svgdef = svginimg
+            # self.svgdef = tmpfig
             self.content_width = figure_width
             self.content_height = figure_height
 

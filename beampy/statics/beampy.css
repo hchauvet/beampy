@@ -1,7 +1,7 @@
 :root{
     --slideWidth: ${width}px;
     --slideHeight: ${height}px;
-    --slideBG: $background_color ;
+    --slideBG: $background_color;
 }
 
 * {
@@ -25,7 +25,8 @@ body {
 
 section {
     position: absolute;
-    width: 100%; height: 100%;
+    width: var(--slideWidth); 
+    height: var(--slideHeight);
 }
 
 html { 

@@ -244,15 +244,17 @@ def html5_export():
     html_modules = ''
     # Add glyphs TODO: make an optimizer to remove unusued one comming from
     # cache
-    glyphs_store = ('<svg id="glyph_store"><defs>'
+    glyphs_store = ('<svg id="glyph_store" style="display:none"><defs>'
                     '{glyphs}'
                     '</defs></svg>')
     glyphs_store = glyphs_store.format(glyphs=''.join([Store.get_glyph(g)['svg'] for g in Store._glyphs]))
 
-    global_store = glyphs_store + '<svg><defs>'
+    #global_store = glyphs_store + f'<svg width="{document._width}px" height="{document._height}px" style="display: none;"><defs>'
+    # Global store is defined per slide (for webkit rendering as it resize all svg <defs>)
+    # The display should be turn to block to correctly render clipping of svg etc...
+    global_store = glyphs_store + f'<svg id="svgdef_store" style="display: none;"><defs>'
     global_store_id = []
     for islide in range(len(Store)):
-
         tnow = time.time()
 
         slide_id = "slide_%i" % (islide)
@@ -289,9 +291,10 @@ def html5_export():
                 if html_layer_content != '':
                     html_modules += ''.join([f'<div id="html_store_slide_{islide}-{layer}"',
                                              'style="position:absolute;top:0px;left:0px;',
-                                             'visibility:hidden;width:100%;height:100%;">',
+                                             'display:none;contrain: strict;">',
                                              html_layer_content,
                                              '</div>'])
+                    
             else:
                 svg_layer_content = '' #create an empty content (usefull when only html are present in one slide)
 

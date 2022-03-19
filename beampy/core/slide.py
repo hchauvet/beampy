@@ -466,7 +466,7 @@ class slide(object):
                 if html_layer_content != '':
                     html_modules += ''.join([f'<div id="html_store_slide_0-{layer}"',
                                              'style="position:absolute;top:0px;left:0px;',
-                                             'visibility:hidden;width:100%;height:100%;">',
+                                             'display:none;">',
                                              html_layer_content,
                                              '</div>'])
             else:

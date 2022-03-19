@@ -23,6 +23,14 @@ Beampy.setup = function() {
         var keyVal = e.split('=');
         Beampy.params[keyVal[0]] = decodeURIComponent(keyVal[1]);
     });
+
+    //pause autoplay videos
+    $('video').each(function(){
+        if (this.autoplay) {
+            this.pause();
+            this.currentTime = 0;
+        }
+    })
 }
 Beampy.onkeydown = function(aEvent) {
     // Don't intercept keyboard shortcuts
@@ -118,32 +126,32 @@ Beampy.setupTouchEvents = function() {
     }
 }
 /* Resize trick for bokeh */
-Beampy.resizebokeh = function() {
-    var db = document.body;
-    var sx = db.clientWidth / window.innerWidth;
-    var sy = db.clientHeight / window.innerHeight;
-    var scale = Math.max(sx, sy);
-    
+Beampy.resizebokeh = function() {    
     //For bokeh plot don't do a rescale
     var bkplt = $("#html_store_slide_"+this.id_slide+"-"+this.layer+" #bk_resizer");
 
     
     if (bkplt.length > 0){
+        var db = document.body;
+        var sx = db.clientWidth / window.innerWidth;
+        var sy = db.clientHeight / window.innerHeight;
+        var scale = Math.max(sx, sy);
+
         bkplt.css("width", "calc("+bkplt.attr("width")+"*"+1/scale+")");
         bkplt.css("height", "calc("+bkplt.attr("height")+"*"+1/scale+")");
         bkplt.css("transform", "scale("+scale+")");
     }
 }			  
+
+
 /* Adapt the size of the slides to the window */
 Beampy.onresize = function() {
     var db = document.body;
     var sx = db.clientWidth / window.innerWidth;
     var sy = db.clientHeight / window.innerHeight;
-    var transform = "scale(" + (1/Math.max(sx, sy)) + ")";
-    db.style.MozTransform = transform;
+    var scale = Math.round((1/Math.max(sx, sy)) * 100 + Number.EPSILON)/100;
+    var transform = "scale(" + scale + ")";
     db.style.WebkitTransform = transform;
-    db.style.OTransform = transform;
-    db.style.msTransform = transform;
     db.style.transform = transform;
     this.resizebokeh();
 }
@@ -151,9 +159,9 @@ Beampy.toggleContent = function() {
     //get the video in the store for the current id_slide
     var videos = $("#html_store_slide_"+this.id_slide+"-"+this.layer+" video");
     //get the div in html_store_slide to set their visibility
-    var divs = $("#html_store_slide_"+this.id_slide+"-"+this.layer+" div");
-    if (divs.css('visibility') == 'visible'){
-        divs.css('visibility', 'hidden');
+    var div = $("#html_store_slide_"+this.id_slide+"-"+this.layer);
+    if (div.css('display') == 'block'){
+        div.css('display', 'none');
 
         //reset the video to position 0 in time and pause it
         videos.each(function(){
@@ -161,9 +169,10 @@ Beampy.toggleContent = function() {
             this.currentTime = 0;
         });
     } else {
-        divs.css('visibility', 'visible');
+        div.css('display', 'block');
         videos.each(function(){
             if (this.autoplay) {
+                this.currentTime = 0;
                 this.play();
             }
         });
