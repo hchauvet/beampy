@@ -103,8 +103,8 @@ class group(beampy_module):
         # When width is None compute the total width of elements in the group
         if self.init_width is None:
             if Store.get_current_slide_id() is None:
-                w = 1280
-                print('TODO: need to read theme default width!!! set to 1280')
+                w = Store.theme('document')['width']
+                print('TODO: need to read theme default width!!! set to ', w)
             else:
                 w = Store.get_current_slide().curwidth
 
@@ -112,8 +112,8 @@ class group(beampy_module):
 
         if self.init_height is None:
             if Store.get_current_slide_id() is None:
-                h = 720
-                print('TODO: need to read theme default height!!! set to 720')
+                h = Store.theme('document')['height']
+                print('TODO: need to read theme default height!!! set to ', h)
             else:
                 h = Store.get_current_slide().curheight
 

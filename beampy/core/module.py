@@ -1219,7 +1219,7 @@ class beampy_module():
         logging.debug('layer list %s' % str(layerslist))
         self.layers = layerslist
 
-    def __call__(self, x, y):
+    def __call__(self, x, y, **kwargs):
         """Add the module to the current slide or group with a given x, y
         position. This will add a deep copy of the module to the list of modules
         of group or slide.
@@ -1260,6 +1260,14 @@ class beampy_module():
         copy_self._final_y = None
         copy_self.x = x
         copy_self.y = y
+
+        # Update **kwargs options
+        if len(kwargs) > 0:
+            print('Update module options: %s' % str(kwargs))
+            # TODO: check kwargs to remove width and height
+            # that should not be redefined on call
+            
+            copy_self.set(**kwargs)
 
         return copy_self
 

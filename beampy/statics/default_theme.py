@@ -4,6 +4,9 @@
 # Main keys of the dict should be the name of the beampy modules or class
 # Each modules default options need to be defined here!
 
+# BP SIZE:
+# - HD : 1280:720
+# - SD : 1024:576
 THEME = {}
 
 THEME['document'] = {
@@ -21,7 +24,7 @@ THEME['document'] = {
 
     'external_app': {"inkscape": "auto",
         "dvisvgm": "auto",
-        "pdfjoin": "auto",
+        "pdfjoin": "~/developpement/python/beampy_git/beampy/external_tools/pdfjoin",
         "video_encoder": 'auto',
         "pdf2svg": "auto",
         "epstopdf": "auto"}
@@ -48,6 +51,7 @@ THEME['text'] = {
     'margin': None,
     'va': '',
     'opacity': 1,
+    'rotate': None,
     'extra_packages': []
 }
 
