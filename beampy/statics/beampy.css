@@ -29,6 +29,10 @@ section {
     height: var(--slideHeight);
 }
 
+image {
+ image-rendering: -webkit-optimize-contrast;
+}
+
 html { 
     background-color: var(--slideBG);
     height: 100%;

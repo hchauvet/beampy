@@ -145,6 +145,17 @@ def make_global_svg_defs(svg_soup: object) -> object:
     return soup
 
 
+def apply_style_to_all_images(svg_soup: object, style: str) -> object:
+    """
+    Apply the given style to all image tag in an svg
+    """
+
+    for imt in svg_soup.findAll('image'):
+        # TODO: keep old style and merge it properly with the new one
+        imt['style'] = style 
+
+    return svg_soup
+
 def export_svgdefs(modules: list, exported_id: list, svgaltdef=False) -> (str, list):
     """Export svgdef for each module in the list, if the module content_id is not in
     the exported_list. If the module is a group run export_svgdef to do the recursivity

@@ -5,11 +5,11 @@ Created on Sun Oct 25 19:05:18 2015
 @author: hugo
 """
 
-from beampy.core.document import document
+from beampy.core.store import Store
 from beampy.core.functions import (convert_unit, optimize_svg, gcs, convert_pdf_to_svg,
                                    convert_eps_to_svg,
                                    guess_file_type)
-from beampy.core._svgfunctions import (get_svg_size, get_viewbox, make_global_svg_defs)
+from beampy.core._svgfunctions import (get_svg_size, get_viewbox, make_global_svg_defs, apply_style_to_all_images)
 from beampy.core.module import beampy_module
 from bs4 import BeautifulSoup
 from PIL import Image
@@ -110,10 +110,10 @@ class figure(beampy_module):
         self.apply_theme(exclude=['ext', 'optimize', 'resize_raster'])
 
         if optimize is None:
-            self.optimize = document._optimize_svg
+            self.optimize = Store.get_layout()._optimize_svg
 
         if resize_raster is None:
-            self.resize_raster = document._resize_raster
+            self.resize_raster = Store.get_layout()._resize_raster
 
         # Special args for cache id
         self.args_for_cache_id = [width,
@@ -203,11 +203,10 @@ class figure(beampy_module):
                         b64content = img['xlink:href']
 
                         try:
-                            in_img =  BytesIO( base64.b64decode(b64content.split(';base64,')[1]) )
+                            in_img =  BytesIO(base64.b64decode(b64content.split(';base64,')[1]))
                             tmp_img = Image.open(in_img)
-                            #print(tmp_img)
-                            out_img = resize_raster_image(tmp_img,
-                                                          max_width=self.width.value)
+                            # TODO: let user set the lower limit
+                            out_img = resize_raster_image(tmp_img, max_width=max(self.width.value, 512))
                             out_b64 = base64.b64encode(out_img.read()).decode('utf8')
 
                             #replace the resized image into the svg
@@ -260,6 +259,7 @@ class figure(beampy_module):
             # Add the final content to the module
             # Use <image tag with data URI, DO NOT LET Firefox or Chrome do the scaling 
             # this could end with terrible display calculation time
+            soup = apply_style_to_all_images(soup, 'image-rendering: -webkit-optimize-contrast;') # for chrome blurry scale < 1.0
             svgin = str(soup)
             # protect some special char for uri
             # https://codepen.io/tigt/post/optimizing-svgs-in-data-uris
@@ -270,7 +270,7 @@ class figure(beampy_module):
             svginimg = (f'<image x="0" y="0" width="{figure_width}" '
                         f'height="{figure_height}" '
                         'preserveAspectRatio="none" '
-                        'style="image-rendering:optimizeQuality" '
+                        'image-rendering="optimizeQuality" '
                         f'xlink:href="data:image/svg+xml;charset=utf8,{svgin}" '
                         f'/>')
 
@@ -356,7 +356,8 @@ class figure(beampy_module):
                     with open(self.content, "rb") as f:
                         figurein = base64.b64encode(f.read()).decode('utf8')
                 else:
-                    out_img = resize_raster_image(tmp_img, max_width=figure_width)
+                    # TODO: let the user select the min size 512 of raster resizing
+                    out_img = resize_raster_image(tmp_img, max_width=max(figure_width, 512))
                     figurein = base64.b64encode(out_img.read()).decode('utf8')
                     out_img.close()
             else:
@@ -372,6 +373,7 @@ class figure(beampy_module):
             outformat = b64format[self.ext]
             output = (f'<image x="0" y="0" width="{figure_width}" '
                       f'height="{figure_height}" '
+                      
                       f'xlink:href="{outformat}, {figurein}" />')
 
             # Add the final svg to svgout
@@ -395,7 +397,7 @@ def resize_raster_image(PILImage, max_width=None, jpegqual=96):
     img_w, img_h = PILImage.size
     img_ratio = img_h/float(img_w)
 
-    if (img_w > document._width):
+    if (img_w > Store.get_layout()._width):
         print('Image resized from (%ix%i)px to (%ix%i)px'%(img_w, img_h, max_width, max_width*img_ratio))
         width = int(max_width)
         height = int(max_width * img_ratio)
