@@ -367,7 +367,7 @@ class figure(beampy_module):
             tmp_img.close()
 
             b64format = {'gif': 'data:image/gif;base64',
-                         'jpeg': 'data:image/jpg;base64',
+                         'jpeg': 'data:image/jpeg;base64',
                          'png': 'data:image/png;base64'}
 
             outformat = b64format[self.ext]
