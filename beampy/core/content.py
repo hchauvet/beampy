@@ -162,3 +162,12 @@ class Content():
         out += f'data (id: {self._data_id}):\n {self.data}'
 
         return out
+
+    def _repr_html_(self):
+        """
+        Define an SVG or HTML representation of this content
+        to display it in jupyter notebook
+        """
+
+        pass
+    

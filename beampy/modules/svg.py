@@ -45,14 +45,14 @@ class svg(beampy_module):
         super().__init__(x, y, width, height, margin, 'svg')
 
         # Update the signature
-        self.update_signature(svg_content, self.x, self.y, self.width,
-                              self.height, self.margin, inkscape_size, *args, **kwargs)
+        self.update_signature()
 
         #add arguments as attributes
         self.set(svg_content=svg_content, inkscape_size=inkscape_size)
 
         #apply theme to None
-        self.apply_theme(exclude=['inkscape_size'])
+        self._theme_exclude_args = ['inkscape_size']
+        self.apply_theme()
 
         #Register the module
         self.add_content(svg_content, 'svg')

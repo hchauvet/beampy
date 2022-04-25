@@ -107,17 +107,14 @@ class text(beampy_module):
                  extra_packages=extra_packages, textin=textin, color=color,
                  align=align, cache_latex_preamble=cache_latex_preamble)
 
+        # Set the list of arguments to exclude for theme defaults lookup
+        self._theme_exclude_args = ['textin']
+
         # Update the signature of the __init__ call
-        self.update_signature(textin=textin, x=self.x, y=self.y,
-                              width=self.width, height=self.height,
-                              margin=self.margin, size=size, font=font,
-                              color=color, opacity=opacity, rotate=rotate, usetex=usetex,
-                              va=va, align=align, extra_packages=extra_packages,
-                              cache_latex_preamble=cache_latex_preamble, *args,
-                              **kwargs)
+        self.update_signature()
 
         # Load default from theme
-        self.apply_theme(exclude=['textin'])
+        self.apply_theme()
 
         # TODO: Parse the incomming text to add decoration or special commands
 

@@ -102,12 +102,11 @@ class figure(beampy_module):
                  resize_raster=resize_raster)
 
         # Update the signature
-        self.update_signature(content, self.x, self.y, self.width, self.height,
-                              self.margin, ext=ext, optimize=optimize,
-                              resize_raster=resize_raster, *args, **kwargs)
+        self.update_signature()
 
         # Apply theme default for None value and set arguments as attrs
-        self.apply_theme(exclude=['ext', 'optimize', 'resize_raster'])
+        self._theme_exclude_args = ['ext', 'optimize', 'resize_raster']
+        self.apply_theme()
 
         if optimize is None:
             self.optimize = Store.get_layout()._optimize_svg

@@ -38,8 +38,7 @@ class group(beampy_module):
         # Init this as a module
         super().__init__(x, y, width, height, margin, 'group')
         # Update the default arguments
-        self.update_signature(self.x, self.y, self.width, self.height,
-                              self.margin, modules, background)
+        self.update_signature()
 
         # Add arguments as attributes
         self.set(background=background)
@@ -165,9 +164,7 @@ class group(beampy_module):
 
         # For group we define the signature after the renderering
         # to include the list of modules
-        self.update_signature(x=self.x, y=self.y, width=self.width,
-                              height=self.height, margin=self.margin,
-                              modules=content, background=self.background)
+        self.update_signature(modules=self.modules)
 
     def export_svgdef(self) -> dict:
         """Dynamically export svgdef for each modules in the group.
@@ -330,6 +327,7 @@ class group(beampy_module):
         # Convert string layer and check group module layers consistancy
         self.check_modules_layers()
 
+        print(self.id_modules_auto_y)
         # Render the group
         self.render()
 

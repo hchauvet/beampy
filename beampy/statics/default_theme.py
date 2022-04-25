@@ -30,6 +30,13 @@ THEME['document'] = {
         "epstopdf": "auto"}
 }
 
+THEME['beampy_module'] = {
+    'x': 'auto',
+    'y': 'center',
+    'width': r'100%',
+    'height': None
+}
+
 THEME['slide'] = {
     'background': "white",
     'layout': None, #Could be changed to a function that will decorate the current slide with elements
@@ -43,10 +50,6 @@ THEME['text'] = {
     'font': 'CMR',
     'color': '#000000',
     'align': '',
-    'x': 'center',
-    'y': 'auto',
-    'width': r'100%',
-    'height': None,
     'usetex': True,
     'margin': None,
     'va': '',
@@ -56,8 +59,6 @@ THEME['text'] = {
 }
 
 THEME['group'] = {
-    'x': 'center',
-    'y': 'auto',
     'width': r'95%',
     'height': r'95%',
     'margin': 0,
@@ -116,8 +117,6 @@ THEME['video'] = {
     'width': r'90%',
     'height': None,
     'margin': 0,
-    'x': 'center',
-    'y': 'auto',
     'autoplay': False,
     'loop' : False,
     'control': True,
@@ -137,16 +136,12 @@ THEME['svg'] = {
 THEME['animatesvg'] = {
     'start': 0,
     'end': 'end',
-    'x': 'center',
-    'y': 'auto',
     'width': None,
     'fps': 25,
     'autoplay': False
 }
 
 THEME['tikz'] = {
-    'x': 0,
-    'y': 0,
     'tikz_header': None,
     'tex_packages': None,
     'latex_pre_tikzpicture': None,
@@ -155,8 +150,6 @@ THEME['tikz'] = {
 }
 
 THEME['figure'] = {
-    'x':'center',
-    'y':'auto',
     'width': None,
     'height': None,
     'margin': 0,
@@ -164,8 +157,6 @@ THEME['figure'] = {
 }
 
 THEME['cite'] = {
-    'x':'center',
-    'y':'auto',
     'color':THEME['title']['color'],
     'size':16,
     'reference_delimiter' : ';',
@@ -203,8 +194,6 @@ THEME['line'] = {
 }
 
 THEME['rectangle'] = {
-    'x':'center',
-    'y':'auto',
     'color': THEME['title']['color'],
     'linewidth': '2px',
     'opacity': 1,
@@ -219,8 +208,6 @@ THEME['rectangle'] = {
 }
 
 THEME['circle'] = {
-    'x':'center',
-    'y':'auto',
     'color': THEME['title']['color'],
     'linewidth': '1px',
     'opacity': 1,

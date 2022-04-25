@@ -257,9 +257,16 @@ def latex2svg(latexstring, cached_preamble=None, write_tmpsvg=False):
         tex.close() # close the os.popen
 
     #Run dvi2svgm
-    if tex_outputs is None or 'error' in tex_outputs or '!' in tex_outputs:
+    # TODO: better check for error should read test if a dvifile is present!
+    if tex_outputs is None or 'error' in tex_outputs:
         print('Latex compilation error')
+        print('------ TEX OUTPUTS ------')
         print(tex_outputs)
+        print('------ TEX INPUT ------')
+        if cached_preamble is not None:
+            print(open(str(cached_preamble).replace('.fmt', '.tex'), 'r').read())
+        print(latexstring)
+
         #Remove temp files
         for f in glob.glob(tmpname+'*'):
             os.remove(f)

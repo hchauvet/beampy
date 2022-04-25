@@ -45,6 +45,26 @@ class beampy_module():
     svgdefs = []
     svgdefsargs = []
 
+    # Store a list of key to ignore in theme check for argument defaults
+    _theme_exclude_args = []
+
+    # Create a __new__ for beampy module to define a signature object from inspect module
+    def __new__(cls, *args, **kwargs):
+        obj = super().__new__(cls)
+
+        sig = inspect.signature(cls)
+        
+        # Add arguments passed to the beampy module
+        sig_arguments = sig.bind_partial(*args, **kwargs)
+        sig_arguments.apply_defaults()
+        
+        # Add the signature to the beampy_module object
+        obj._sig = sig
+        obj._sig_arguments = sig_arguments
+
+        return obj
+
+
     def __init__(self, x, y, width, height, margin, content_type='svg', add_to_slide=True, **kwargs):
         """Beampy module is the base class for each elements added to slide or group in
         Beampy-slideshow. Modules create a Content (with a given size)
@@ -137,7 +157,7 @@ class beampy_module():
         self.jsout = ''  # The javascript template to produce the valid javascrpit output
         self.animout = ''  # Store multiple rasters for animation
         
-        
+
     def register(self):
         """
         Register the module the current slide or groupe or store
@@ -168,8 +188,15 @@ class beampy_module():
         else:
             if Store.isgroup():
                 Store.group().add_module(self)
+                self.id = self.get_index()
+            else:
+                # The case outside of a group and outside ouf a slide, so their is no list of modules 
+                # defined to set an id to the module which is the index of the modules list in slide 
+                # or group
+                self.id = None
+
             sid = None
-            self.id = None
+            
 
         _log.debug('%s(id=%s) store the slide id: %s' % (self.name, self.id, self.slide_id))
 
@@ -236,35 +263,25 @@ class beampy_module():
                 # Add content to cache
                 self._content.add_to_cache()
 
-    def update_signature(self, *args, **kwargs):
-        """Create a unique signature of the init method using inspect module.
-        This would be usefull to cache the module
+    def update_signature(self, **kwargs):
         """
-        if not hasattr(self, '_signature'):
-            self._signature = inspect.signature(self.__init__)
+        Update the signature of the module, this will allow to redefine arguments name passed to __init__ method and update their values 
+        """
 
-        # Pay attention that signature apply to self, so when subclassing a
-        # module super().__init__ will get the signature of the child class
-        # __init__ (not the one of the parent). To accept all arguments don't
-        # forget to add *arg, **kwargs arguments at the en of the child __init__
-        # method.
-        self._arguments = self._signature.bind(*args, **kwargs)
+        if 'args' in self._sig_arguments.arguments and 'kwargs' in self._sig_arguments.arguments:
+            self._sig = inspect.signature(self.__init__)
+            self._sig_arguments = self._sig.bind_partial(*self._sig_arguments.arguments['args'], **self._sig_arguments.arguments['kwargs'])
+            self._sig_arguments.apply_defaults()
 
-        # Add the default arguments to attributes of the beampy_module
-        # self._arguments.apply_defaults()
-        #args = self._arguments.arguments
-        #for key, value in args.items():
-        #    if key not in ['x', 'y', 'width', 'height', 'margin', 'args', 'kwargs']:
-        #        setattr(self, key, value)
+        # Update the signature if a kwargs is given
+        if kwargs:
+            self._sig_arguments.arguments = dict_deep_update(self._sig_arguments.arguments, kwargs)
+            
 
     @property
     def signature(self):
-        if not hasattr(self, '_arguments'):
-            args = inspect.signature(self.__init__).bind()
-        else:
-            args = self._arguments
-
-        args.apply_defaults()
+        args = self._sig_arguments
+        
         argsout = []
         for k in args.arguments:
             # Remove args useless for caching like x and y
@@ -1067,13 +1084,17 @@ class beampy_module():
     def apply_theme(self, parent=None, lenient=False, exclude=None):
         """
         Load arguments of beampy_module.__init__ methods from the THEME when
-        they are set to None. The beampy module should have a valid signature,
+        they are set to None or 'theme'. The beampy module should have a valid signature arguments,
         updated with *beampy_module.update_signature* method.
+
+        Loading defaults from theme is recursive, if your module is a child of another beampy_module object,
+        the argument of the parents are also loaded from the theme.
 
         Parameters
         ----------
         parent: string optional,
-            The name of the parent beampy_module to also load args
+            The name of the parent beampy_module to also load args, only usefull if you 
+            define your module as a function and not as class.
 
         lenient: boolean optional
             When True, allows check function to not stop Beampy
@@ -1082,31 +1103,35 @@ class beampy_module():
 
         exclude: list of str optional,
             Define key for which their is no THEME default to apply.
-
         """
 
         # Use an auto mode with arg=None -> then load from THEME
         # print(inspect.signature(self.__init__).parameters.keys())
 
 
-        assert hasattr(self, '_arguments'), "Need to add use self.update_signature in your module init"
-        self._arguments.apply_defaults()
+        #assert hasattr(self, '_arguments'), "Need to add use self.update_signature in your module init"
+        #self._arguments.apply_defaults()
 
-        args = self._arguments.arguments
+        args = self._sig_arguments.arguments
         keys = args.keys()
 
-        function_name = self.name
-        default_dict = Store.theme(function_name)
+
+        beampy_module_name = self.name
+        default_dict = Store.theme('beampy_module')
+        # Use inspect.getmro to list all parent class of the current beampy_module
+        for c in inspect.getmro(self.__class__)[1::-1]:
+            default_dict = dict_deep_update(default_dict, Store.theme(c.__name__))
 
         # Merge default dictionary with the parent dictionary
         if parent is not None:
             default_dict = dict_deep_update(Store.theme(parent), default_dict)
 
         if exclude is None:
-            exclude = []
+            exclude = self._theme_exclude_args 
         else:
             assert isinstance(exclude, list), "exclude argument should be a list"
 
+        print(default_dict)
         for key, value in args.items():
             # If the value is None look for it in the default_dict Don't use
             # "is" for comparison. It results as false if the value is a
@@ -1116,7 +1141,7 @@ class beampy_module():
                     # Update the value in the object
                     setattr(self, key, default_dict[key])
                     # Update the args in the signature
-                    self._arguments.arguments[key] = getattr(self, key)
+                    self._sig_arguments.arguments[key] = getattr(self, key)
                 else:
                     if not lenient:
                         print_function_args(function_name)

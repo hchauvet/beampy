@@ -33,9 +33,7 @@ class video(beampy_module):
         super().__init__(x, y, width, height, margin, 'html', **kwargs)
 
         # Update the signature
-        self.update_signature(videofile, x, y, width, height, margin, autoplay,
-                              control, loop, muted, still_image_time, embedded,
-                              **kwargs)
+        self.update_signature()
 
         # Add arguments as attributes
         self.set(videofile=Path(videofile), autoplay=autoplay, control=control,

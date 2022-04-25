@@ -99,9 +99,7 @@ class rectangle(beampy_module):
         super().__init__(x, y, width, height, margin, content_type, **kwargs)
 
         # Create a signature for the module
-        self.update_signature(x, y, width, height, margin, opacity, rx, ry,
-                              color, edgecolor, linewidth, svgfilter, svgclip,
-                              **kwargs)
+        self.update_signature()
 
         # Apply the theme for None arguments
         self.apply_theme()
