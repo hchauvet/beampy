@@ -218,14 +218,16 @@ THEME['circle'] = {
 THEME['box'] = {
     'rounded': 10,
     'linewidth': 1,
-    'color': THEME['title']['color'],
     'head_height': None,
     'shadow': False,
     'background_color': 'white',
     'title_color': 'white',
+    'border_color': THEME['title']['color'],
+    'title_background_color': THEME['title']['color'],
     'title_align': 'left',
-    'title_xoffset': 10,
+    'title_margin': 10,
+    'title_opacity': 1,
     'title_size': THEME['text']['size'],
-    'auto_height_margin': 15,
-    'title_height_margin': 10
+    'title_xoffset': 0,
+    'content_margin': 10
 }

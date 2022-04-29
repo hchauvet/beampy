@@ -565,7 +565,7 @@ class textOld(beampy_module):
             \end{varwidth}"""
 
             # Matplotlib uses fontsize * 1.25 for spacing
-            self.latex_text = template % (self.width.value*(72.27/96.),
+            self.latex_text = template % (self.width.value - (self._margin.left+self._margin.right)*(72.27/96.),
                                           texalign, self.size,
                                           (self.size+self.size*0.1),
                                           textin)

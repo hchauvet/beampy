@@ -7,6 +7,7 @@ from .svg import svg
 from .text import text
 from .title import title
 from .maketitle import maketitle
+from .box import box
 
 __all__ = [
     'text',
@@ -16,5 +17,6 @@ __all__ = [
     'itemize',
     'rectangle',
     'svg',
-    'maketitle'
+    'maketitle',
+    'box'
 ]

@@ -667,3 +667,81 @@ def vertical_distribute(beampy_modules, available_space):
     beampy_modules[0].y = dy + beampy_modules[0].margin[0]
     for i, bpm in enumerate(beampy_modules[1:]):
         bpm.y = beampy_modules[i].bottom + dy + bpm.margin[0]
+
+
+
+class Margins():
+
+    def __init__(self, margins):
+        """ 
+        Convert a given margin into a list of 4 Length objects [top, right, bottom, left]
+
+        Parameters:
+        -----------
+
+        - margin: int, float, str of a list of int, float, or str,
+            When given as a simple number (int, float or str), the [top,
+            right, bottom, left] margins will be equales.
+            
+            When given as a list of size 2, the left, right will be equal to the first
+            number and the top, bottom to the second one.
+
+            When given as a list of size 4, it will set each number to, [top,
+            right, bottom, left]
+        """
+
+        self._margins = None
+
+        if isinstance(margins, (str, float, int)):
+            self._margins = [Length(margins, 'y'), Length(margins, 'x')] * 2
+
+        elif isinstance(margins, (list, tuple)):
+            if len(margins) == 2:
+                self._margins = [Length(margins[0], 'y'),
+                                Length(margins[1], 'x')] * 2
+            elif len(margins) == 4:
+                self._margins = [Length(margins[0], 'y'),
+                                Length(margins[1], 'x'),
+                                Length(margins[2], 'y'),
+                                Length(margins[3], 'x')]
+            else:
+                raise TypeError("The size of margin list should be 2 or 4, not %s" % len(margin))
+        elif margins is None:
+            # This allow theme set of the margin
+            self._margins = None
+        else:
+            raise TypeError("The margin should be a list or a number or a string or None")
+
+    def __len__(self):
+        return 4
+
+    def __getitem__(self, pos):
+        return self._margins[pos].value
+
+    @property
+    def left(self):
+        if self._margins is None:
+            return None
+
+        return self._margins[1].value
+
+    @property
+    def top(self):
+        if self._margins is None:
+            return None
+            
+        return self._margins[0].value
+
+    @property
+    def right(self):
+        if self._margins is None:
+            return None
+            
+        return self._margins[3].value
+
+    @property
+    def bottom(self):
+        if self._margins is None:
+            return None
+            
+        return self._margins[2].value

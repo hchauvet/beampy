@@ -21,7 +21,7 @@ _log = logging.getLogger(__name__)
 class group(beampy_module):
 
     def __init__(self, x=None, y=None, width=None, height=None, margin=None,
-                 modules=None, background=None):
+                 modules=None, background=None, **kwargs):
         """Group beampy elements to manipulate them as a single beampy_module
 
         Parameters:
@@ -36,14 +36,14 @@ class group(beampy_module):
 
 
         # Init this as a module
-        super().__init__(x, y, width, height, margin, 'group')
+        super().__init__(x, y, width, height, margin, 'group', **kwargs)
         # Update the default arguments
         self.update_signature()
 
         # Add arguments as attributes
         self.set(background=background)
-
-        self.apply_theme(exclude=['modules'])
+        self.theme_exclude_args = ['modules']
+        self.apply_theme()
 
         # Check in the store if their is a parent group object
         self.parent = None
@@ -96,14 +96,13 @@ class group(beampy_module):
                                 self.height.value,
                                 self.name)
 
-        # TODO: Think a way to get a cache for this group content !!!
-
+        print('group w,h', self.width, self.height)
         # Manage width = None, height = None
         # When width is None compute the total width of elements in the group
         if self.init_width is None:
             if Store.get_current_slide_id() is None:
                 w = Store.theme('document')['width']
-                print('TODO: need to read theme default width!!! set to ', w)
+                print('Set width to the one defined in Theme for document ', w)
             else:
                 w = Store.get_current_slide().curwidth
 
@@ -112,11 +111,13 @@ class group(beampy_module):
         if self.init_height is None:
             if Store.get_current_slide_id() is None:
                 h = Store.theme('document')['height']
-                print('TODO: need to read theme default height!!! set to ', h)
+                print('Set height to the one defined in Theme for document', h)
             else:
                 h = Store.get_current_slide().curheight
 
             self.height = h
+
+        print('group w,h', self.width, self.height)
 
         # Process auto X
         if len(self.id_modules_auto_x) > 0:
@@ -200,7 +201,7 @@ class group(beampy_module):
     def svgdef(self):
         if 'svgdef' in self.data:
             svgdef = self.export_svgdef()
-            out = [f'<g id=\"{self.content_id}_{self.slide_id}_{layer}\" class="group">'+f'{"".join(svgdef[layer])}'+'</g>' for layer in svgdef]
+            out = [f'<g id=\"{self.content_id}_{self.slide_id}_{layer}\" class="group">'+self.svg_decoration+f'{"".join(svgdef[layer])}'+'</g>' for layer in svgdef]
             out_id = [f'{self.content_id}_{self.slide_id}_{layer}' for layer in svgdef]
             return out_id, out
 
@@ -259,7 +260,7 @@ class group(beampy_module):
 
         return ''.join(divout)
 
-    def group_width(self):
+    def group_width(self, modules=None):
         """Compute the width of the group based on the module inside the group.
         group modules should have been positionned prior to compute the
         group_size.
@@ -267,8 +268,11 @@ class group(beampy_module):
         return the computed width
         """
 
-        modules_x = [m._final_x for m in self.modules]
-        modules_right = [m.right.value for m in self.modules]
+        if modules is None:
+            modules = self.modules
+
+        modules_x = [m._final_x for m in modules]
+        modules_right = [m.right.value for m in modules]
 
         xmin = min(modules_x)
         xmax = max(modules_right)
@@ -277,7 +281,7 @@ class group(beampy_module):
 
         return xmax-xmin
 
-    def group_height(self):
+    def group_height(self, modules=None):
         """Compute the height of the group based on the module inside the group.
         group modules should have been positionned prior to compute the
         group_size.
@@ -285,8 +289,11 @@ class group(beampy_module):
         return the computed height
         """
 
-        modules_y = [m._final_y for m in self.modules]
-        modules_bottom = [m.bottom.value for m in self.modules]
+        if modules is None:
+            modules = self.modules
+
+        modules_y = [m._final_y for m in modules]
+        modules_bottom = [m.bottom.value for m in modules]
 
         ymin = min(modules_y)
         ymax = max(modules_bottom)
@@ -295,29 +302,45 @@ class group(beampy_module):
 
         return ymax-ymin
 
-    def xmin(self):
+    def xmin(self, modules=None):
         """Get the minimum horizontal direction of the group.
         group_modules should be positionned first.
         """
-        return min((m._final_x for m in self.modules))
 
-    def xmax(self):
+        if modules is None:
+            modules = self.modules
+
+        return min((m._final_x for m in modules))
+
+    def xmax(self, modules=None):
         """Get the maximum horizontal direction of the group.
         group_modules should be positionned first.
         """
-        return max((m._final_x for m in self.modules))
 
-    def ymin(self):
+        if modules is None:
+            modules = self.modules 
+
+        return max((m._final_x for m in modules))
+
+    def ymin(self, modules=None):
         """Get the minimum vertical direction of the group.
         group_modules should be positionned first.
         """
-        return min((m._final_y for m in self.modules))
 
-    def ymax(self):
+        if modules is None:
+            modules = self.modules
+
+        return min((m._final_y for m in modules))
+
+    def ymax(self, modules=None):
         """Get the maximum vertical direction of the group.
         group_modules should be positionned first.
         """
-        return max((m._final_y for m in self.modules))
+
+        if modules is None:
+            modules = self.modules
+
+        return max((m._final_y for m in modules))
 
     def __enter__(self):
         return self
@@ -327,7 +350,6 @@ class group(beampy_module):
         # Convert string layer and check group module layers consistancy
         self.check_modules_layers()
 
-        print(self.id_modules_auto_y)
         # Render the group
         self.render()
 

@@ -9,7 +9,7 @@ from beampy.core.content import Content
 from beampy.core.functions import (get_command_line, print_function_args,
                                    pre_cache_svg_image, convert_unit,
                                    dict_deep_update)
-from beampy.core.geometry import Position, Length
+from beampy.core.geometry import Position, Length, Margins
 from string import Template
 from copy import deepcopy
 import inspect
@@ -45,9 +45,6 @@ class beampy_module():
     svgdefs = []
     svgdefsargs = []
 
-    # Store a list of key to ignore in theme check for argument defaults
-    _theme_exclude_args = []
-
     # Create a __new__ for beampy module to define a signature object from inspect module
     def __new__(cls, *args, **kwargs):
         obj = super().__new__(cls)
@@ -62,10 +59,14 @@ class beampy_module():
         obj._sig = sig
         obj._sig_arguments = sig_arguments
 
+        # Store a list of key to ignore in theme check for argument defaults
+        obj._theme_exclude_args = []
+
         return obj
 
 
-    def __init__(self, x, y, width, height, margin, content_type='svg', add_to_slide=True, **kwargs):
+    def __init__(self, x, y, width, height, margin, content_type='svg', add_to_slide=True, 
+                 add_to_group=True, **kwargs):
         """Beampy module is the base class for each elements added to slide or group in
         Beampy-slideshow. Modules create a Content (with a given size)
         registered to the Store. A unique ID is created for the Content and
@@ -110,9 +111,22 @@ class beampy_module():
             The default value is True. This argument is usefull when you use an other 
             beampy module to build a more complex one for instance.
 
+        add_to_group : bool,
+            If this is set to False the module will not be added to the current group (and of course 
+            to the current_slide). The default value is True. This argument is usefull when you use an other 
+            beampy module to build a more complex one for instance.
+
         **kwargs, any key=value list:
             will be added to the class variables to use them in the render for
             exemple.
+
+
+        Attributes:
+        -----------
+
+        svg_decoration, str (default '')
+            An svg that will be added to the group of the module before 
+            any svg rendered by the module
 
         """
 
@@ -121,6 +135,9 @@ class beampy_module():
 
         # Define variable used by register methods first
         self.add_to_slide = add_to_slide
+        self.add_to_group = add_to_group
+        if not self.add_to_group:
+            self.add_to_slide = False
 
         # register the module to the Store and the slide or group if needed.
         self.register()
@@ -151,6 +168,8 @@ class beampy_module():
         self._svg_rotate = None
         self._svg_translate = None
 
+        # Added before svg in the svg group
+        self.svg_decoration = ''
         # Variables that will store output of render functions
         self.svgout = ''  # The svg template to produce the final valid svg string
         self.htmlout = ''  # The html template
@@ -186,7 +205,7 @@ class beampy_module():
             sid = self.slide_id
             self.id = self.get_index()
         else:
-            if Store.isgroup():
+            if Store.isgroup() and self.add_to_group:
                 Store.group().add_module(self)
                 self.id = self.get_index()
             else:
@@ -279,6 +298,20 @@ class beampy_module():
             
 
     @property
+    def theme_exclude_args(self):
+        return self._theme_exclude_args
+
+    @theme_exclude_args.setter
+    def theme_exclude_args(self, new_args: list):
+        """
+        add argument to exclude from default value 
+        check in the theme file.
+        """
+
+        assert isinstance(new_args, list), "The given arguments should be a list of string ['my arg1', 'my arg2']"        
+        self._theme_exclude_args += new_args
+
+    @property
     def signature(self):
         args = self._sig_arguments
         
@@ -314,38 +347,19 @@ class beampy_module():
     def margin(self):
         """Get the margin process each length
         """
-        out_margin = [0, 0, 0, 0]
-        if hasattr(self, '_margin') and isinstance(self._margin, list):
-            out_margin = [self._margin[0].value,
-                          self._margin[1].value,
-                          self._margin[2].value,
-                          self._margin[3].value]
 
-        return out_margin
+        return self._margin
 
     @margin.setter
     def margin(self, new_margin):
         """Check type of given margin and convert each of element to Length
         objects.
         """
-        if isinstance(new_margin, (str, float, int)):
-            self._margin = [Length(new_margin, 'y'), Length(new_margin, 'x')] * 2
-        elif isinstance(new_margin, (list, tuple)):
-            if len(new_margin) == 2:
-                self._margin = [Length(new_margin[0], 'y'),
-                                Length(new_margin[1], 'x')] * 2
-            elif len(new_margin) == 4:
-                self._margin = [Length(new_margin[0], 'y'),
-                                Length(new_margin[1], 'x'),
-                                Length(new_margin[2], 'y'),
-                                Length(new_margin[3], 'x')]
-            else:
-                raise TypeError("The size of margin list should be 2 or 4, not %s" % len(new_margin))
-        elif new_margin is None:
-            # This allow theme set of the margin
-            self._margin = None
-        else:
-            raise TypeError("The margin should be a list or a number or a string")
+
+        if new_margin is None:
+            new_margin = 0
+            
+        self._margin = Margins(new_margin)
 
     @property
     def content_width(self):
@@ -459,6 +473,7 @@ class beampy_module():
         out = ' '.join([f'<g id="{self.content_id}" class="{self.name}"',
                         self.svgtransform,
                         '>',
+                        self.svg_decoration,
                         svgin,
                         '</g>'])
 
@@ -707,14 +722,14 @@ class beampy_module():
         """The height + vertical margins
         """
         margin = self.margin
-        return self.height + margin[0] + margin[2]
+        return self.height + margin.top + margin.bottom
 
     @property
     def total_width(self):
         """The width + horizontal margins
         """
         margin = self.margin
-        return self.width + margin[1] + margin[3]
+        return self.width + margin.left + margin.right
 
     @height.setter
     def height(self, h):
@@ -931,25 +946,25 @@ class beampy_module():
         """Return the horizontal position to be align with the right edge of the
         module.
         """
-        return self.x + self.width + self.margin[1]
+        return self.x + self.width + self.margin.right
 
     @property
     def bottom(self):
         """Return the vertical position to be align with the bottom edge of the
         module.
         """
-        return self.y + self.height + self.margin[2]
+        return self.y + self.height + self.margin.top
 
     @property
     def left(self):
         """Return the left anchor of the module
         """
-        return self.x - self.margin[3]
+        return self.x - self.margin.left
 
     @property
     def top(self):
         """Return the top anchor of the module"""
-        return self.y - self.margin[0]
+        return self.y - self.margin.top
 
     @property
     def center(self):
@@ -966,7 +981,7 @@ class beampy_module():
     def y_center(self):
         return self.y + self.height/2
 
-    def compute_position(self):
+    def compute_position(self, xoffset=0, yoffset=0):
         """Compute the position of the module and store the result in
         self._final_x, self._final_y variables.
 
@@ -982,37 +997,34 @@ class beampy_module():
         xf = self.x
         yf = self.y
 
-        update_x = False
-        update_y = False
-
         # Apply origin transformation
         if self.xorigine == 'center':
             xf = self.x - self.width/2
-            update_x = True
 
         if self.xorigine == 'right':
             xf = self.x - self.width.value
-            update_x = True
 
         if self.yorigine == 'center':
             yf = self.y - self.height.value/2
-            update_y = True
 
         if self.yorigine == 'bottom':
             yf = self.y - self.height.value
-            update_y = True
+
+        # Add offset 
+        if xoffset != 0:
+            xf = xoffset + xf
+        if yoffset != 0:
+            yf = yoffset + yf 
 
         xfv = xf.value
         yfv = yf.value
 
-        if update_x:
-            self.x = xfv
-        if update_y:
-            self.y = yfv
+        self.x = xfv
+        self.y = yfv
 
         # Add left and top margins to final position
-        xfv = xfv + self.margin[1]
-        yfv = yfv + self.margin[0]
+        xfv = xfv + self.margin.left
+        yfv = yfv + self.margin.top
 
         self._final_x = xfv
         self._final_y = yfv
@@ -1127,11 +1139,12 @@ class beampy_module():
             default_dict = dict_deep_update(Store.theme(parent), default_dict)
 
         if exclude is None:
-            exclude = self._theme_exclude_args 
+            exclude = self.theme_exclude_args 
         else:
             assert isinstance(exclude, list), "exclude argument should be a list"
+            exclude = exclude + self.theme_exclude_args
 
-        print(default_dict)
+        print(exclude)
         for key, value in args.items():
             # If the value is None look for it in the default_dict Don't use
             # "is" for comparison. It results as false if the value is a
@@ -1144,10 +1157,13 @@ class beampy_module():
                     self._sig_arguments.arguments[key] = getattr(self, key)
                 else:
                     if not lenient:
-                        print_function_args(function_name)
-                        raise IndexError("Error the key %s is not defined for %s module" % (key, function_name))
+                        print_function_args(beampy_module_name)
+                        raise IndexError("Error the key %s is not defined for %s module" % (key, beampy_module_name))
                     else:
                         _log.debug('Your argument %s is not defined in the Theme' % (key))
+            else:
+                # Set the value of the arguments as an attribute of the function
+                setattr(self, key, value)
 
     def render_svgdefs(self):
         """
@@ -1286,6 +1302,10 @@ class beampy_module():
         copy_self.x = x
         copy_self.y = y
 
+        # Set add_to_slide and group to true as they have been added
+        copy_self.add_to_slide = True
+        copy_self.add_to_group = True
+        
         # Update **kwargs options
         if len(kwargs) > 0:
             print('Update module options: %s' % str(kwargs))

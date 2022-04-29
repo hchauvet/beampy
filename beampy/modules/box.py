@@ -1,12 +1,11 @@
 """
 Beampy module to create a boxed group 
 """
-from beampy.core.document import document
-from beampy.core.functions import set_curentslide, set_lastslide
+from beampy.core.content import Content
+from beampy.core.store import Store
 from beampy.core.group import group
-from beampy.core.geometry import center
+from beampy.core.geometry import (Margins, horizontal_distribute, vertical_distribute, center, right)
 from beampy.modules.text import text
-from beampy.modules.svg import rectangle
 import logging
 
 
@@ -37,9 +36,9 @@ class box(group):
         Height of the group (the default is None). When height is None the
         height is computed to fit the group contents height.
 
-    perentid : str or None, optional
-        Beampy id of the parent group (the default is None). This parentid is
-        given automatically by Beampy render.
+    margins  :
+
+    modules :
 
     rounded : int, optional
         The number of pixel for rounded borders (the default value is
@@ -66,6 +65,10 @@ class box(group):
         The color of the background of the box (the default values is
         'white').
 
+    border_color : svg color name as string, optional
+        The color of the border of the box (the default values is
+        'red').
+
     title_color : svg color name as string, optional
         The color of the title (the default value is 'white').
 
@@ -81,168 +84,160 @@ class box(group):
         The size of the box title font (the default theme set this
         value the size of main text).
 
+    title_opacity: int, [0, 1]
+        The opacity of the box title (the default theme set this value to 1)
+
     title_background_color: svg color name as string, optional
         The color of the background below the title (The default theme
         set this to the same color as the contour line).
 
-    title_height_margin: int, optional
-        Set the space between the bottom and the top of the title (the default theme sets this value to 10)
+    title_margin: int or list of size 2 or 4, optional
+        Set the margin the title (the default theme sets this value to 10)
 
-    auto_height_margin : int, optional
-        The vertical margin in pixel (top and bottom) to use when box height is not specified 
-        (the default theme sets this value to 15).
-
-
+    content_margin : int or list of size 2 or 4, optional
+        The inner margin for the content of the viewbox.
     """
 
-    def __init__(self, title=None, x='center', y='auto', width=None,
-                 height=None, parentid=None, **kwargs):
+    def __init__(self, title=None, x=None, y=None, width=None, height=None, margin=None,
+                 modules=None, rounded=None, linewidth=None, color=None, head_height=None, 
+                 shadow=None, background_color=None, border_color=None, title_color=None, 
+                 title_align=None, title_xoffset=None, title_size=None, title_opacity=None,
+                 title_background_color=None, title_margin=None, content_margin=None, **kargs):
 
-        self.title = title
-        self.check_args_from_theme(kwargs)
+        self.set(title=title, modules=modules)
+        self.theme_exclude_args = ['title', 'modules', 'color']
+
+        self.update_signature()
+        super().__init__(x=x, y=y, width=width, height=height, modules=modules, background=None, **kargs)
+        print('End of group init width, height', self.width, self.height)
+
+        # Compatibility with the old beampy
+        if color is not None:
+            self.title_background_color = color
+            self.border_color = color
+            
+        # Manager the margins 
+        self.title_margin = Margins(self.title_margin)
+        self.content_margin = Margins(self.content_margin)
+
+        # Crop the width and height to respect content margin
+        # Only when the size of the box is given
+        if self.init_width is not None:
+            self.width = self.width.value - (self.content_margin.left + self.content_margin.right)
+
+        if self.init_height is not None:
+            self.height = self.height.value - (self.content_margin.top + self.content_margin.bottom)
         
-        super(box, self).__init__(x=x,
-                                  y=y,
-                                  width=width,
-                                  height=height,
-                                  parentid=parentid,
-                                  opengroup=False)
+        print('End of init width, height', self.width, self.height)
+            
+    def render(self):
+        """
+        Redefine the render for the box
+        """
         
-        # Build the title if it's not None
-        self.bp_title = None # to store beampy text object for the title
-        
+        # Create a title without adding it to the group
         if self.title is not None:
-            # Title should not be in group
-            self.build_title()
-            self.yoffset = self.head_height
-
-    def build_title(self):
-        
-        self.title_xpos = self.title_xoffset
-        self.title_ypos = self.title_height_margin/2
-
-        self.bp_title = text(self.title, x=self.title_xpos,
-                             y=self.title_ypos, color=self.title_color,
-                             width=self.width-20, size=self.title_size)
-
-        # Add y offset to the group (the height taken by the title)
-        if self.head_height is None:
-            self.head_height = (self.bp_title.height + self.title_height_margin).value
-
-        # print(self.height, self.width)
-        # self.remove_element_in_group(self.bp_title.id)
-        # self.bp_title = None
-
-    def build_background(self):
-        if self.shadow:
-            self.svg_shadow = '#drop-shadow'            
-        else:
-            self.svg_shadow = None
-
-            
-        self.main_svg = rectangle(width=self.width,
-                                  height=self.height,
-                                  rx=self.rounded,
-                                  ry=self.rounded,
-                                  edgecolor=self.color,
-                                  linewidth=self.linewidth,
-                                  color=self.background_color,
-                                  svgfilter=self.svg_shadow,
-                                  x=self.center+center(0),
-                                  y=self.center+center(0))
-
-        if self.svg_shadow is not None:
-            self.main_svg.add_svgdef('''
-            <filter id="drop-shadow"> <feGaussianBlur in="SourceAlpha"
-            stdDeviation="3"/> <feOffset dx="4" dy="4" result="offsetblur"/>
-            <feMerge> <feMergeNode/> <feMergeNode in="SourceGraphic"/> </feMerge>
-            </filter>
-            ''')
-        
-        if self.bp_title is not None:
-            clipid = "#boxborder_{id}".format(id=self.id)
-
-
-            self.title_svg = rectangle(width=self.width,
-                                       height=self.head_height,
-                                       color=self.color,
-                                       edgecolor=self.color,
-                                       linewidth=self.linewidth,
-                                       svgclip=clipid,
-                                       x="-%ipx"%(self.linewidth/2),
-                                       y="-%ipx"%(self.linewidth/2))
-
-            self.title_svg.rounded = self.rounded
-            self.title_svg.add_svgdef('''
-            <clipPath id="boxborder_%s">
-            <rect width="{width}" height="{clipheight}" 
-            rx="{rounded}" ry="{rounded}" stroke="{color}" 
-            stroke-width="{linewidth}"/>
-            </clipPath>
-            ''' % self.id, ['width', 'clipheight', 'rounded',
-                           'color', 'linewidth'])
-            
-            # Added to clip the title square
-            self.title_svg.clipheight = self.head_height * 2
-            
-    def pre_render(self):
-        set_curentslide(self.slide_id)
-
-        if self.init_height is None:
-            for eid in self.elementsid:
-                elem = document._slides[self.slide_id].contents[eid]
-
-                if elem.height.value is None:
-                    elem.height.run_render()
-                    
-                if elem.width.value is None:
-                    elem.width.run_render()
-        
-            self.compute_group_size()
-            self.update_size(self.width, self.height+self.yoffset +
-                             2*self.auto_height_margin)
-            # Report offset on auto placed elements
-            for eid in self.elementsid:
-                document._slides[self.slide_id].contents[eid].positionner.y['final'] += self.yoffset + self.auto_height_margin
-
-        else:
-            # The case of the height is given and elements have a
-            # fixed shift, weed need to update the shift with the
-            # title yoffset TODO: This should be included in the group
-            # class !!!
-            for eid in self.elementsid:
-                elemp = document._slides[self.slide_id].contents[eid].positionner
-                if elemp.y['align'] not in ['auto', 'center'] and elemp.y['reference'] != 'relative':
-                    document._slides[self.slide_id].contents[eid].positionner.y['shift'] += self.yoffset
-
-        # Create the backgroud objects
-        with self:
-            self.build_background()
-
-        # Propagate the layer inside the group
-        # (as we added element in render time)
-        self.propagate_layers()
-        
-        # Manage position of new objects 
-        self.main_svg.first()
-
-        # Replace the title of the box
-        if self.bp_title is not None:
-            self.title_svg.above(self.main_svg)
-
-            # Set the correct layers for the title
-            logging.debug('set layer to box title to %s ' % str(self.layers))
-            self.bp_title.layers = self.layers
-
-            title_xpos = self.left + self.title_xoffset
-
+            xt = 0
+            yt = 0
             if self.title_align == 'center':
-                title_xpos = self.left + (self.title_svg.width-self.bp_title.width)/2
-
+                xt = 'center'
             if self.title_align == 'right':
-                title_xpos = self.right - (self.bp_title.width + self.title_xpos)
+                xt = right(self.width.value+self.content_margin.left)
 
-            self.bp_title.positionner.update_y(self.top + self.title_ypos)
-            self.bp_title.positionner.update_x(title_xpos)
+            box_title = text(self.title, x=xt, y=yt, width=self.width.value, margin=list(self.title_margin), 
+                             size=self.title_size, color=self.title_color, align=self.title_align, 
+                             opacity=self.title_opacity, add_to_group=False)
 
-        set_lastslide()
+            # Get the offset of the title
+            if self.head_height is None:
+                self.head_height = box_title.total_height.value
+
+            # Remove the height available to make auto positionning
+            # of elements inside the group
+            self.height = self.height.value - self.head_height
+
+        # Run the group render
+        super().render()
+        group_height = self.group_height()
+
+            
+
+        if self.head_height is None:
+            self.head_height = 0
+
+        if self.title is not None:
+            self.height = self.height.value + self.head_height
+
+        # Loop over all modules except the title (the last one)
+        for m in self.modules:
+            m._final_x += self.content_margin.left 
+            m._final_y += self.head_height + self.content_margin.top
+
+        # Re call the title to add it to the box
+        if self.title is not None:
+            bt = box_title(x=xt, y=yt)
+            bt.compute_position()
+            if self.title_align == 'center':
+                bt._final_x += self.content_margin.left
+
+
+        # Restore the width and height with the margins
+        self.width = self.width.value + self.content_margin.left + self.content_margin.right
+        self.height = self.height.value + self.content_margin.top + self.content_margin.bottom 
+
+        # Create the box
+        svg_shadow = (f'<filter id="drop-shadow-{self.id}"> <feGaussianBlur in="SourceAlpha" '
+                      'stdDeviation="3"/> <feOffset dx="4" dy="4" result="offsetblur"/> '
+                      '<feMerge> <feMergeNode/> <feMergeNode in="SourceGraphic"/> </feMerge> '
+                      '</filter>')
+        
+        # The value of the round corners
+        r = self.rounded
+        # the width and height of the box
+        w = self.width.value
+        h = self.height.value
+        # the heigh of the header
+        hh = self.head_height
+        # the linewidth
+        lw = self.linewidth
+
+        if self.shadow:
+            box_svg = svg_shadow + f'<g class="box" width="{w}" height="{h}" style="filter: url(#drop-shadow-{self.id})">'
+        else:
+            box_svg = f'<g class="box" width="{w}" height="{h}">'
+
+        if hh > 0:
+            # The header part of the box
+            box_svg += (f'<path d="M {lw/2} {hh+lw/2} v {-(hh-r)} q 0 {-r} {r} {-r} '
+                        f'h {w-2*r-lw} q {r} 0 {r} {r} v {hh-r} Z" '
+                        f'fill="{self.title_background_color}" stroke="none" stroke-width="0"/>')
+            # The content background of the box
+            box_svg += (f'<path d="M {lw/2} {hh+lw/2} v {(h-hh-r-lw)} q 0 {r} {r} {r} '
+                        f'h {w-2*r-lw} q {r} 0 {r} {-r} v {-(h-hh-r-lw)} Z" '
+                        f'fill="{self.background_color}" stroke="none" stroke-width="0"/>')
+        else:
+            # The content background of the box without header
+            box_svg += (f'<path d="M {r+lw/2} {hh+lw/2} q {-r} 0 {-r} {r} '
+                        f'v {(h-hh-2*r-lw)} q 0 {r} {r} {r} h {w-2*r-lw} q {r} 0 {r} {-r} '
+                        f'v {-(h-hh-2*r-lw)} q 0 {-r} {-r} {-r} Z" '
+                        f'fill="{self.background_color}" stroke="none" stroke-width="0"/>')
+        # The contour of the box
+        if lw > 0:
+            box_svg += (f'<path d="M {r+lw/2} {lw/2} h {w-2*r-lw} q {r} 0 {r} {r} v {h-2*r-lw} q 0 {r} {-r} {r} '
+                        f'h {-(w-2*r-lw)} q {-r} 0 {-r} {-r} v {-(h-2*r-lw)} q 0 {-r} {r} {-r}" ' 
+                        f'stroke="{self.border_color}" stroke-width="{lw}px" fill="none"/>')
+
+        box_svg += '</g>'
+        self.svg_decoration = box_svg
+        # Export to data each group for the different layers
+        self.svgdef = 'Defined on export'
+        self.content_width = self.width.value
+        self.content_height = self.height.value
+
+        # Fix the width and height
+        self.width = self.width.value
+        self.height = self.height.value
+
+        # For group we define the signature after the renderering
+        # to include the list of modules
+        self.update_signature(modules=self.modules)
