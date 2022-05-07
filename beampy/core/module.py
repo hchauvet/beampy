@@ -133,6 +133,8 @@ class beampy_module():
         # Add kwards as variable of the class
         self.set(**kwargs)
 
+        self.show_box_model = True
+
         # Define variable used by register methods first
         self.add_to_slide = add_to_slide
         self.add_to_group = add_to_group
@@ -495,10 +497,18 @@ class beampy_module():
     def svguse(self):
         """Return the svg <use> command for this element
         """
+        svg_box = ''
+        if self.show_box_model:
+            # The content box
+            svg_box = f'<rect x="{self._final_x}" y="{self._final_y}" width="{self.width.value}px" height="{self.height.value}px" style="stroke:red; fill:none;"/>'
+            # The margin box
+            svg_box += f'<rect x="{self._final_x-self.margin.left}" y="{self._final_y-self.margin.top}" width="{self.total_width.value}px" height="{self.total_height.value}px" style="stroke:green; fill:none;"/>'
+            
         return (f'<use x="{self._final_x}" y="{self._final_y}" '
                 f'xlink:href="#{self.content_id}" '
                 f'{self.svgopacity} '
-                '/>')
+                '/>'
+                f'{svg_box}')
 
     @property
     def html(self):
@@ -1305,7 +1315,7 @@ class beampy_module():
         # Set add_to_slide and group to true as they have been added
         copy_self.add_to_slide = True
         copy_self.add_to_group = True
-        
+
         # Update **kwargs options
         if len(kwargs) > 0:
             print('Update module options: %s' % str(kwargs))
