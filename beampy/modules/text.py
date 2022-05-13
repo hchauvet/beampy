@@ -101,14 +101,13 @@ class text(beampy_module):
         # Register the module
         super().__init__(x, y, width, height, margin, 'svg', **kwargs)
 
-
         # Set the arguments as attributes
         self.set(opacity=opacity, rotate=rotate, size=size, font=font, usetex=usetex, va=va,
                  extra_packages=extra_packages, textin=textin, color=color,
                  align=align, cache_latex_preamble=cache_latex_preamble)
 
         # Set the list of arguments to exclude for theme defaults lookup
-        self._theme_exclude_args = ['textin']
+        self.theme_exclude_args = ['textin']
 
         # Update the signature of the __init__ call
         self.update_signature()
@@ -129,7 +128,7 @@ class text(beampy_module):
 
         # Add agrs to check for id
         self.args_for_cache_id = [self.font, self.color, self.size, self.va,
-                                  self.margin, self.align]
+                                  margin, self.align]
 
         if textin is not None:
             # Add the content this will run the render method if needed
@@ -271,7 +270,7 @@ class text(beampy_module):
         links = svgsoup.find_all('a')
         if links is not None:
             for link in links:
-                link_theme = Store.get_theme('link')
+                link_theme = Store.theme('link')
                 new_style = ' '.join([f'{k}:{v};' for k, v in list(link_theme.items())])
                 link['style'] = new_style
 
