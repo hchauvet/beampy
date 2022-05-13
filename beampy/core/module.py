@@ -133,7 +133,7 @@ class beampy_module():
         # Add kwards as variable of the class
         self.set(**kwargs)
 
-        self.show_box_model = True
+        self.show_box_model = False
 
         # Define variable used by register methods first
         self.add_to_slide = add_to_slide
@@ -264,7 +264,7 @@ class beampy_module():
                                 self.args_for_cache_id)
 
         if Store.is_content(self._content.id):
-            print(f'This module {self.signature} already exist in the Store, I will use {self.content_id}' )
+            print(f'This module {self.short_signature} already exist in the Store, I will use {self.content_id}' )
             self._content.load_from_store()
             # Update the size from the size of Store content
             self.width = self.content_width
@@ -288,7 +288,6 @@ class beampy_module():
         """
         Update the signature of the module, this will allow to redefine arguments name passed to __init__ method and update their values 
         """
-
         if ('args' in self._sig_arguments.arguments and
             'kwargs' in self._sig_arguments.arguments and
             len(self._sig_arguments.arguments['args'])>0 and
@@ -330,6 +329,23 @@ class beampy_module():
         return f'{self.name}({", ".join(argsout)})'
 
     @property
+    def short_signature(self):
+        args = self._sig_arguments
+
+        argsout = []
+        for k in args.arguments:
+            # Remove args useless for caching like x and y
+            if k not in ['x', 'y']:
+                argsout += [f'{str(k)}={args.arguments[k]}']
+
+        sig = f'{self.name}({", ".join(argsout)})'
+        if len(sig) > 15:
+            sig = sig[:5] + ' [...] ' + sig[-5:]
+
+        return sig
+
+
+    @property
     def content_id(self):
         return self._content.id
 
@@ -337,7 +353,7 @@ class beampy_module():
     def data(self):
         """The raw data of the content of the module
         """
-        if self._content is not None:
+        if self._content is not None and self._content._data_id is not None:
             return self._content.data
 
         return None
@@ -480,7 +496,8 @@ class beampy_module():
         """Create the svg group with the correct id, let the opacity to be set
         after as it does not depends on the rendering
         """
-        out = ' '.join([f'<g id="{self.content_id}" class="{self.name}"',
+        out = ' '.join([f'<g id="{self.content_id}" ',
+                        f'class="{self.name}"',
                         self.svgtransform,
                         '>',
                         self.svg_decoration,
@@ -489,7 +506,7 @@ class beampy_module():
 
         self.add_content_data('svgdef', out)
 
-    def add_content_data(self, key: str, data):
+    def add_content_data(self, key: str, datain):
         """Add extra data to the Content data dictionary.
         """
 
@@ -497,9 +514,9 @@ class beampy_module():
             if key in self.data:
                 print('The key %s alread exisit data will be replaced' % key)
 
-            self.data[key] = data
+            self.data[key] = datain
         else:
-            self.data = {key: data}
+            self.data = {key: datain}
 
     @property
     def svguse(self):

@@ -9,6 +9,7 @@ import sys
 import hashlib
 import logging
 import json
+import inspect
 from beampy.core.store import Store
 _log = logging.getLogger(__name__)
 
@@ -34,6 +35,7 @@ class Content():
         """
 
         assert content_type in ['svg', 'html', 'js']
+
         self.type = content_type
         self.content = content
         self.name = name
@@ -55,13 +57,21 @@ class Content():
         or a hyphen-minus (-) character.
         """
 
+        if self.args_for_id is not None:
+            for arg in self.args_for_id:
+                if inspect.isclass(arg):
+                    print('WARNING: you add an object in args_for_id, this will result as a dirent id for each new objects')
+
         to_hash = f'{self.content} {self._width} {self._height} {self.type} {self.args_for_id}'
         tid = hashlib.md5(to_hash.encode('utf8')).hexdigest()[:10]
         # Add a 'B' to ensure XML validity
+
         self.id = 'B'+tid
 
+        assert self.id is not None, f'The id should not be None: {to_hash}'
+
     def load_from_store(self):
-        """Load the data content from the one in store
+        """Load the data content from the one in storel
         """
         st_content = Store.get_content(self.id)
         self.data = st_content.data
@@ -70,10 +80,11 @@ class Content():
 
     @property
     def data(self):
-        if self._data_id is not None and Store.is_data(self._data_id):
+        if Store.is_data(self._data_id):
             return Store.get_data(self._data_id)
         else:
             print('No data for this content in store ! %s' % self._data_id)
+            print(self.name)
 
         return None
 
@@ -81,6 +92,7 @@ class Content():
     def data(self, new_data):
         to_hash = f'{new_data}'
         self._data_id = hashlib.md5(to_hash.encode('utf8')).hexdigest()[:10]
+        # print(to_hash, self._data_id)
 
         if not Store.is_data(self._data_id):
             Store.add_data(new_data, self._data_id)
@@ -96,6 +108,7 @@ class Content():
 
     @width.setter
     def width(self, width):
+        assert width is not None, 'A content must have a fixed width'
         self._width = width
         Store.update_content_size(self, 'width')
 
@@ -105,6 +118,7 @@ class Content():
 
     @height.setter
     def height(self, height):
+        assert height is not None, 'A content must have a fixed height'
         self._height = height
         Store.update_content_size(self, 'height')
 
@@ -159,7 +173,10 @@ class Content():
     def __repr__(self):
         out = f'Content {self.id}\n'
         out += f'width: {self.width}, height: {self.height}\n'
-        out += f'data (id: {self._data_id}):\n {self.data}'
+        if self._data_id is not None:
+            out += f'data (id: {self._data_id}):\n {self.data}'
+        else:
+            out += f'No data stored'
 
         return out
 

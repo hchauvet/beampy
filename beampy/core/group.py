@@ -96,7 +96,7 @@ class group(beampy_module):
                                 self.height.value,
                                 self.name)
 
-        print('group w,h', self.width, self.height)
+
         # Manage width = None, height = None
         # When width is None compute the total width of elements in the group
         if self.init_width is None:
@@ -116,8 +116,6 @@ class group(beampy_module):
                 h = Store.get_current_slide().curheight
 
             self.height = h
-
-        print('group w,h', self.width, self.height)
 
         # Process auto X
         if len(self.id_modules_auto_x) > 0:

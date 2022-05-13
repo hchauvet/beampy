@@ -11,7 +11,7 @@ from beampy.core._svgfunctions import export_svgdefs
 from beampy.core.group import group
 from beampy.core.layers import unique_layers, get_maximum_layer
 from beampy.core.geometry import horizontal_distribute, vertical_distribute
-
+import time
 from string import Template
 import json
 from io import StringIO
@@ -172,6 +172,8 @@ class slide(object):
         self.svglayers = {}
 
     def __enter__(self):
+        self.start_time = time.time()
+        print(f'--- Create slide {self.id} ---')
         return self
 
     def __exit__(self, type, value, traceback):
@@ -180,7 +182,8 @@ class slide(object):
 
         # Revert current slide in store to None
         Store.reset_current_slide_id()
-
+        done_in = time.time() - self.start_time
+        print('--- Elements rendered in %0.2f s ---' % done_in)
         if _IPY_ is not None:
             display(self)
 

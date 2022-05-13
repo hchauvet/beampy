@@ -208,3 +208,4 @@ def inkscape_get_size(svgfile: str) -> list:
     req.close()
 
     return width, height
+

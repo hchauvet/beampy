@@ -4,7 +4,7 @@ Created on Fri May 15 16:45:51 2015
 
 @author: hugo
 """
-
+from pathlib import Path
 from beampy.core.store import Store
 from bs4 import BeautifulSoup
 import re
@@ -668,10 +668,12 @@ def get_command_line(func_name):
     return (start, nline-1, source)
 
 
-def guess_file_type(file_name, file_type=None):
+def guess_file_type(file_name: str, file_type=None) -> str:
     """
     Guess the type of a file name
     """
+
+    file_name = Path(file_name)
 
     file_extensions = {
         'svg': ['svg'],
@@ -683,7 +685,7 @@ def guess_file_type(file_name, file_type=None):
         }
 
     if file_type is None:
-        ext = os.path.splitext(file_name)[1][1:]
+        ext = file_name.suffix.replace('.', '')
 
         found = False
         for file_type in file_extensions:
