@@ -135,6 +135,13 @@ class Store(metaclass=StoreMetaclass):
         return cls._current_slide
 
     @classmethod
+    def reset_current_slide_id(cls):
+        """
+        Set the current_slide_id to None
+        """
+        cls._current_slide = None
+
+    @classmethod
     def get_current_slide_pos(cls):
         """
         Return the index of the current slide
@@ -221,9 +228,9 @@ class Store(metaclass=StoreMetaclass):
     def update_content_size(cls, bp_content: object, dim='both'):
         # TODO: implement save_cache if needed!!!
         if dim in ['both', 'width']:
-            cls._contents[bp_content.id]._width = bp_content._width
+            cls._contents[bp_content.id]._width = bp_content.width
         if dim in ['both', 'height']:
-            cls._contents[bp_content.id]._height = bp_content._height
+            cls._contents[bp_content.id]._height = bp_content.height
 
     @classmethod
     def remove_content(cls, content_id):
@@ -348,6 +355,27 @@ class Store(metaclass=StoreMetaclass):
         """
         cls._svg_id += 1
 
+    @classmethod
+    def current_height(cls):
+        """
+        Get a default height, either from the slide or from
+        local height (when you are inside one group)
+        """
+        if Store.get_current_slide_id() is None:
+            return Store.theme('document')['height']
+
+        return Store.get_current_slide().curheight
+
+    @classmethod
+    def current_width(cls):
+        """
+        Get a default width, either from the slide or from
+        local width (when you are inside one group)
+        """
+        if Store.get_current_slide_id() is None:
+            return Store.theme('document')['width']
+
+        return Store.get_current_slide().curwidth
 
     @classmethod
     def clear_all(cls):
