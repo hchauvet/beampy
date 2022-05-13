@@ -88,8 +88,8 @@ class slide(object):
         self.cpt_anim = 0
         # self.num = self.slide_num
         self.title = title
-        self.curwidth = document._width
-        self.curheight = document._height
+        self.curwidth = Store.theme('document')['width']
+        self.curheight = Store.theme('document')['height']
         self.num_layers = 0  # Store the number of layers in this slide
 
         # Store all outputs
@@ -177,6 +177,9 @@ class slide(object):
     def __exit__(self, type, value, traceback):
         # Check layers inside this slide
         self.check_modules_layers()
+
+        # Revert current slide in store to None
+        Store.reset_current_slide_id()
 
         if _IPY_ is not None:
             display(self)
