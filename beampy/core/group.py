@@ -211,7 +211,7 @@ class group(beampy_module):
     def svgdef(self, svgin):
         """Rewrite svgdef setter for group
         """
-        if hasattr(self, 'data') and 'svgdef' in self.data:
+        if self.data is not None and 'svgdef' in self.data:
             self.data['svgdef'] = svgin
         else:
             self.data = {'svgdef': svgin}
