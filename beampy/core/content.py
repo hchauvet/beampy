@@ -41,7 +41,7 @@ class Content():
         self.args_for_id = args_for_id
 
         # Attribute of the original content
-        self._dataid = None
+        self._data_id = None
         self._width = width
         self._height = height
 
