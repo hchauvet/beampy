@@ -237,7 +237,12 @@ class Position():
         """Get the value, compute it if needed()
         """
         if isinstance(self._value, Delayed):
-            res = self._value.compute()
+            try:
+                res = self._value.compute()
+            except Exception as e:
+                print('Unable to compute value for module', self.bpmodule)
+                print('ERROR:')
+                print(e)
         else:
             res = self.converter(self._value)
 
@@ -690,6 +695,7 @@ class Margins():
             right, bottom, left]
         """
 
+        self._init_margins = margins
         self._margins = None
 
         if isinstance(margins, (str, float, int)):
@@ -745,3 +751,7 @@ class Margins():
             return None
             
         return self._margins[2].value
+
+    @property
+    def raw_value(self):
+        return self._init_margins
