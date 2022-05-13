@@ -289,7 +289,11 @@ class beampy_module():
         Update the signature of the module, this will allow to redefine arguments name passed to __init__ method and update their values 
         """
 
-        if 'args' in self._sig_arguments.arguments and 'kwargs' in self._sig_arguments.arguments:
+        if ('args' in self._sig_arguments.arguments and
+            'kwargs' in self._sig_arguments.arguments and
+            len(self._sig_arguments.arguments['args'])>0 and
+            len(self._sig_arguments.arguments['kwargs'])>0):
+
             self._sig = inspect.signature(self.__init__)
             self._sig_arguments = self._sig.bind_partial(*self._sig_arguments.arguments['args'], **self._sig_arguments.arguments['kwargs'])
             self._sig_arguments.apply_defaults()
@@ -378,6 +382,8 @@ class beampy_module():
         This method should be used inside the render function to set the width by:
         module.content_width = the_width_of_the_content
         """
+
+        assert width is not None, f'Content width should not be None, something wrong with the render function of {self}'
         if isinstance(width, str):
             width = convert_unit(width)
 
@@ -399,6 +405,8 @@ class beampy_module():
         This method should be used inside the render function to set the height by:
         module.content_height = the_height_of_the_content
         """
+
+        assert height is not None, f'Content height should not be None, something wrong with the render function of {self}'
         if isinstance(height, str):
             height = convert_unit(height)
 
@@ -485,7 +493,7 @@ class beampy_module():
         """Add extra data to the Content data dictionary.
         """
 
-        if hasattr(self, 'data'):
+        if self.data is not None:
             if key in self.data:
                 print('The key %s alread exisit data will be replaced' % key)
 
@@ -1154,7 +1162,6 @@ class beampy_module():
             assert isinstance(exclude, list), "exclude argument should be a list"
             exclude = exclude + self.theme_exclude_args
 
-        print(exclude)
         for key, value in args.items():
             # If the value is None look for it in the default_dict Don't use
             # "is" for comparison. It results as false if the value is a
@@ -1173,7 +1180,8 @@ class beampy_module():
                         _log.debug('Your argument %s is not defined in the Theme' % (key))
             else:
                 # Set the value of the arguments as an attribute of the function
-                setattr(self, key, value)
+                if not hasattr(self, key):
+                    setattr(self, key, value)
 
     def render_svgdefs(self):
         """
