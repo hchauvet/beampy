@@ -299,9 +299,9 @@ class beampy_module():
             self._sig_arguments.apply_defaults()
 
         # Update the signature if a kwargs is given
-        if kwargs:
-            self._sig_arguments.arguments = dict_deep_update(self._sig_arguments.arguments, kwargs)
-            
+        for arg in kwargs:
+            if arg in self._sig_arguments.arguments:
+                self._sig_arguments.arguments[arg] = kwargs[arg]
 
     @property
     def theme_exclude_args(self):
@@ -1137,10 +1137,6 @@ class beampy_module():
 
         # Use an auto mode with arg=None -> then load from THEME
         # print(inspect.signature(self.__init__).parameters.keys())
-
-
-        #assert hasattr(self, '_arguments'), "Need to add use self.update_signature in your module init"
-        #self._arguments.apply_defaults()
 
         args = self._sig_arguments.arguments
         keys = args.keys()

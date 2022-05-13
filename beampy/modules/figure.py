@@ -72,10 +72,16 @@ class figure(beampy_module):
                  margin=None, ext=None, optimize=None, resize_raster=None,
                  *args, **kwargs):
 
+        # Check that the file exist !
+        assert Path(content).is_file(), f'File does not exist {content}'
+
         # Check content type
         ext = find_content_ext(content, ext)
+        # Check that ext is not None before continu
+        assert ext is not None, 'Figure extension not guessed automatically'
 
         modtype = 'svg'
+        width_height_none = False
         if ext == 'bokeh':
             modtype = 'html'
             if width is None:
@@ -92,21 +98,28 @@ class figure(beampy_module):
         else:
             # Default with for static figure included in beampy
             if width is None and height is None:
-                width = '95%'
+                width = Store.current_width()
+                width_height_none = True
+
 
         # Register the module
         super().__init__(x, y, width, height, margin, modtype, **kwargs)
 
-        # Add arguments as attributes
+        # Add set some arguments as attributes
+        # (this will prevent apply_theme to load them)
         self.set(content=content, ext=ext, optimize=optimize,
                  resize_raster=resize_raster)
 
         # Update the signature
-        self.update_signature()
+        if width_height_none:
+            self.update_signature(width=width)
+        else:
+            self.update_signature()
 
         # Apply theme default for None value and set arguments as attrs
         self._theme_exclude_args = ['ext', 'optimize', 'resize_raster']
         self.apply_theme()
+
 
         if optimize is None:
             self.optimize = Store.get_layout()._optimize_svg
@@ -191,30 +204,6 @@ class figure(beampy_module):
             #Change id in svg defs to use the global id system
             soup = make_global_svg_defs(soup)
 
-            #Optimize the size of embeded svg images !
-            if self.resize_raster:
-                imgs = soup.findAll('image')
-                if imgs:
-                    for img in imgs:
-                        #True width and height of embed svg image
-                        width, height = int( float(img['width']) ) , int( float(img['height']) )
-                        img_ratio = height/float(width)
-                        b64content = img['xlink:href']
-
-                        try:
-                            in_img =  BytesIO(base64.b64decode(b64content.split(';base64,')[1]))
-                            tmp_img = Image.open(in_img)
-                            # TODO: let user set the lower limit
-                            out_img = resize_raster_image(tmp_img, max_width=max(self.width.value, 512))
-                            out_b64 = base64.b64encode(out_img.read()).decode('utf8')
-
-                            #replace the resized image into the svg
-                            img['xlink:href'] = 'data:image/%s;base64, %s'%(tmp_img.format.lower(), out_b64)
-                        except Exception as e:
-                            print('Unable to reduce the image size')
-                            print(e)
-
-
             #  Get the size of the svg
             svgwidth, svgheight = get_svg_size(soup)
 
@@ -228,6 +217,11 @@ class figure(beampy_module):
 
             assert requested_width != 'scale' and requested_height != 'scale', "width and height could not be BOTH set to 'scale'"
 
+            # Default values for width and height
+            figure_height = requested_width
+            figure_width = requested_height
+
+            # Do we need to scale the fig size
             scale = 1
             if requested_width not in [None, 'scale'] and requested_height in [None, 'scale']:
                 # SCALE OK need to keep the original viewBox !!!
@@ -241,19 +235,12 @@ class figure(beampy_module):
                 figure_height = requested_height
                 figure_width = svgwidth * scale
 
-            # Dont scale the figure let the user fix the width height
-            if requested_height not in [None, 'scale'] and requested_width not in [None, 'scale']:
-                figure_height = requested_width
-                figure_width = requested_height       
-            else:
-                # Apply the scaling to the final svg
-                # Scaling is applied directly to figure width heigh
-                # This perform better in webkit engine than do scaling at the rendering time
-                # self.scale = scale
-                pass
-
             self.width = figure_width
             self.height = figure_height
+            print(self.width, self.height)
+            #Optimize the size of embeded svg images !
+            if self.resize_raster:
+                resize_included_svg_images(soup, max_width=max(self.width.value, 512))
 
             # Add the final content to the module
             # Use <image tag with data URI, DO NOT LET Firefox or Chrome do the scaling 
@@ -454,3 +441,38 @@ def find_content_ext(content, ext=None) -> str:
         sys.exit(1)
 
     return ext
+
+def resize_included_svg_images(svgobject: object, max_width=512) -> object:
+    """
+    Resize all embedded image to a give size.
+
+    Parameters:
+    -----------
+    svgout, beautifull soup object,
+        The input svg parsed with beautifulsoup
+
+    return an beautifulsoup object with the reduced images embedded
+    """
+
+    imgs = svgobject.findAll('image')
+    if imgs:
+        for img in imgs:
+            #True width and height of embed svg image
+            width, height = int(float(img['width'])) , int(float(img['height']))
+            img_ratio = height/width
+            b64content = img['xlink:href']
+
+        try:
+            in_img =  BytesIO(base64.b64decode(b64content.split(';base64,')[1]))
+            tmp_img = Image.open(in_img)
+            # TODO: let user set the lower limit
+            out_img = resize_raster_image(tmp_img, max_width=max_width)
+            out_b64 = base64.b64encode(out_img.read()).decode('utf8')
+
+            #replace the resized image into the svg
+            img['xlink:href'] = 'data:image/%s;base64, %s'%(tmp_img.format.lower(), out_b64)
+        except Exception as e:
+            print('Unable to reduce the image size')
+            print(e)
+
+    return svgobject
