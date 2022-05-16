@@ -224,6 +224,7 @@ class Position():
 
             assert isinstance(value, (int, float)), f"I was unable to convert your position {type(value)} to a number!"
 
+
         elif isinstance(value, float):
             if value < 1.0 and value > 0:
                 value = int(round(relative_length(value, self.axis), 0))
@@ -356,6 +357,12 @@ class Length():
         self.axis = axis
         self._cached_result = None
 
+        # Length given as float less than one need to be converted at definition
+        # otherwise weird behaviors could happen in delayed operations!
+        if isinstance(self._value, float):
+            if self._value <= 1.0 and self._value > 0:
+                self._value = int(round(relative_length(self._value, self.axis), 0))
+
     def converter(self, value):
         """Convert the position to a numerical value.
 
@@ -381,11 +388,9 @@ class Length():
 
             assert isinstance(value, (int, float)), f"I was unable to convert your length {type(value)} to a number!"
 
+
         elif isinstance(value, float):
-            if value <= 1.0 and value > 0:
-                value = int(round(relative_length(value, self.axis), 0))
-            else:
-                value = int(round(value, 0))
+            value = int(round(value, 0))
 
         return value
 
