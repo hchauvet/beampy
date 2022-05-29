@@ -194,9 +194,6 @@ class document():
         # Load document options from THEME
         self.set_options(kwargs)
 
-        # Load external tools
-        self.link_external_programs()
-
         # Add this document to the layout in the store
         if auto_register:
             Store.add_layout(self)
@@ -237,48 +234,6 @@ class document():
         document._output_format = good_values['format']
 
         self.options = good_values
-
-    def link_external_programs(self):
-        # Function to link [if THEME['document']['external'] = 'auto'
-        # and check external if programs exist
-
-        #Loop over options
-        missing = False
-        self._external_cmd = dict()
-        for progname, cmd in self.options['external_app'].items():
-            if cmd == 'auto':
-
-                #Special case of video_encoder (ffmpeg or avconv)
-                if progname == 'video_encoder':
-                    find_ffmpeg = find_executable('ffmpeg')
-                    find_avconv = find_executable('avconv')
-                    if find_ffmpeg is not None:
-                        self._external_cmd[progname] = find_ffmpeg
-                    elif find_avconv is not None:
-                        self._external_cmd[progname] = find_avconv
-                    else:
-                        missing = True
-                else:
-                    find_app = find_executable(progname)
-                    if find_app is not None:
-                        self._external_cmd[progname] = find_app
-                    else:
-                        missing = True
-
-            else:
-                self._external_cmd[progname] = cmd
-
-            if missing:
-                if progname == 'video':
-                    name = 'ffmpeg or avconv'
-                else:
-                    name = progname
-
-                print('Missing external tool: %s, please install it before running Beampy'%name)
-                #sys.exit(1)
-
-        outprint = '\n'.join(['%s:%s'%(k, v) for k, v in self._external_cmd.items()])
-        print('Linked external programs\n%s'%outprint)
 
     def IPYupdate_source(self, info):
         """

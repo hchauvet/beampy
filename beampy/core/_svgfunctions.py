@@ -197,7 +197,8 @@ def inkscape_get_size(svgfile: str) -> list:
     """Get the width, height of an svgfile
     """
 
-    inkscapecmd = Store.get_layout()._external_cmd['inkscape']
+    # __APPS__ defined by beampy.__init__.py
+    inkscapecmd = Store.get_exec('inkscape')
     cmd = f'{inkscapecmd} --actions="query-width;query-height;" {svgfile}'
     req = os.popen(cmd)
     res = req.readlines()

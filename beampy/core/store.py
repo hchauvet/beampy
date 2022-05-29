@@ -6,7 +6,10 @@ variable conservation in python
 """
 import logging
 import os
+import sys
 from pathlib import Path
+from distutils.spawn import find_executable
+from beampy.statics.external_app_links import __APPS__
 
 from .._version import __version__
 _log = logging.getLogger(__name__)
@@ -88,6 +91,46 @@ class Store(metaclass=StoreMetaclass):
 
     # UID counter for svg
     _svg_id = 0
+
+    # Locate files of externa apps needed by beampy
+    print('Check external applications')
+    for app_name in __APPS__:
+        # Check if we need to find the executable
+        if __APPS__[app_name][1] == 'auto':
+            if isinstance(__APPS__[app_name][0], tuple):
+                for exec_name in __APPS__[app_name][0]:
+                    find_exec = find_executable(exec_name)
+                    if find_exec is not None:
+                        break
+            else:
+                find_exec = find_executable(__APPS__[app_name][0])
+
+            if find_exec is not None:
+                __APPS__[app_name][1] = find_exec
+            else:
+                print(f'Midding external tools {app_name}')
+                if __APPS__[app_name][2]:
+                    print("Please install required dependencies (check beampy's documentation)")
+                    sys.exit(1)
+
+    # Store external applications in the Store object
+    _apps = __APPS__.copy()
+
+    @classmethod
+    def get_exec(cls, app_name: str):
+        """
+        Check if the given program name is on the system and return the path to
+        its executable.
+        """
+
+        execcmd = cls._apps[app_name][1]
+        if execcmd == 'auto':
+            print('No epstopdf executable on your system!')
+            sys.exit(1)
+            return None
+
+        return execcmd
+
 
     @classmethod
     def __repr__(cls):
