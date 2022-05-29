@@ -4,3 +4,4 @@ pillow
 six
 lxml
 bibtexparser
+xxhash
