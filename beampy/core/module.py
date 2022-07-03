@@ -525,11 +525,11 @@ class beampy_module():
         svg_box = ''
         if self.show_box_model:
             # The content box
-            svg_box = f'<rect x="{self._final_x}" y="{self._final_y}" width="{self.width.value}px" height="{self.height.value}px" style="stroke:red; fill:none;"/>'
+            svg_box = f'<rect x="{self._final_x+self.margin.left}" y="{self._final_y+self.margin.top}" width="{self.width.value}px" height="{self.height.value}px" style="stroke:red; fill:none;"/>'
             # The margin box
-            svg_box += f'<rect x="{self._final_x-self.margin.left}" y="{self._final_y-self.margin.top}" width="{self.total_width.value}px" height="{self.total_height.value}px" style="stroke:green; fill:none;"/>'
+            svg_box += f'<rect x="{self._final_x}" y="{self._final_y}" width="{self.total_width.value}px" height="{self.total_height.value}px" style="stroke:green; fill:none;"/>'
             
-        return (f'<use x="{self._final_x}" y="{self._final_y}" '
+        return (f'<use x="{self._final_x+self.margin.left}" y="{self._final_y+self.margin.top}" '
                 f'xlink:href="#{self.content_id}" '
                 f'{self.svgopacity} '
                 '/>'
@@ -981,32 +981,34 @@ class beampy_module():
         """Return the horizontal position to be align with the right edge of the
         module.
         """
-        return self.x + self.width + self.margin.right
+        return self.x + self.total_width
 
     @property
     def bottom(self):
         """Return the vertical position to be align with the bottom edge of the
         module.
         """
-        return self.y + self.height + self.margin.top
+        return self.y + self.total_height
 
     @property
     def left(self):
         """Return the left anchor of the module
         """
-        return self.x - self.margin.left
+        #return self.x - self.margin.left
+        return self.x.value
 
     @property
     def top(self):
         """Return the top anchor of the module"""
-        return self.y - self.margin.top
+        #return self.y - self.margin.top
+        return self.y.value
 
     @property
     def center(self):
         """Return the horizontal and vertical positions to be align with the center of the
         module.
         """
-        return (self.x + self.width/2, self.y + self.height/2)
+        return (self.x + self.total_width/2, self.y + self.total_height/2)
 
     @property
     def x_center(self):
@@ -1034,16 +1036,16 @@ class beampy_module():
 
         # Apply origin transformation
         if self.xorigine == 'center':
-            xf = self.x - self.width/2
+            xf = self.x - self.total_width/2
 
         if self.xorigine == 'right':
-            xf = self.x - self.width.value
+            xf = self.x - self.total_width.value
 
         if self.yorigine == 'center':
-            yf = self.y - self.height.value/2
+            yf = self.y - self.total_height.value/2
 
         if self.yorigine == 'bottom':
-            yf = self.y - self.height.value
+            yf = self.y - self.total_height.value
 
         # Add offset 
         if xoffset != 0:
@@ -1054,12 +1056,11 @@ class beampy_module():
         xfv = xf.value
         yfv = yf.value
 
+        # Set the computed value (a float number) as the coordinate of the module
+        # So that it's position is frozen
         self.x = xfv
         self.y = yfv
 
-        # Add left and top margins to final position
-        xfv = xfv + self.margin.left
-        yfv = yfv + self.margin.top
 
         self._final_x = xfv
         self._final_y = yfv
@@ -1330,6 +1331,20 @@ class beampy_module():
         # Update x, y positions
         copy_self._final_x = None
         copy_self._final_y = None
+
+        # Need to force to compute value if x and y are Position or comes from anchors
+        if isinstance(x, Position):
+            x = x.value
+
+        if isinstance(y, Position):
+            y = y.value
+
+        if isinstance(x, dict) and isinstance(x['shift'], Position):
+            x['shift'] = x['shift'].value
+
+        if isinstance(y, dict) and isinstance(y['shift'], Position):
+            y['shift'] = y['shift'].value
+
         copy_self.x = x
         copy_self.y = y
 

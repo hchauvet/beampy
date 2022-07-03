@@ -21,13 +21,6 @@ THEME['document'] = {
     'html': {
         'background_color': 'black'
         },
-
-    'external_app': {"inkscape": "auto",
-        "dvisvgm": "auto",
-        "pdfjoin": "~/developpement/python/beampy_git/beampy/external_tools/pdfjoin",
-        "video_encoder": 'auto',
-        "pdf2svg": "auto",
-        "epstopdf": "auto"}
 }
 
 THEME['beampy_module'] = {
