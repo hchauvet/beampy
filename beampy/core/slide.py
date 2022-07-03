@@ -51,7 +51,7 @@ class slide(object):
 
     """
 
-    def __init__(self, title=None, slide_num=None, **kwargs):
+    def __init__(self, title=None, slide_num=None, debug=False, **kwargs):
 
         # Add a slide to the global counter
         # if 'slide' in document._global_counter:
@@ -143,6 +143,9 @@ class slide(object):
             self.ytop = 0
             self.title_element = None
 
+        # Debug flag for a given slide
+        self.debug = debug
+
         # Add ytop to the slide main group
         # g0.yoffset = self.ytop
 
@@ -233,7 +236,8 @@ class slide(object):
         with open(tmp_html_file, 'w') as f:
             f.write(self.to_html())
 
-        clear_output()
+        if not self.debug:
+            clear_output()
 
         return IFrame(tmp_html_file, '100%', 400)._repr_html_()
 
