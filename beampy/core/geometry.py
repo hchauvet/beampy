@@ -183,6 +183,8 @@ class Position():
         self._value = value
         self.bpmodule = beampymodule
         self.axis = axis
+        self._computed_value = None
+
 
     def converter(self, value):
         """Convert the position to a numerical value.
@@ -218,6 +220,7 @@ class Position():
             if value.endswith('%'):
                 value = relative_length(value, self.axis)
             elif value == 'center':
+                # print('Center value is converted for', str(self.bpmodule.id))
                 value = center_on_available_space(self)
             else:
                 value = convert_unit(value)
@@ -237,6 +240,11 @@ class Position():
     def value(self):
         """Get the value, compute it if needed()
         """
+
+        if self._computed_value is not None:
+            # print('get the value from the previously computed one')
+            return self._computed_value
+
         if isinstance(self._value, Delayed):
             try:
                 res = self._value.compute()
@@ -244,8 +252,12 @@ class Position():
                 print('Unable to compute value for module', self.bpmodule)
                 print('ERROR:')
                 print(e)
+                res = None
         else:
             res = self.converter(self._value)
+
+        # Backuo the computed value
+        self._computed_value = res
 
         return res
 
@@ -601,7 +613,7 @@ def center_on_available_space(position, fallback_size=(1280, 720)):
             else:
                 space = Store.get_current_slide().curwidth
 
-        out_pos = space/2 - position.bpmodule.width/2
+        out_pos = space/2 - position.bpmodule.total_width/2
 
     else:
         if Store.get_current_slide_id() is None:
@@ -616,8 +628,9 @@ def center_on_available_space(position, fallback_size=(1280, 720)):
             else:
                 space = Store.get_current_slide().curheight
 
-        out_pos = space/2 - position.bpmodule.height/2
+        out_pos = space/2 - position.bpmodule.total_height/2
 
+    # print('available space:', space/2)
     return out_pos.value
 
 
@@ -645,9 +658,9 @@ def horizontal_distribute(beampy_modules, available_space):
     dx = (available_space-total_width) if total_width <= available_space else 0
     dx = round(dx / (len(beampy_modules)+1), 0)
 
-    beampy_modules[0].x = dx + beampy_modules[0].margin[3]
+    beampy_modules[0].x = dx
     for i, bpm in enumerate(beampy_modules[1:]):
-        bpm.x = beampy_modules[i].right + dx + bpm.margin[3]
+        bpm.x = beampy_modules[i].right + dx
 
 
 def vertical_distribute(beampy_modules, available_space):
@@ -674,9 +687,9 @@ def vertical_distribute(beampy_modules, available_space):
     dy = (available_space-total_height) if total_height <= available_space else 0
     dy = round(dy / (len(beampy_modules)+1), 0)
 
-    beampy_modules[0].y = dy + beampy_modules[0].margin[0]
+    beampy_modules[0].y = dy
     for i, bpm in enumerate(beampy_modules[1:]):
-        bpm.y = beampy_modules[i].bottom + dy + bpm.margin[0]
+        bpm.y = beampy_modules[i].bottom + dy
 
 
 
