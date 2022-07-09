@@ -221,7 +221,14 @@ class group(beampy_module):
         assert self._final_x is not None, f"{self.name} final X position is None for\n{self}"
         assert self._final_y is not None, f"final Y position is None for\n{self}"
 
-        return f'<use x="{self._final_x}" y="{self._final_y}" xlink:href="#{self.content_id}_{self.slide_id}_{layer}"/>'
+        svg_box = ''
+        if self.show_box_model:
+            # The content box
+            svg_box = f'<rect x="{self._final_x+self.margin.left}" y="{self._final_y+self.margin.top}" width="{self.width.value}px" height="{self.height.value}px" style="stroke:red; fill:none;"/>'
+            # The margin box
+            svg_box += f'<rect x="{self._final_x}" y="{self._final_y}" width="{self.total_width.value}px" height="{self.total_height.value}px" style="stroke:green; fill:none;"/>'
+
+        return f'<use x="{self._final_x+self.margin.left}" y="{self._final_y+self.margin.top}" xlink:href="#{self.content_id}_{self.slide_id}_{layer}"/>{svg_box}'
 
     def html(self, layer):
         """Rewrite html property of module as a function to export all html

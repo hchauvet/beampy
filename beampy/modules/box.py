@@ -36,9 +36,11 @@ class box(group):
         Height of the group (the default is None). When height is None the
         height is computed to fit the group contents height.
 
-    margins  :
+    margins  : int or list of size 2 or 4, optional
+        The margin for the box.
 
-    modules :
+    modules : list or None,
+        The list of module to group inside this box
 
     rounded : int, optional
         The number of pixel for rounded borders (the default value is
@@ -108,7 +110,8 @@ class box(group):
         self.theme_exclude_args = ['title', 'modules', 'color']
 
         self.update_signature()
-        super().__init__(x=x, y=y, width=width, height=height, modules=modules, background=None, **kargs)
+        super().__init__(x=x, y=y, width=width, height=height, margin=margin,
+                         modules=modules, background=None, **kargs)
         print('End of group init width, height', self.width, self.height)
 
         # Compatibility with the old beampy
