@@ -249,10 +249,11 @@ class Position():
             try:
                 res = self._value.compute()
             except Exception as e:
-                print('Unable to compute value for module', self.bpmodule)
+                print(f'Unable to compute value for module {self.bpmodule.name}({self.bpmodule.name})')
                 print('ERROR:')
                 print(e)
                 res = None
+                sys.exit(1)
         else:
             res = self.converter(self._value)
 
@@ -306,37 +307,40 @@ class Position():
             return False
 
         return True
-    
+
+    def __hash__(self):
+        return hash(f'{self._value}-{self.bpmodule.id}-{self.axis}')
+
     def __add__(self, newvalue):
-        res = Delayed(operator.add, self.converter)(self, newvalue)
+        res = Delayed(operator.add, self.converter)(self._value, newvalue)
         return Position(self.bpmodule, res, self.axis)
 
     def __radd__(self, newvalue):
-        res = Delayed(operator.add, self.converter)(newvalue, self)
+        res = Delayed(operator.add, self.converter)(newvalue, self._value)
         return Position(self.bpmodule, res, self.axis)
 
     def __sub__(self, newvalue):
-        res = Delayed(operator.sub, self.converter)(self, newvalue)
+        res = Delayed(operator.sub, self.converter)(self._value, newvalue)
         return Position(self.bpmodule, res, self.axis)
 
     def __rsub__(self, newvalue):
-        res = Delayed(operator.sub, self.converter)(newvalue, self)
+        res = Delayed(operator.sub, self.converter)(newvalue, self._value)
         return Position(self.bpmodule, res, self.axis)
 
     def __mul__(self, newvalue):
-        res = Delayed(operator.mul, self.converter)(self, newvalue)
+        res = Delayed(operator.mul, self.converter)(self._value, newvalue)
         return Position(self.bpmodule, res, self.axis)
 
     def __rmul__(self, newvalue):
-        res = Delayed(operator.mul, self.converter)(newvalue, self)
+        res = Delayed(operator.mul, self.converter)(newvalue, self._value)
         return Position(self.bpmodule, res, self.axis)
 
     def __truediv__(self, newvalue):
-        res = Delayed(operator.truediv, self.converter)(self, newvalue)
+        res = Delayed(operator.truediv, self.converter)(self._value, newvalue)
         return Position(self.bpmodule, res, self.axis)
 
     def __rtruediv__(self, newvalue):
-        res = Delayed(operator.truediv, self.converter)(newvalue, self)
+        res = Delayed(operator.truediv, self.converter)(newvalue, self._value)
         return Position(self.bpmodule, res, self.axis)
 
     def __repr__(self):
@@ -471,35 +475,35 @@ class Length():
         return True
 
     def __add__(self, newvalue):
-        res = Delayed(operator.add, self.converter)(self, newvalue)
+        res = Delayed(operator.add, self.converter)(self._value, newvalue)
         return Length(res, self.axis)
 
     def __radd__(self, newvalue):
-        res = Delayed(operator.add, self.converter)(newvalue, self)
+        res = Delayed(operator.add, self.converter)(newvalue, self._value)
         return Length(res, self.axis)
 
     def __sub__(self, newvalue):
-        res = Delayed(operator.sub, self.converter)(self, newvalue)
+        res = Delayed(operator.sub, self.converter)(self._value, newvalue)
         return Length(res, self.axis)
 
     def __rsub__(self, newvalue):
-        res = Delayed(operator.sub, self.converter)(newvalue, self)
+        res = Delayed(operator.sub, self.converter)(newvalue, self._value)
         return Length(res, self.axis)
 
     def __mul__(self, newvalue):
-        res = Delayed(operator.mul, self.converter)(self, newvalue)
+        res = Delayed(operator.mul, self.converter)(self._value, newvalue)
         return Length(res, self.axis)
 
     def __rmul__(self, newvalue):
-        res = Delayed(operator.mul, self.converter)(newvalue, self)
+        res = Delayed(operator.mul, self.converter)(newvalue, self._value)
         return Length(res, self.axis)
 
     def __truediv__(self, newvalue):
-        res = Delayed(operator.truediv, self.converter)(self, newvalue)
+        res = Delayed(operator.truediv, self.converter)(self._value, newvalue)
         return Length(res, self.axis)
 
     def __rtruediv__(self, newvalue):
-        res = Delayed(operator.truediv, self.converter)(newvalue, self)
+        res = Delayed(operator.truediv, self.converter)(newvalue, self._value)
         return Length(res, self.axis)
 
     def __repr__(self):
