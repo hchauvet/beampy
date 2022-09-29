@@ -66,100 +66,6 @@ def align(positionner_list, alignement):
     print('TODO')
 
 
-def distribute(element_list, mode, available_size, offset=0, curslide=None):
-    '''
-        Distribute the given elements list along the slide using the given
-        mode
-
-        element_list:
-            A list of beampy module (if curslide is none)
-            A list of beampy module keys, in this case curslide must be the
-            curent slide where module are stored
-
-
-        mode:
-            'hspace': horizontal spacing from the center of each elements
-            'vspace': vertical spacing from the center of each elements
-
-        offset:
-            gives the first offset of the slide (due to the title for instance)
-
-        curslide [None]:
-            If curslide is not None the element_list must refers to elements keys
-            surch that
-
-            curslide.content[elemnt_list[0]] is a beampy module
-
-    '''
-
-    if mode == 'vspace':
-
-        if curslide is None:
-            all_height = [elem.positionner.height for elem in element_list]
-        else:
-            all_height = [curslide.contents[elemk].positionner.height for elemk in element_list]
-
-        # print(all_height)
-        sumheight = sum(all_height)
-        sumheight = sumheight.value
-
-        if sumheight > available_size:
-            print('Warning alignement elements overflow given height %s'%(available_size))
-
-        available_space = (available_size - offset) - sumheight
-        dy = available_space/float( len(all_height) + 1 )
-
-        curpos = dy + offset
-
-        for elemt in element_list:
-
-            if curslide is None:
-                elem = elemt
-            else:
-                elem = curslide.contents[elemt]
-
-            H = elem.positionner.height.value
-
-            elem.positionner.y['shift'] = curpos
-            elem.positionner.y['unit'] = 'px'
-            elem.positionner.y['align'] = 'top'
-
-            curpos += dy + H
-
-
-    elif mode == 'hspace':
-
-        if curslide is None:
-            all_width = [elem.positionner.width for elem in element_list]
-        else:
-            all_width = [curslide.contents[elemk].positionner.width for elemk in element_list]
-
-        sumwidth = sum(all_width)
-        sumwidth = sumwidth.value
-
-        if sumwidth > available_size:
-            print('Warning alignement elements overflow given width %s'%(available_size))
-
-        available_space = (available_size - offset) - sumwidth
-        dx = available_space/float(len(all_width)+1)
-
-        curpos = dx + offset
-        for elemt in element_list:
-
-            if curslide is None:
-                elem = elemt
-            else:
-                elem = curslide.contents[elemt]
-
-            W = elem.positionner.width.value
-
-            elem.positionner.x['shift'] = curpos
-            elem.positionner.x['unit'] = 'px'
-            elem.positionner.x['align'] = 'left'
-
-            curpos += dx + W
-
-
 class Position():
     """Define Position and operation on position, allow deferred operation
     """
@@ -233,6 +139,12 @@ class Position():
             if self.axis == 'y':
                 value = value[1]
 
+        ref = None
+        if isinstance(value, dict):
+            print('This is an old way to define position, check the new Beampy (v>1.0) documentation!')
+            ref = value['anchor']
+            value = value['shift']
+
         if isinstance(value, str):
 
             # Manage the X% size with local size or default width/height of the theme
@@ -253,7 +165,36 @@ class Position():
             if not isinstance(value, (int, float)):
                 raise ValueError(f"I was unable to convert your position {type(value)} to a number!")
 
-        elif isinstance(value, float):
+        # For back-compatibility with old beampy version my_pos+center("5cm") style
+        if ref is not None:
+            if ref == 'center':
+                if self.axis == 'x':
+                    value = value + (self.bpmodule.total_width/2).value
+                else:
+                    value = value + (self.bpmodule.total_height/2).value
+
+            if ref == 'top':
+                if self.axis == 'x':
+                    raise ValueError('top could not be set on x axis')
+
+            if ref == 'bottom':
+                if self.axis == 'y':
+                    value = value + self.bpmodule.total_height.value
+                else:
+                    raise ValueError('bottom could not be set on x axis')
+
+            if ref == 'left':
+                if self.axis == 'y':
+                    raise ValueError('left could not be set on y axis')
+
+            if ref == 'right':
+                if self.axis == 'x':
+                    value = value + self.bpmodule.total_width.value
+                else:
+                    raise ValueError('right could not be set on y axis')
+
+        # Relative give as float
+        if isinstance(value, float):
             if value < 1.0 and value > 0:
                 value = int(round(relative_length(value, self.axis), 0))
             else:

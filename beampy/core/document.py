@@ -142,10 +142,10 @@ class SourceManager(object):
         
         return '\n'.join(self._IPYsource.split('\n')[start:stop])
 
-    def return_nonesource(self):
+    def return_nonesource(self, start=0, stop=0):
         return ''
 
-    def return_stdin(self):
+    def return_stdin(self, start=0, stop=0):
         return self.stdin
 
 
@@ -171,6 +171,9 @@ class document():
             - resize_raster[True]: Resize raster images (inside svg and for jpeg/png figures)
             - theme: Define the path to your personal THEME dictionnaryXS
         """
+
+        # Clear all previous data in store
+        Store.clear_all()
 
         if latex_packages is None:
             latex_packages = []

@@ -6,7 +6,7 @@ Class that define beampy groups. It's a class that derives from module base clas
 from beampy.core.store import Store
 from beampy.core.document import document
 from beampy.core.content import Content
-from beampy.core.geometry import (distribute, horizontal_distribute,
+from beampy.core.geometry import (horizontal_distribute,
                                   vertical_distribute)
 from beampy.core.module import beampy_module
 from beampy.core.layers import (unique_layers, get_maximum_layer,
