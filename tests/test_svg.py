@@ -21,6 +21,11 @@ def make_presentation():
 
     return doc
 
+def test_rectangle():
+    doc = document(cache=False)
+    r = rectangle(10, 10)
+    assert r.x.value == 10
+    assert r.y.value == 10
 
 def test_html(make_presentation):
     doc = make_presentation

@@ -10,6 +10,7 @@ from beampy.core.functions import (get_command_line, print_function_args,
                                    pre_cache_svg_image, convert_unit,
                                    dict_deep_update)
 from beampy.core.geometry import Position, Length, Margins
+from beampy.core.delayedoperations import Delayed
 from string import Template
 from copy import deepcopy
 import inspect
@@ -156,12 +157,12 @@ class beampy_module():
         self.svgdefsargs = []
 
         self.x = x
+        self._final_x = None
         self.y = y
+        self._final_y = None
         self.width = width
         self.height = height
         self.margin = margin
-        self._final_x = None
-        self._final_y = None
         self.type = content_type
 
         # Default svg def attributes
@@ -265,22 +266,31 @@ class beampy_module():
 
         if Store.is_content(self._content.id):
             print(f'This module {self.short_signature} already exist in the Store, I will use {self.content_id}' )
+
+            self.pre_render()
+
             self._content.load_from_store()
             # Update the size from the size of Store content
             self.width = self.content_width
             self.height = self.content_height
+
+            # Run the post render function
+            self.post_render()
         else:
             # Check if the module is cached
             if self._content.is_cached:
                 # Load from cache
+                self.pre_render()
                 self._content.load_from_cache()
                 # Update the size from the size of Store content
                 self.width = self.content_width
                 self.height = self.content_height
+                self.post_render()
             else:
                 # Render the module
                 self.pre_render()
                 self.run_render()
+                self.post_render()
                 # Add content to cache
                 self._content.add_to_cache()
 
@@ -540,8 +550,8 @@ class beampy_module():
         """Return the <div id> of an html module
         """
         if 'html' in self.data:
-            return self.data['html'].format(x=self._final_x,
-                                            y=self._final_y,
+            return self.data['html'].format(x=self._final_x + self.margin.left,
+                                            y=self._final_y + self.margin.top,
                                             opacity=self.opacity)
         return None
 
@@ -562,6 +572,24 @@ class beampy_module():
                        '</div>'])
 
         self.add_content_data('html', out)
+
+    @property
+    def js(self):
+        """
+        Get the javascript for the module
+        """
+        if 'js' in self.data:
+            return self.data['js']
+
+        return None
+
+    @js.setter
+    def js(self, new_javascript):
+        """
+        Store the javascript for a module
+        """
+
+        self.add_content('js', new_javascript)
 
     @property
     def svgaltdef(self):
@@ -845,20 +873,28 @@ class beampy_module():
             position = position[0]
 
         # Do I need to update X or create a new position object
+        if isinstance(position, Position):
+            self._x = position
+        else:
+            self._x = Position(self, position, axis='x')
+
+        """
         if not hasattr(self, '_x'):
             # Ensure that position is a Position class
             if not isinstance(position, Position):
                 pos = Position(self, position, axis='x')
             else:
+                #TODO: RECURSIVE BUG !!!
                 pos = position
 
             self._x = pos
         else:
             # Update only the value
-            if isinstance(position, Position):
-                self._x.value = position._value
+            if not isinstance(position, Position):
+                self._x = Position(self, position, axis='x')
             else:
-                self._x.value = position
+                self._x = position
+        """
 
     @y.setter
     def y(self, position):
@@ -913,6 +949,14 @@ class beampy_module():
             # only keep the position for the y direction
             position = position[1]
 
+        # Update the Position object
+        if isinstance(position, Position):
+            #self._y.reset_cache()
+            self._y = position
+        else:
+            self._y = Position(self, position, axis='y')
+
+        """
         if not hasattr(self, '_y'):
             # Create a new position object
             if not isinstance(position, Position):
@@ -924,9 +968,12 @@ class beampy_module():
         else:
             # Update the Position object
             if isinstance(position, Position):
-                self._y.value = position._value
+                #self._y.reset_cache()
+                self._y.value = position.raw_value
             else:
                 self._y.value = position
+        """
+
 
     def process_previous_position(self, position, axis='x'):
         """Find the previous module in slide to process the current position
@@ -995,13 +1042,13 @@ class beampy_module():
         """Return the left anchor of the module
         """
         #return self.x - self.margin.left
-        return self.x.value
+        return self.x + 0
 
     @property
     def top(self):
         """Return the top anchor of the module"""
         #return self.y - self.margin.top
-        return self.y.value
+        return self.y + 0
 
     @property
     def center(self):
@@ -1061,7 +1108,6 @@ class beampy_module():
         self.x = xfv
         self.y = yfv
 
-
         self._final_x = xfv
         self._final_y = yfv
 
@@ -1084,7 +1130,17 @@ class beampy_module():
 
     def pre_render(self):
         """
-        A method that is called at the begining of the slide.newrender method
+        A method that is called at the begining of the slide.newrender method.
+        This method could not use width and height (has they have not been defined correctly yet!)
+        This method is applied also when date comme from the Store and are not rendered
+        """
+        pass
+
+    def post_render(self):
+        """
+        A method applied just after the render function.
+        So this function could do operation on the width and height of the module.
+        This method is applied also when date comme from the Store and are not rendered
         """
         pass
 
@@ -1234,6 +1290,7 @@ class beampy_module():
 
         out += 'width: %s, height: %s\n' % (str(self.width), str(self.height))
         out += 'x: %s, y: %s\n' % (self.x, self.y)
+        out += 'x(frozen): %s, y(frozen): %s\n' % (self._final_x, self._final_y)
         out += 'margin: %s\n' % str(self.margin)
         try:
             out += 'source (lines %i->%i):\n%s\n'%(self.call_lines[0], self.call_lines[1],
@@ -1334,16 +1391,18 @@ class beampy_module():
 
         # Need to force to compute value if x and y are Position or comes from anchors
         if isinstance(x, Position):
-            x = x.value
+            # This force to make a delayed operation
+            # (TODO: explain why do we need that to have the good result)
+            x = x + 0
 
         if isinstance(y, Position):
-            y = y.value
+            y = y + 0
 
         if isinstance(x, dict) and isinstance(x['shift'], Position):
-            x['shift'] = x['shift'].value
+            x['shift'] = x['shift'] + 0
 
         if isinstance(y, dict) and isinstance(y['shift'], Position):
-            y['shift'] = y['shift'].value
+            y['shift'] = y['shift'] + 0
 
         copy_self.x = x
         copy_self.y = y

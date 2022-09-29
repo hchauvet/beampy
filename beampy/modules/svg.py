@@ -53,7 +53,7 @@ class svg(beampy_module):
         #apply theme to None
         self._theme_exclude_args = ['inkscape_size']
         self.apply_theme()
-
+        print(self.inkscape_size)
         #Register the module
         self.add_content(svg_content, 'svg')
 

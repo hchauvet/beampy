@@ -8,6 +8,8 @@ from .text import text
 from .title import title
 from .maketitle import maketitle
 from .box import box
+from .circle import circle
+from .line import line, hline, vline
 
 __all__ = [
     'text',
@@ -18,5 +20,9 @@ __all__ = [
     'rectangle',
     'svg',
     'maketitle',
-    'box'
+    'box',
+    'circle',
+    'line',
+    'hline',
+    'vline'
 ]

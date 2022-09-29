@@ -113,8 +113,8 @@ def pdf_export(name_out):
 
     # External tools cmd
     document = Store.get_layout()
-    inkscapecmd = document._external_cmd['inkscape']
-    pdfjoincmd = document._external_cmd['pdfjoin']
+    inkscapecmd = Store.get_exec('inkscape')
+    pdfjoincmd = Store.get_exec('pdfjoin')
 
     # use inkscape to translate svg to pdf
     svgcmd = inkscapecmd+" --export-filename='%s' --export-dpi=300 %s"
@@ -464,7 +464,7 @@ def display_matplotlib(slide_id, show=False):
     document._output_format = oldformat
 
     # Change it a png
-    inkscapecmd = document._external_cmd['inkscape']
+    inkscapecmd = Store.get_exec('inkscape')
     # use inkscape to translate svg to pdf
     svgcmd = inkscapecmd+" --without-gui  --file='%s' --export-png='%s' -b='white' -d=300"
     res = os.popen(svgcmd % (tmpname+'.svg', tmpname+'.png'))
@@ -553,7 +553,7 @@ def svgtopdf(filename: str, dpi=300):
 
     # External tools cmd
     document = Store.get_layout()
-    inkscapecmd = document._external_cmd['inkscape']
+    inkscapecmd = Store.get_exec('inkscape')
 
     svgcmd = inkscapecmd+(f" --export-filename='{filename}.pdf'"
                           f" --export-dpi={dpi} {filename}.svg")

@@ -31,7 +31,8 @@ class rectangle(beampy_module):
          :py:mod:`document._width`). The value is given as string with a unit
          accepted by svg syntax.
 
-    margin: TODO import doc from  beampy_module init method
+    margin: int or list of int
+        Set the margin around the rectangle
 
     color : string, optional
         Color filling the rectangle (the default theme sets this to
@@ -107,7 +108,6 @@ class rectangle(beampy_module):
         # Build style for the rectangle
         beampy_svg_kword = {'color': 'fill',
                             'linewidth': 'stroke-width',
-                            'opacity': 'opacity',
                             'edgecolor': 'stroke'}
 
         self.style = ''

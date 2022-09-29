@@ -5,7 +5,6 @@ Build a class which allows to do delayed operation in Python
 """
 import operator
 
-
 class Delayed():
     """Perform delayed operation (defined in python operator) with recursion.
     A converter function could be used to convert the argmument of operation
@@ -119,4 +118,7 @@ class Delayed():
         if opname in op_table:
             op = op_table[opname]
 
-        return f'({self.left} {op} {self.right})'
+        lv = self.left
+        rv = self.right
+
+        return f'({lv} {op} {rv})'

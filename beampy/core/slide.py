@@ -272,7 +272,6 @@ class slide(object):
         # Loop over modules
         for i, mod in enumerate(self.modules):
             mod.compute_position()
-
             # Need to check if we already have the definition of this module
             # This is done globally by the render function
             # if mod.content_id not in self.svgdefsid:
