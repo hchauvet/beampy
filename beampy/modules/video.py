@@ -117,7 +117,7 @@ class video(beampy_module):
         It use FFMPEG to extract one image
         """
 
-        FFMPEG_CMD = Store.get_layout()._external_cmd['video_encoder']
+        FFMPEG_CMD = Store.get_exec('video_encoder')
         FFMPEG_CMD += ' -loglevel 8 -i "%s" -f image2 -ss %s -vframes 1 -; exit 0' % (self.videofile,
                                                                                          self.still_image_time)
 
