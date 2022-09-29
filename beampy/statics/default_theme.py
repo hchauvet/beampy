@@ -27,7 +27,8 @@ THEME['beampy_module'] = {
     'x': 'auto',
     'y': 'center',
     'width': r'100%',
-    'height': None
+    'height': None,
+    'margin': 0
 }
 
 THEME['slide'] = {

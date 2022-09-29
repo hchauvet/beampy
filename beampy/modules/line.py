@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
+import math
 from beampy.core.geometry import Length
 from beampy.core.module import beampy_module
-import math
 
 class line(beampy_module):
     """
@@ -48,7 +48,7 @@ class line(beampy_module):
 
         content_type = 'svg'
 
-        super().__init__(x, y, None, None, margin, content_type, **kwargs)
+        super().__init__(x, y, 0, 0, margin, content_type, **kwargs)
 
         self.set(color=color, x2=x2, y2=y2, opacity=opacity,
                  linewidth=linewidth)
@@ -79,12 +79,13 @@ class line(beampy_module):
         Those opperation should not be in render function, because they will not
         be taken when the object is load from Content in Store or from Cache.
         """
-        print("run post render")
+        # print("run post render")
         if self.x2.value < 0:
             self.x = self.x - self.width.value
 
         if self.y2.value < 0:
             self.y = self.y - self.height.value
+
 
     def render(self):
         """
@@ -131,8 +132,8 @@ class line(beampy_module):
                f'style="{self.style}"/>')
 
         self.svgdef = out
-        self.content_width = self.width
-        self.content_height = self.height
+        self.content_width = self.width.value
+        self.content_height = self.height.value
 
 def hline(y, **kwargs):
     """
