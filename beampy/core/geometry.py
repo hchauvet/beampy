@@ -4,11 +4,12 @@ Part of beampy project.
 
 Placement class for relative placement of elements in slides
 """
+import sys
+import operator
 from beampy.core.store import Store
 from beampy.core.functions import convert_unit
 from beampy.core.delayedoperations import Delayed
-import operator
-import sys
+
 
 #Default dict for positioning alignement
 DEFAULT_X = {'align': 'left', 'reference': 'slide', 'shift': 0,
@@ -180,22 +181,39 @@ class Position():
             position given as percentage, to select the width ('x') or height ('y').
         """
 
+        self._frozen_value = str(value)
         self._value = value
+        self._computed_value = None
         self.bpmodule = beampymodule
         self.axis = axis
-        self._computed_value = None
+
+
+    def update_auto(self, new_value):
+        """
+        Update the 'auto' value that could be passed to a Position with the new_value.
+
+        Parameters:
+        -----------
+
+        new_value, float or int:
+            The value to be used in 'auto' position
+        """
+        assert isinstance(new_value, (int, float)), f"New position for auto should be and int or a float not a {type(new_value)}"
+        self._computed_value = new_value
 
 
     def converter(self, value):
-        """Convert the position to a numerical value.
+        """Convert the position to a numerical value in delayed operation
 
         Different case for value parameter:
 
-        - Position instance: return it's value as a raw value for % to be computed when needed
+        - Position and length instance:
+            Return the _value
         - string:
             - ends with '%': convert with the curwidth, or curheight depending
               on the axis
             - 'XXcm' : convert units to pixel
+            - 'auto': return the
         - float:
             - > 1.0 use the value
             - < 1.0 convert with the curwidth or curheight depending
@@ -203,6 +221,7 @@ class Position():
         - list or tupple:
             - use the first (when axis == 'x') or the second (when axis == 'y')
         """
+
         if isinstance(value, (Position, Length)):
             #  For position don't trigger the computation, this is done by 
             #  the compute_position methods of beampy_module class
@@ -219,14 +238,20 @@ class Position():
             # Manage the X% size with local size or default width/height of the theme
             if value.endswith('%'):
                 value = relative_length(value, self.axis)
-            elif value == 'center':
+
+            if value == 'center':
                 # print('Center value is converted for', str(self.bpmodule.id))
                 value = center_on_available_space(self)
-            else:
+
+            if value == 'auto':
+                assert self._computed_value is not None, "compute_position of the beampy module should be run to perform auto positionning!"
+                value = self._computed_value
+
+            if isinstance(value, str):
                 value = convert_unit(value)
 
-            assert isinstance(value, (int, float)), f"I was unable to convert your position {type(value)} to a number!"
-
+            if not isinstance(value, (int, float)):
+                raise ValueError(f"I was unable to convert your position {type(value)} to a number!")
 
         elif isinstance(value, float):
             if value < 1.0 and value > 0:
@@ -241,13 +266,10 @@ class Position():
         """Get the value, compute it if needed()
         """
 
-        if self._computed_value is not None:
-            # print('get the value from the previously computed one')
-            return self._computed_value
-
         if isinstance(self._value, Delayed):
             try:
                 res = self._value.compute()
+
             except Exception as e:
                 print(f'Unable to compute value for module {self.bpmodule.name}({self.bpmodule.name})')
                 print('ERROR:')
@@ -257,14 +279,7 @@ class Position():
         else:
             res = self.converter(self._value)
 
-        # Backuo the computed value
-        self._computed_value = res
-
         return res
-
-    @value.setter
-    def value(self, nvalue):
-        self._value = nvalue
 
     @property
     def raw_value(self):
@@ -308,43 +323,73 @@ class Position():
 
         return True
 
-    def __hash__(self):
-        return hash(f'{self._value}-{self.bpmodule.id}-{self.axis}')
+    #def __hash__(self):
+    #    return hash(f'{self.raw_value}-{self.bpmodule.id}-{self.axis}')
 
     def __add__(self, newvalue):
-        res = Delayed(operator.add, self.converter)(self._value, newvalue)
+        res = Delayed(operator.add, self.converter)(self, newvalue)
         return Position(self.bpmodule, res, self.axis)
 
     def __radd__(self, newvalue):
-        res = Delayed(operator.add, self.converter)(newvalue, self._value)
+        res = Delayed(operator.add, self.converter)(newvalue, self)
         return Position(self.bpmodule, res, self.axis)
 
     def __sub__(self, newvalue):
-        res = Delayed(operator.sub, self.converter)(self._value, newvalue)
+        res = Delayed(operator.sub, self.converter)(self, newvalue)
         return Position(self.bpmodule, res, self.axis)
 
     def __rsub__(self, newvalue):
-        res = Delayed(operator.sub, self.converter)(newvalue, self._value)
+        res = Delayed(operator.sub, self.converter)(newvalue, self)
         return Position(self.bpmodule, res, self.axis)
 
     def __mul__(self, newvalue):
-        res = Delayed(operator.mul, self.converter)(self._value, newvalue)
+        res = Delayed(operator.mul, self.converter)(self, newvalue)
         return Position(self.bpmodule, res, self.axis)
 
     def __rmul__(self, newvalue):
-        res = Delayed(operator.mul, self.converter)(newvalue, self._value)
+        res = Delayed(operator.mul, self.converter)(newvalue, self)
         return Position(self.bpmodule, res, self.axis)
 
     def __truediv__(self, newvalue):
-        res = Delayed(operator.truediv, self.converter)(self._value, newvalue)
+        res = Delayed(operator.truediv, self.converter)(self, newvalue)
         return Position(self.bpmodule, res, self.axis)
 
     def __rtruediv__(self, newvalue):
-        res = Delayed(operator.truediv, self.converter)(newvalue, self._value)
+        res = Delayed(operator.truediv, self.converter)(newvalue, self)
         return Position(self.bpmodule, res, self.axis)
 
     def __repr__(self):
-        return f'{self._value}'
+        """
+        if isinstance(self.raw_value, Delayed):
+            out = ''
+            if self.raw_value == self.raw_value.left:
+                out += 'Deleyed(self)'
+            else:
+                out += f'{self.raw_value.left}'
+
+            op = '?'
+            op_table={'add': '+',
+                      'truediv': '/',
+                      'sub': '-',
+                      'mul': '*'}
+
+            opname = self.raw_value.function.__name__.replace('__', '')
+            if opname in op_table:
+                op = op_table[opname]
+
+            out += f' {op} '
+            if self.raw_value == self.raw_value.right:
+                out += 'Delayed(self)'
+            else:
+                out += f'{self.raw_value.right}'
+
+            return out
+        """
+
+        return f'Position({self.raw_value})'
+
+    def __str__(self):
+        return self.__repr__()
 
     def __eq__(self, other):
         return self._value == other
@@ -507,6 +552,31 @@ class Length():
         return Length(res, self.axis)
 
     def __repr__(self):
+        if isinstance(self.raw_value, Delayed):
+            out = ''
+            if self.raw_value == self.raw_value.left:
+                out += 'Deleyed(self)'
+            else:
+                out += f'{self.raw_value.left}'
+
+            op = '?'
+            op_table={'add': '+',
+                      'truediv': '/',
+                      'sub': '-',
+                      'mul': '*'}
+
+            opname = self.raw_value.function.__name__.replace('__', '')
+            if opname in op_table:
+                op = op_table[opname]
+
+            out += f' {op} '
+            if self.raw_value == self.raw_value.right:
+                out += 'Delayed(self)'
+            else:
+                out += f'{self.raw_value.right}'
+
+            return out
+
         return f'{self._value}'
 
     def __eq__(self, other):
@@ -662,9 +732,9 @@ def horizontal_distribute(beampy_modules, available_space):
     dx = (available_space-total_width) if total_width <= available_space else 0
     dx = round(dx / (len(beampy_modules)+1), 0)
 
-    beampy_modules[0].x = dx
+    beampy_modules[0].x.update_auto(dx)
     for i, bpm in enumerate(beampy_modules[1:]):
-        bpm.x = beampy_modules[i].right + dx
+        bpm.x.update_auto((beampy_modules[i].right + dx).value)
 
 
 def vertical_distribute(beampy_modules, available_space):
@@ -691,9 +761,9 @@ def vertical_distribute(beampy_modules, available_space):
     dy = (available_space-total_height) if total_height <= available_space else 0
     dy = round(dy / (len(beampy_modules)+1), 0)
 
-    beampy_modules[0].y = dy
+    beampy_modules[0].y.update_auto(dy)
     for i, bpm in enumerate(beampy_modules[1:]):
-        bpm.y = beampy_modules[i].bottom + dy
+        bpm.y.update_auto((beampy_modules[i].bottom + dy).value)
 
 
 
