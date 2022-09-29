@@ -29,27 +29,29 @@ def default_maketitle(titlein, author=None, subtitle=None, date=None,
 
     with group(y='center') as g:
 
-        text(titlein, width=title_width, y=0, color=args['title_color'],
+        text(titlein, x='center', width=title_width, y=0, color=args['title_color'],
              size=args['title_size'], align='center')
 
         if author is not None:
             if isinstance(author, str):
-                text(author, width=title_width, y="+"+str(2*vert_space),
-                    color=args['author_color'], size=args['author_size'],
-                    align='center')
+                text(author, x='center', width=title_width,
+                     y="+"+str(2*vert_space), color=args['author_color'],
+                     size=args['author_size'], align='center')
 
             elif isinstance(author, list):
-                text(', '.join(author), width=title_width, y="+" +
-                    str(vert_space), color=args['author_color'],
-                    size=args['author_size'], align='center')
+                text(', '.join(author), x='center', width=title_width,
+                     y="+" + str(vert_space), color=args['author_color'],
+                     size=args['author_size'], align='center')
 
         if subtitle is not None:
-            text(subtitle, width=title_width, y="+" + str(vert_space),
-                color=args['subtitle_color'], size=args['subtitle_size'])
+            text(subtitle, x='center', width=title_width, y="+" +
+                 str(vert_space), color=args['subtitle_color'],
+                 size=args['subtitle_size'])
 
         if date is not None:
-            text(date, width=title_width, y="+" + str(vert_space),
-                color=args['date_color'], size=args['date_size'])
+            text(date, x='center', width=title_width, y="+" +
+                 str(vert_space), color=args['date_color'],
+                 size=args['date_size'])
     
     return g
 
