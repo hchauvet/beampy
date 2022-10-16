@@ -12,8 +12,11 @@ test_name = 'test_layers'
 
 @pytest.fixture
 def make_presentation():
-    doc = document(cache=False, optimize=False, theme='ComplicatedBlue')
+    doc = document(cache=False)
 
+    # restore beampy < 1.0 theme
+    Store.theme('beampy_module')['x'] = 'center'
+    Store.theme('beampy_module')['y'] = 'auto'
 
     with slide('Test s1'):
 
@@ -26,7 +29,7 @@ def make_presentation():
             ss = text('tutu')[2]
             with group(width=300) as g2:
                 t0=text('New sub group text', width=150, x=0, y=0)[3]
-                text('Yeah Beampy Rocks!', width=150, y=t0.center+center(0), x=t0.right + 0.1)[4]
+                text('Yeah Beampy Rocks!', width=150, y=t0.x_center+center(0), x=t0.right + 0.1)[4]
 
         g1.add_border()
         g2.add_border()

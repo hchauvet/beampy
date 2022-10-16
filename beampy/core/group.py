@@ -381,8 +381,9 @@ class group(beampy_module):
         """
 
         self.group_num_layers = get_maximum_layer(self.modules)
-        self.layers_in_group = unique_layers(self.modules, self.group_num_layers,
-                                             check_consistancy=True)
+        self.layers_in_group = unique_layers(self.modules,
+                                             self.group_num_layers,
+                                             check_consistancy=False)
         _log.debug('List of layers %s ' % str(self.layers_in_group))
 
     def update_group_layers(self):

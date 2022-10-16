@@ -1218,9 +1218,11 @@ class beampy_module():
 
         beampy_module_name = self.name
         default_dict = Store.theme('beampy_module')
-        # Use inspect.getmro to list all parent class of the current beampy_module
+        # Use inspect.getmro to list all parent class of the current
+        # beampy_module Ensure that the dict is a copy in order to preserve the
+        # original dict from the Theme file
         for c in inspect.getmro(self.__class__)[1::-1]:
-            default_dict = dict_deep_update(default_dict, Store.theme(c.__name__))
+            default_dict = dict_deep_update(default_dict, deepcopy(Store.theme(c.__name__)))
 
         # Merge default dictionary with the parent dictionary
         if parent is not None:

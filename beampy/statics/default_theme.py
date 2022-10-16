@@ -123,8 +123,6 @@ THEME['svg'] = {
     'width': None,
     'height': None,
     'margin': 0,
-    'x': 'center',
-    'y': 'auto'
 }
 
 THEME['animatesvg'] = {
@@ -167,8 +165,6 @@ THEME['bibliography'] = {
 }
 
 THEME['itemize'] = {
-    'x':'center',
-    'y':'auto',
     'item_style':'bullet',
     'item_spacing':'+1cm',
     'item_indent':'0cm',
@@ -176,12 +172,12 @@ THEME['itemize'] = {
     'text_color':THEME['text']['color'],
     'text_size':THEME['text']['size'],
     'width':None,
-    'item_layers': None
+    'item_layers': None,
+    'x': THEME['beampy_module']['x'],
+    'y': THEME['beampy_module']['y']
 }
 
 THEME['line'] = {
-    'x':'center',
-    'y':'auto',
     'color': THEME['title']['color'],
     'linewidth': '2px',
     'opacity': 1

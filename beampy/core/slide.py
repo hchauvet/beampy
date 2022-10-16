@@ -111,9 +111,6 @@ class slide(object):
         # Add the slide to the Store
         Store.add_slide(self)
 
-        # Add the slide to the document contents list
-        #document._slides[self.id] = self
-
         # Store the current TOC position
         # TODO: Re-implement TOC !!!
         #if len(document._TOC) > 0:
@@ -175,6 +172,9 @@ class slide(object):
         self.svglayers = {}
 
     def __enter__(self):
+        # Ensure that the current group of Store is None
+        Store.set_group(None)
+
         self.start_time = time.time()
         print(f'--- Create slide {self.id} ---')
         return self

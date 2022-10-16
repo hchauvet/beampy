@@ -583,7 +583,7 @@ def dict_deep_update(original, update):
         if not key in update:
             update[key] = value
         elif isinstance(value, dict):
-            dict_deep_update( value, update[key] )
+            dict_deep_update(value, update[key])
 
     return update
 

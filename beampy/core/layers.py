@@ -85,9 +85,15 @@ def stringlayers_to_int(layers: list, maxlayer: int):
     return intlayers
 
 
-def unique_layers(modules: list, maxlayer: int, check_consistancy=True) -> list:
+def unique_layers(modules: list, maxlayer: int, check_consistancy=True,
+                  min_layer=0) -> list:
     """Get the list of unique layer number in a given
     set of beampy modules.
+
+    min_layer: int or 'local',
+        set the minimum value of layers to be tested, set 'local' to compute
+        this value as the min of all the layers defined in module list (this is
+        usefull for group).
     """
 
     all_layers = []
@@ -104,9 +110,12 @@ def unique_layers(modules: list, maxlayer: int, check_consistancy=True) -> list:
     # Make layers unique (using python set property) and sorted
     u_layers = sorted(set(all_layers))
 
+    if min_layer == 'local':
+        min_layer = min(u_layers)
+
     # Chaque layer consistancy
-    if check_consistancy and u_layers != list(range(0, maxlayer+1, 1)):
+    if check_consistancy and u_layers != list(range(min_layer, maxlayer+1, 1)):
         raise ValueError('Layers are not consecutive. I got %s, I should have %s' % (str(u_layers),
-                                                                                     str(list(range(0, maxlayer+1)))))
+                                                                                     str(list(range(min_layer, maxlayer+1)))))
 
     return u_layers
