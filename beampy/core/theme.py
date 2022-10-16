@@ -71,12 +71,12 @@ class Theme():
         spec.loader.exec_module(modulevar)
 
         if not hasattr(modulevar, 'THEME'):
-            raise ImportError("Give theme file does not contains a THEME dictionary")
+            raise ImportError("Given theme file does not contains a THEME dictionary")
 
         return modulevar.THEME
 
     def parse_file(self, theme_file: str) -> Path:
-        """Parse the impurt theme file and return an obsolute path to this
+        """Parse the impurt theme file and return an absolute path to this
         theme.
         """
 
