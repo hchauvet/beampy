@@ -72,9 +72,6 @@ class figure(beampy_module):
                  margin=None, ext=None, optimize=None, resize_raster=None,
                  *args, **kwargs):
 
-        # Check that the file exist !
-        assert Path(content).is_file(), f'File does not exist {content}'
-
         # Check content type
         ext = find_content_ext(content, ext)
         # Check that ext is not None before continu
@@ -90,12 +87,18 @@ class figure(beampy_module):
                 height = int(content.plot_height)
 
         elif ext == 'matplotlib':
-            width_inch, height_inch = content.get_size_inches()
+            # Get the size to the matplotlib figure
+            width_px, height_px = content.get_size_inches()*content.dpi 
             if width is None:
-                width = convert_unit("%fin"%(width_inch))
+                width = width_px
             if height is None:
-                height = convert_unit("%fin"%(height_inch))
+                height = height_px
+
+            print(width, height)
         else:
+            # Check that the file exist !
+            assert Path(content).is_file(), f'File does not exist {content}'
+
             # Default with for static figure included in beampy
             if width is None and height is None:
                 width = Store.current_width()
@@ -104,22 +107,25 @@ class figure(beampy_module):
 
         # Register the module
         super().__init__(x, y, width, height, margin, modtype, **kwargs)
-
+        
         # Add set some arguments as attributes
         # (this will prevent apply_theme to load them)
         self.set(content=content, ext=ext, optimize=optimize,
                  resize_raster=resize_raster)
 
         # Update the signature
-        if width_height_none:
-            self.update_signature(width=width)
-        else:
-            self.update_signature()
+        #if width_height_none:
+        self.update_signature(width=width, height=height)
+        #else:
+        #    self.update_signature()
 
+
+        print(self._sig_arguments.arguments)
         # Apply theme default for None value and set arguments as attrs
         self._theme_exclude_args = ['ext', 'optimize', 'resize_raster']
         self.apply_theme()
 
+        print(self.width, self.height)
 
         if optimize is None:
             self.optimize = Store.get_layout()._optimize_svg
@@ -158,6 +164,7 @@ class figure(beampy_module):
             fdate = str(os.path.getmtime(content))
             self.args_for_cache_id += [fdate]
 
+        print(self)
         # Add the content this will run the render method if needed
         self.add_content(content, modtype)
 
@@ -218,8 +225,8 @@ class figure(beampy_module):
             assert requested_width != 'scale' and requested_height != 'scale', "width and height could not be BOTH set to 'scale'"
 
             # Default values for width and height
-            figure_height = requested_width
-            figure_width = requested_height
+            figure_height = requested_height
+            figure_width = requested_width
 
             # Do we need to scale the fig size
             scale = 1
@@ -237,7 +244,7 @@ class figure(beampy_module):
 
             self.width = figure_width
             self.height = figure_height
-            print(self.width, self.height)
+            print('figure width, height', self.width, self.height)
             #Optimize the size of embeded svg images !
             if self.resize_raster:
                 resize_included_svg_images(soup, max_width=max(self.width.value, 512))
@@ -291,8 +298,8 @@ class figure(beampy_module):
             requested_height = self.height.value
 
             # TODO: do scaling also for bokeh figure
-            assert requested_width in [None, 'scale'], "For Bokeh figure width could not bet None or 'scale'"
-            assert requested_height in [None, 'scale'], "For Bokeh figure height could not bet None or 'scale'"
+            assert requested_width not in [None, 'scale'], "For Bokeh figure width could not bet None or 'scale'"
+            assert requested_height not in [None, 'scale'], "For Bokeh figure height could not bet None or 'scale'"
 
             htmlout = (f"<div id='bk_resizer' width='{requested_width}px' "
                        f"height='{requested_height}px' "
@@ -306,6 +313,7 @@ class figure(beampy_module):
             self.content_height = requested_height
 
             #Add the script to scriptout
+            print(goodscript)
             self.jsout = goodscript
 
         #For the other format
