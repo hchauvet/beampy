@@ -178,7 +178,9 @@ class text(beampy_module):
             \usepackage{amssymb}
             """
 
-            pretex += '\n'.join(self.extra_packages + document._latex_packages)
+            for package in self.extra_packages + document._latex_packages :
+                pretex += r'\usepackage{' + package + '}\n'
+
             pretex += r'\begin{document}'
             pretex += self.latex_text
             pretex += r'\end{document}'
