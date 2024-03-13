@@ -68,9 +68,9 @@ class text(beampy_module):
        `va`='baseline', the base-line of the first text row is computed and
        used as alignment reference (baseline-left).
 
-    extra_packages : list of string, optional
+    extra_packages : list of either strings or lists of strings, optional
         Add latex packages to render the text, like
-        [r'\usepackage{name1}', r'\usepackage{name2}']
+        [r'package1', ['option1', r'package2'], r'\usepackage[T1]{fontenc}' ]
 
 
     Example
@@ -179,7 +179,21 @@ class text(beampy_module):
             """
 
             for extra_package in self.extra_packages + document._latex_packages :
-                pretex += r'\usepackage{' + extra_package + '}\n'
+                try :
+                    if extra_package[:11] == r'\usepackage' :
+                        pretex += extra_package
+                    else :
+                        pretex += r'\usepackage{' + extra_package + '}\n'
+
+                except :
+                    pretex += r'\usepackage['
+                    
+                    for package_option in extra_package[:-1] :
+                        pretex += package_option + ','
+                    
+                    pretex = pretex[:-1]
+                    
+                    pretex += r']{' + extra_package[-1] + '}\n'
 
             pretex += r'\begin{document}'
             pretex += self.latex_text
