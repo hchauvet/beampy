@@ -59,19 +59,29 @@ class animatesvg(beampy_module):
 
     """
 
-    def __init__(self, files_in, **kwargs):
+    def __init__(self, files_in, x=None, y=None, width=None, height=None,
+                 margin=None, start=0, end='end', fps=None, autoplay=None,
+                 *args, **kwargs):
 
+
+        modtype = 'svg'
+        # Register the module
+        super().__init__(x, y, width, height, margin, modtype, **kwargs)
+
+        # Add set some arguments as attributes
+        self.set(files_in=file_in, start=start, end=end, fps=fps,
+                 autoplay=autoplay)
 
         # Add type
-        self.type = 'animatesvg'
+        # self.type = 'animatesvg'
+
+        # Update the signature
+        self.update_signature(width=width, height=height)
 
         # Check input args for this module
-        self.check_args_from_theme(kwargs)
+        self.apply_theme()
 
-        # Cache is useless because we call figure function which handle the cache for each figures
-        self.cache = False
-
-        slide = document._slides[gcs()]
+        slide = Store.get_current_slide()
 
         # Add +1 to counter
         self.anim_num = slide.cpt_anim
@@ -94,7 +104,7 @@ class animatesvg(beampy_module):
 
             if input_width is None:
                 width_inch, height_inch = files_in[0].get_size_inches()
-                self.width = convert_unit("%fin"%(width_inch))
+                self.width = "%fin"%(width_inch)
         else:
             print('Unknown input type for files_folder')
             sys.exit(0)
@@ -104,10 +114,7 @@ class animatesvg(beampy_module):
             self.end = len(svg_files)
 
         # Add content
-        self.content = svg_files[self.start:self.end]
-
-        # Register the module
-        self.register()
+        self.add_content(svg_files[self.start:self.end], modtype)
 
     def render(self):
         """
@@ -119,7 +126,9 @@ class animatesvg(beampy_module):
         output = []
         fig_args = {"width": self.width.value,
                     "height": self.height.value,
-                    "x": 0, "y": 0}
+                    "x": 0, "y": 0,
+                    "add_to_slide": False,
+                    "add_to_group": False}
 
         if len(self.content)>0:
             #Test if output format support video
@@ -127,13 +136,9 @@ class animatesvg(beampy_module):
                 for iframe, svgfile in enumerate(self.content):
                     #print iframe
                     img = figure(svgfile, **fig_args)
-                    img.positionner = self.positionner
                     img.call_cmd = str(iframe)+'->'+self.call_cmd.strip()
                     img.call_lines = self.call_lines
                     img.run_render()
-
-                    if iframe == 0:
-                        self.update_size(img.width, img.height)
 
                     # parse the svg
                     tmpout = '''<g id="frame_%i">%s</g>'''%(iframe, img.svgout)
@@ -152,8 +157,10 @@ class animatesvg(beampy_module):
                 img.delete()
 
             # return output
-            # Update the rendered state of the module
-            self.rendered = True
+            self.content_width = img.width.value
+            self.content_height = img.width.value
+            self.width = img.width 
+            self.height = img.height
 
         else:
-            print('nothing found')
+            print('No image animation to render')

@@ -28,15 +28,17 @@ THEME['beampy_module'] = {
     'y': 'center',
     'width': r'100%',
     'height': None,
-    'margin': 0
+    'margin': 0,
+    'opacity': 1,
+    'rotate': None
 }
 
 THEME['slide'] = {
     'background': "white",
-    'layout': None, #Could be changed to a function that will decorate the current slide with elements
-                    #this can be used to create a specific layout for a theme
-                    #Could also be a string that refer to the key of the LAYOUT[key] dict if you need several layouts
-                    #for a presentation
+    'layout': None, # Could be changed to a function that will decorate the current slide with elements
+                    # this can be used to create a specific layout for a theme
+                    # Could also be a string that refer to the key of the LAYOUT[key] dict if you need several layouts
+                    # for a presentation
 }
 
 THEME['text'] = {
@@ -72,18 +74,23 @@ THEME['title'] = {
 }
 
 THEME['link'] = {
-    'fill':THEME['title']['color']
+    'fill': THEME['title']['color']
+}
+
+THEME['code'] = {
+    'font_size': '14px',
+    'code_style': 'tango'
 }
 
 THEME['maketitle'] = {
-    'title_size':30,
-    'title_color':THEME['title']['color'],
-    'author_size':THEME['text']['size'],
-    'author_color':'black',
-    'date_size':15,
-    'date_color':'#888888',
-    'subtitle_color':'#888888',
-    'subtitle_size':20,
+    'title_size': 30,
+    'title_color': THEME['title']['color'],
+    'author_size': THEME['text']['size'],
+    'author_color': 'black',
+    'date_size': 15,
+    'date_color': '#888888',
+    'subtitle_color': '#888888',
+    'subtitle_size': 20,
     'template': None #here you redefine a link to a function "def mytitle(titlein, author, subtitle, date, args)"" that is executed in maketitle to replace the default template
 }
 
@@ -92,6 +99,11 @@ THEME['tableofcontents'] = {
     'height': None,
     'x': 25,
     'y': 'center',
+    'subsection': True,
+    'subsubsection': True,
+    'currentsection': False,
+    'currentsubsection': False,
+    'hideothersubsection': False,
     'section_yoffset': 50,
     'subsection_xoffset': 20,
     'subsection_yoffset': 10,
@@ -103,7 +115,7 @@ THEME['tableofcontents'] = {
     'section_text_color': THEME['title']['color'],
     'subsection_text_color': THEME['text']['color'],
     'subsection_decoration_color': 'gray',
-    'subsection_decoration_size': 13/2,
+    'subsection_decoration_size': 13 / 2,
     'hidden_opacity': 0.2
 }
 
@@ -112,7 +124,7 @@ THEME['video'] = {
     'height': None,
     'margin': 0,
     'autoplay': False,
-    'loop' : False,
+    'loop': False,
     'control': True,
     'still_image_time': 0.0,
     'embedded': True,
@@ -138,7 +150,7 @@ THEME['tikz'] = {
     'tex_packages': None,
     'latex_pre_tikzpicture': None,
     'figure_options': None,
-    'figure_anchor': 'top_left'
+    'figure_anchor': 'top_left',
 }
 
 THEME['figure'] = {
@@ -149,29 +161,29 @@ THEME['figure'] = {
 }
 
 THEME['cite'] = {
-    'color':THEME['title']['color'],
-    'size':16,
-    'reference_delimiter' : ';',
-    'brackets' : ('[',']'),
+    'color': THEME['title']['color'],
+    'size': 16,
+    'reference_delimiter': ';',
+    'brackets': ('[',']'),
 }
 
 THEME['bibliography'] = {
-    "max_author" : 3,
-    "initials" : False,
-    "journal" : False,
-    "and" : r'\&',
-    'et_al' : 'et al.',
-    'initial_delimiter' : '.',
+    "max_author": 3,
+    "initials": False,
+    "journal": False,
+    "and": r'\&',
+    'et_al': 'et al.',
+    'initial_delimiter': '.',
 }
 
 THEME['itemize'] = {
-    'item_style':'bullet',
-    'item_spacing':'+1cm',
-    'item_indent':'0cm',
-    'item_color':THEME['title']['color'],
-    'text_color':THEME['text']['color'],
-    'text_size':THEME['text']['size'],
-    'width':None,
+    'item_style': 'bullet',
+    'item_spacing': '+1cm',
+    'item_indent': '0cm',
+    'item_color': THEME['title']['color'],
+    'text_color': THEME['text']['color'],
+    'text_size': THEME['text']['size'],
+    'width': None,
     'item_layers': None,
     'x': THEME['beampy_module']['x'],
     'y': THEME['beampy_module']['y']
@@ -189,7 +201,7 @@ THEME['rectangle'] = {
     'opacity': 1,
     'edgecolor': THEME['text']['color'],
     'height': '10px',
-    'width': '%spx'%(THEME['document']['width']),
+    'width': '%spx' % (THEME['document']['width']),
     'rx': 0,
     'ry': 0,
     'svgfilter': None,
@@ -211,6 +223,7 @@ THEME['box'] = {
     'head_height': None,
     'shadow': False,
     'background_color': 'white',
+    'background_opacity': 1,
     'title_color': 'white',
     'border_color': THEME['title']['color'],
     'title_background_color': THEME['title']['color'],

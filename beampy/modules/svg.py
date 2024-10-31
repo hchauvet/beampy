@@ -47,14 +47,14 @@ class svg(beampy_module):
         # Update the signature
         self.update_signature()
 
-        #add arguments as attributes
+        # add arguments as attributes
         self.set(svg_content=svg_content, inkscape_size=inkscape_size)
 
-        #apply theme to None
-        self._theme_exclude_args = ['inkscape_size']
+        # apply theme to None
+        self.theme_exclude_args = ['inkscape_size']
         self.apply_theme()
-        print(self.inkscape_size)
-        #Register the module
+
+        # Register the module
         self.add_content(svg_content, 'svg')
 
     def render(self):
@@ -97,110 +97,4 @@ class svg(beampy_module):
 
         #Set rendered flag to true (needed for the cache)
         self.rendered = True
-
-
-
-def grid(dx, dy, **kwargs):
-    """
-    Create a grid with a given spacing.
-
-    Parameters
-    ----------
-
-    Accept all arguments of :py:mod:`beampy.line`
-
-    See Also
-    --------
-
-    :py:mod:`beampy.line`
-
-    """
-
-    assert dx > 0
-    assert dy > 0
-
-    with group(x=0, y=0, width=document._width, height=document._height) as g:
-        # create horizontal line
-        cur_x = 0
-        while (cur_x <= document._height):
-            hline('%spx'%cur_x, **kwargs)
-            cur_x += dx
-
-        cur_y = 0
-        while (cur_y <= document._width):
-            vline('%spx'%cur_y, **kwargs)
-            cur_y += dy
-
-    return g
-
-        
-# TODO: Improve grid rendering to not loop over beampy elements but create a true grid
-class grid_new(svg):
-    """
-    Create a grid with a given spacing.
-
-    Parameters
-    ----------
-
-    dx : int
-        Horizontal spacing for the grid. The unit used is pixel.
-
-    dy : int
-        Vertical spacing for the grid. The unit used is pixel.
-
-    linewidth : string, optional
-        Line width (the default theme sets this to '2px'). The value is given
-        as string followed by an unit accepted by svg syntax.
-
-    color : string, optional
-        Line color (the default theme sets this to THEME['title']['color']).
-        The color is given either as HTML hex value "#ffffff" or as svg
-        colornames "blank".
-
-    opacity: float, optional
-        Opacity of the rectangle (the default theme sets this to 1). The
-        value ranges between 0 (transparent) and 1 (solid).
-
-    """
-
-    def __init__(self, dx, dy, **kwargs):
-
-        # The input type of the module
-        self.type = 'svg'
-
-        self.inkscape_size = True
-        
-        # Add args to the module
-        self.check_args_from_theme( kwargs )
-        self.dx = dx
-        self.dy = dy
-
-
-        # convert unit of x2 and y2
-        self.dx = convert_unit(self.dx)
-        self.dy = convert_unit(self.dy)
-
-        self.args['dx'] = self.dx
-        self.args['dy'] = self.dy
-
-        # Build style for the rectangle
-        beampy_svg_kword = {'color': 'stroke',
-                            'linewidth': 'stroke-width',
-                            'opacity': 'opacity'}
-
-        self.style = ''
-        for kw in beampy_svg_kword:
-            if hasattr(self, kw):
-                self.style += '%s:%s;'%(beampy_svg_kword[kw], getattr(self,kw))
-
-
-        curslide = document._slides[self.slide_id]
-        base_hline = '<line id="{id}" x1="0" y1="0" x2="{x2}px" y2="{y2}px" style="{style}"/>'
-
-        self.content = base_hline
-        self.content = self.content.format(x2=curslide.curwidth, y2=0,
-                                           style=self.style, id='hlineXX')
-        # Register the module
-        # self.register()
-
 

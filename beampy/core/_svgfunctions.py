@@ -10,10 +10,12 @@ from beampy.core.functions import convert_unit
 from beampy.core.store import Store
 import os
 import re
+import logging
+_log = logging.getLogger(__name__)
 
 try:
     from xxhash import xxh3_64 as hashfunction
-except Exception as e:
+except Exception:
     _log.debug('Beampy is faster using xxhash librabry, pip install xxhash')
     from hashlib import md5 as hashfunction
 
@@ -117,15 +119,20 @@ def make_global_svg_defs(svg_soup: object) -> object:
     """
 
     #str_svg to replace modified id in all the svg content
-    strsvg = svg_soup.decode('utf8')
+    # strsvg = svg_soup.decode('utf8')
 
     # OLD way only work on defs.... Find defs
     # svgdefs = svg_soup.find('defs')
     # New way find all id in the svg
 
     #Create seed by hashing the entire svg file
-    seed = hashfunction(strsvg).hexdigest()[:5]
-
+    try: 
+        seed = hashfunction(svg_soup.encode('utf8')).hexdigest()[:5]
+    except Exception as error: 
+        seed = hashfunction(svg_soup.decode('utf8')).hexdigest()[:5]
+    
+    strsvg = svg_soup.decode('utf8')
+        
     for tag in svg_soup.findAll(lambda x: x is not None and x.has_attr('id')):
         oldid = tag['id']
         newid = "S%s_%i"%(seed, Store.svg_id())
@@ -210,3 +217,75 @@ def inkscape_get_size(svgfile: str) -> list:
 
     return width, height
 
+
+def make_unique_glyphs(svgsoup: object) -> object:
+    """Process the svg (parsed with BeautifulSoup) to ensure unique id for
+    glyphs path.
+    Glyphs are stored in the Store with a unique id based on their
+    vectorized path hash.
+
+    Parameter:
+    ----------
+
+    Return:
+    -------
+
+    The modified svgsoup object, with updated glyph ids in svg "use" and
+    "defs".
+    """
+
+    # Find the defs tag of the svg
+    defs_soup = svgsoup.find('defs')
+    if defs_soup is not None:
+        for path in defs_soup.find_all('path'):
+            old_id = path['id']
+            uid = hashfunction(path['d'].encode('utf8')).hexdigest()
+
+            if Store.is_glyph(uid):
+                # Update the new_path_id from the Store
+                new_path_id = Store.get_glyph(uid)['id']
+            else:
+                # Create a new id for this new glyph in Store
+                new_path_id = f'g_{len(Store._glyphs)}'
+                # Replace the id in the svg path tag
+                path['id'] = new_path_id
+                nglyph = {'id': new_path_id,
+                            'dvisvgm_id': old_id,
+                            'svg': str(path),
+                            'uid': uid}
+
+                Store.add_glyph(nglyph)
+
+            # in defs, they could be "use" tag that reuse a path and define
+            # a new id to it with different arguments.
+            for usedef in defs_soup.find_all('use', {'xlink:href': f'#{old_id}'}):
+                old_use_id = usedef['id']
+                use_uid = hashfunction(str(usedef).encode('utf8')).hexdigest()
+
+                if Store.is_glyph(use_uid):
+                    # Get the new id from Store
+                    new_use_id = Store.get_glyph(use_uid)['id']
+                else:
+                    # Create the new use id
+                    new_use_id = f'g_{len(Store._glyphs)}'
+                    # Update reference for before storing the svg tag in Store
+                    usedef['id'] = new_use_id
+                    usedef['xlink:href'] = f'#{new_path_id}'
+                    nuse = {'id': new_use_id,
+                            'uid': use_uid,
+                            'dvisvgm_id': old_use_id,
+                            'svg': str(usedef)}
+
+                    Store.add_glyph(nuse)
+
+                # Find all use (not in defs tag) that refer to this use tag
+                # id and update their link to the new id
+                for use in svgsoup.find_all('use', {'xlink:href': f'#{old_use_id}'}):
+                    use['xlink:href'] = f'#{new_use_id}'
+
+            # find all use that reference this path
+            # and replace the reference by the new uniqueid
+            for use in svgsoup.find_all('use', {'xlink:href': f'#{old_id}'}):
+                use['xlink:href'] = f'#{new_path_id}'
+
+    return svgsoup

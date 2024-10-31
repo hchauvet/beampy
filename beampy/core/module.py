@@ -10,7 +10,6 @@ from beampy.core.functions import (get_command_line, print_function_args,
                                    pre_cache_svg_image, convert_unit,
                                    dict_deep_update)
 from beampy.core.geometry import Position, Length, Margins
-from beampy.core.delayedoperations import Delayed
 from string import Template
 from copy import deepcopy
 import inspect
@@ -29,7 +28,7 @@ class beampy_module():
     call_lines = ''  # Store lines of the call cmd
     id = None  # store an id for this module
     uid = None  # store an unique id for the module using python id() function
-    group_id = None  # store the group id if the module is inside one group
+    parent = None # store the parent object reference (the group or the slide)
     start_line = 0
     stop_line = 0
 
@@ -64,7 +63,6 @@ class beampy_module():
         obj._theme_exclude_args = []
 
         return obj
-
 
     def __init__(self, x, y, width, height, margin, content_type='svg', add_to_slide=True, 
                  add_to_group=True, **kwargs):
@@ -165,6 +163,13 @@ class beampy_module():
         self.margin = margin
         self.type = content_type
 
+        # default delayed_render
+        # A delayed render is a flag to run the add_content
+        # method at the end of the creation of all slides.
+        # This is usefull for modules that needs information
+        # from all slides before rendering
+        self.delayed_render = False
+
         # Default svg def attributes
         self._svg_opacity = None
         self._svg_scale = None
@@ -176,10 +181,8 @@ class beampy_module():
         # Variables that will store output of render functions
         self.svgout = ''  # The svg template to produce the final valid svg string
         self.htmlout = ''  # The html template
-        self.jsout = ''  # The javascript template to produce the valid javascrpit output
         self.animout = ''  # Store multiple rasters for animation
         
-
     def register(self):
         """
         Register the module the current slide or groupe or store
@@ -203,23 +206,22 @@ class beampy_module():
         if self.slide_id is not None:
             if Store.isgroup():
                 Store.group().add_module(self)
+                self.parent = Store.group()
             else:
                 Store.get_slide(self.slide_id).add_module(self)
-            sid = self.slide_id
+                self.parent = Store.get_slide(self.slide_id)
             self.id = self.get_index()
         else:
             if Store.isgroup() and self.add_to_group:
                 Store.group().add_module(self)
+                self.parent = Store.groud()
                 self.id = self.get_index()
             else:
                 # The case outside of a group and outside ouf a slide, so their is no list of modules 
                 # defined to set an id to the module which is the index of the modules list in slide 
                 # or group
                 self.id = None
-
-            sid = None
-            
-
+                
         _log.debug('%s(id=%s) store the slide id: %s' % (self.name, self.id, self.slide_id))
 
         # Add the source of the script that run this module
@@ -265,7 +267,7 @@ class beampy_module():
                                 self.args_for_cache_id)
 
         if Store.is_content(self._content.id):
-            print(f'This module {self.short_signature} already exist in the Store, I will use {self.content_id}' )
+            print(f'This module {self.short_signature} already exist in the Store, I will use {self.content_id}')
 
             self.pre_render()
 
@@ -354,7 +356,6 @@ class beampy_module():
 
         return sig
 
-
     @property
     def content_id(self):
         return self._content.id
@@ -415,7 +416,6 @@ class beampy_module():
 
         self._content.width = width
 
-
     @property
     def content_height(self):
         """Get the original height of the content
@@ -464,13 +464,34 @@ class beampy_module():
         mpos = self.get_index()
         if mpos > 0:
             if Store.isgroup():
-                previous_module = Store.group().modules[mpos-1]
+                previous_module = Store.group().modules[mpos - 1]
             else:
-                previous_module = Store.get_slide(self.slide_id).modules[mpos-1]
+                previous_module = Store.get_slide(self.slide_id).modules[mpos - 1]
         else:
             raise IndexError("No previous module in the slide or group")
 
         return previous_module
+
+    def get_html_div(self):
+        '''
+        Return a div structure for the module that will handle the x, y offset and the transpose things.
+
+        <div style="left: XXpx; top: YYpx; position: absolute; transform: scale(xx), rotate(yy)">
+            module.content
+        </div>
+        '''
+
+        if self.type == 'svg':
+            div_tmpl = Template(f'<div style="position: absolute; left:{self._final_x}px; top:{self._final_y}px; opacity:{self.opacity}; width:{self.width}px; height:{self.height}px; {self.csstransform};"> $content </div>')
+            tmpsvg = (f'<svg width="{self.width}" height="{self.height}">'
+                      f'<use xlink:href="#{self.content_id}"/>'
+                      '</svg>')
+            return div_tmpl.safe_substitute(content=tmpsvg)
+
+        if self.type == 'html':
+            return self.html
+
+        return ''
 
     @property
     def svgdef(self):
@@ -479,16 +500,16 @@ class beampy_module():
             if self.width.value is None:
                 xcenter = None
             else:
-                xcenter = self.width.value/2
+                xcenter = self.width.value / 2
 
             if self.height.value is None:
                 ycenter = None
             else:
-                ycenter = self.height.value/2
+                ycenter = self.height.value / 2
 
             # Cannot use format with {} as <style>line{color:red}</style> could
             # be defined in svg
-            # To overcome this we use python Template and sage_substitute
+            # To overcome this we use python Template and safe_substitute
             svgdef = Template(self.data["svgdef"])
             svgdef = svgdef.safe_substitute(opacity=self.svgopacity,
                                             xcenter=-ycenter,
@@ -517,7 +538,8 @@ class beampy_module():
         self.add_content_data('svgdef', out)
 
     def add_content_data(self, key: str, datain):
-        """Add extra data to the Content data dictionary.
+        """
+        Add extra data to the Content data dictionary.
         """
 
         if self.data is not None:
@@ -559,7 +581,7 @@ class beampy_module():
     def html(self, new_html):
         """Create the html content of the module
         """
-        divstyle = '; '.join(['left: {x}px',  #  x and y will be replaced on html call
+        divstyle = '; '.join(['left: {x}px',  # x and y will be replaced on html call
                               'top: {y}px',
                               'opacity: {opacity}',
                               'position: absolute'])
@@ -583,13 +605,18 @@ class beampy_module():
 
         return None
 
-    @js.setter
-    def js(self, new_javascript):
+    def add_js(self, function_call_name, javascript_content):
         """
-        Store the javascript for a module
+        Store the javascript for a module.
+
+        The javascript will be set as
+        ['function_call_name'] = function(){javascript_content}
+
+        They will then be called on the slide loading
         """
 
-        self.add_content('js', new_javascript)
+        js = "['" + function_call_name + "'] = function(){" + javascript_content + "}"
+        self.add_content_data('js', js)
 
     @property
     def svgaltdef(self):
@@ -642,7 +669,7 @@ class beampy_module():
         if newopacity is None:
             self._svg_opacity = None
         else:
-            assert newopacity>0 and newopacity <= 1, "Opacity should be between 0 and 1"
+            assert newopacity > 0 and newopacity <= 1, "Opacity should be between 0 and 1"
             self._svg_opacity = newopacity
 
     @property
@@ -675,8 +702,33 @@ class beampy_module():
         if self.rotate is not None:
             out += ['rotate(%s)' % ','.join(self.rotate)]
 
-        if len(out)>0:
+        if len(out) > 0:
             out = f'transform="{" ".join(out)}"'
+        else:
+            out = ''
+
+        return out
+
+    @property
+    def csstransform(self) -> str:
+        """
+        Create the css syntax for the transfom attribute
+
+        https://developer.mozilla.org/fr/docs/Web/CSS/transform
+        """
+        out = []
+        if self.scale is not None:
+            out += ['scale(%0.3f)' % self.scale]
+
+        if self.translate is not None:
+            out += ['translate(%ipx, %ipx)' % (self.translate[0],
+                                               self.translate[1])]
+
+        if self.rotate is not None:
+            out += ['rotate(%s)' % ','.join(self.rotate)]
+
+        if len(out) > 0:
+            out = f'transform:{" ".join(out)}'
         else:
             out = ''
 
@@ -744,7 +796,7 @@ class beampy_module():
         if new_angle is not None:
             print("Setting rotation is buggy at the moment !!!")
             if isinstance(new_angle, (float, int)):
-                assert new_angle>0 and new_angle<=360, "angle of rotation should be between 0 and 360"
+                assert new_angle > 0 and new_angle <= 360, "angle of rotation should be between 0 and 360"
                 rot = ['%i' % new_angle,
                        '{xcenter}',
                        '{ycenter}'
@@ -753,7 +805,6 @@ class beampy_module():
                 rot = ['%i' % new_angle[0],
                        '%i' % new_angle[1],
                        '%i' % new_angle[2]]
-
 
             self._svg_rotate = rot
 
@@ -974,7 +1025,6 @@ class beampy_module():
                 self._y.value = position
         """
 
-
     def process_previous_position(self, position, axis='x'):
         """Find the previous module in slide to process the current position
         position relative to this module.
@@ -1055,15 +1105,15 @@ class beampy_module():
         """Return the horizontal and vertical positions to be align with the center of the
         module.
         """
-        return (self.x + self.total_width/2, self.y + self.total_height/2)
+        return (self.x + self.total_width / 2, self.y + self.total_height / 2)
 
     @property
     def x_center(self):
-        return self.x + self.width/2
+        return self.x + self.width / 2
 
     @property
     def y_center(self):
-        return self.y + self.height/2
+        return self.y + self.height / 2
 
     def compute_position(self, xoffset=0, yoffset=0):
         """Compute the position of the module and store the result in
@@ -1083,13 +1133,13 @@ class beampy_module():
 
         # Apply origin transformation
         if self.xorigine == 'center':
-            xf = self.x - self.total_width/2
+            xf = self.x - self.total_width / 2
 
         if self.xorigine == 'right':
             xf = self.x - self.total_width.value
 
         if self.yorigine == 'center':
-            yf = self.y - self.total_height.value/2
+            yf = self.y - self.total_height.value / 2
 
         if self.yorigine == 'bottom':
             yf = self.y - self.total_height.value
@@ -1124,7 +1174,6 @@ class beampy_module():
     def reset_outputs(self):
         self.svgout = ''  # The output of the render
         self.htmlout = ''  # We can store also html peace of code
-        self.jsout = ''  # Store javascript if needed
         self.animout = ''  # Store multiple rasters for animation
         self.data = None
 
@@ -1153,7 +1202,6 @@ class beampy_module():
         self.svgdef = "a data thing"
         self.content_width = self.width.value
         self.content_height = self.height.value
-
 
     def run_render(self):
         """
@@ -1213,8 +1261,6 @@ class beampy_module():
         # print(inspect.signature(self.__init__).parameters.keys())
 
         args = self._sig_arguments.arguments
-        keys = args.keys()
-
 
         beampy_module_name = self.name
         default_dict = Store.theme('beampy_module')
@@ -1334,13 +1380,8 @@ class beampy_module():
             function to add a border to the given element
         """
 
-        output = '<rect x="0" y="0" width="{width}" height="{height}" '
-        for key in svg_style:
-            output += '%s="%s" '%(key, svg_style[key])
-
-        output += ' />'
-
-        self.svg_decoration = output
+        print('Use self.show_box_model = True')
+        print('TODO: Need to be re-implemented to realy add a border with a given style')
 
     def add_layers(self, layerslist):
         """
@@ -1379,12 +1420,16 @@ class beampy_module():
         if copy_self.slide_id is not None:
             if Store.isgroup():
                 Store.group().add_module(copy_self)
+                copy_self.parent = Store.group()
             else:
                 Store.get_slide(copy_self.slide_id).add_module(copy_self)
+                copy_self.parent = Store.get_slide(copy_self.slide_id)
             copy_self.id = copy_self.get_index()
         else:
             if Store.isgroup():
                 Store.group().add_module(copy_self)
+                copy_self.parent = Store.group()
+
             copy_self.id = None
 
         # Update x, y positions
@@ -1455,7 +1500,7 @@ class beampy_module():
                 stop = item.stop
 
                 if stop < 0:
-                    stop = 'max%i'%stop
+                    stop = 'max%i' % stop
 
             # print(start, stop, step)
             if isinstance(stop, str):
@@ -1545,20 +1590,11 @@ class beampy_module():
         Set the current module to appears above the other_element_id.
         """
         assert isinstance(other_element, beampy_module)
-
-        if self.type == 'group':
-            pid = self.parentid
-        else:
-            pid = self.group_id
-
-        curgroup = document._slides[self.slide_id].contents[pid]
-        other_pos = curgroup.exports_id.index(other_element.id)
-        self_pos = curgroup.exports_id.index(self.id)
-
-        #remove the id of the current module
-        curgroup.exports_id.pop(self_pos)
-        #add the current module to it's new place (above the other)
-        curgroup.exports_id.insert(other_pos+1, self.id)
+        
+        self_pos = self.parent.modules_order.index(self)
+        other_pos = self.parent.modules_order.index(other_element)
+        
+        self.parent.change_module_position(self_pos, other_pos + 1)
 
     def below(self, other_element):
         """
@@ -1566,50 +1602,29 @@ class beampy_module():
         """
         assert isinstance(other_element, beampy_module)
 
-        if self.type == 'group':
-            pid = self.parentid
-        else:
-            pid = self.group_id
-
-        curgroup = document._slides[self.slide_id].contents[pid]
-        other_pos = curgroup.exports_id.index(other_element.id)
-        self_pos = curgroup.exports_id.index(self.id)
-
-        #remove the id of the current module
-        curgroup.exports_id.pop(self_pos)
-        #add the current module to it's new place (below the other)
-        curgroup.exports_id.insert(other_pos, self.id)
-
+        self_pos = self.parent.modules_order.index(self)
+        other_pos = self.parent.modules_order.index(other_element)
+        
+        self.parent.change_module_position(self_pos, other_pos)
+        
     def first(self):
         """
         Set the current object in the background
         """
-        if self.type == 'group':
-            pid = self.parentid
-        else:
-            pid = self.group_id
 
-        curgroup = document._slides[self.slide_id].contents[pid]
-        self_pos = curgroup.exports_id.index(self.id)
+        #  Get the position of this module in the list
+        self_pos = self.parent.modules_order.index(self)
 
-        #remove the id of the current module
-        curgroup.exports_id.pop(self_pos)
-        #add the current module at the beginning
-        curgroup.exports_id.insert(0, self.id)
+        # move the position of this module in the parent list
+        self.parent.change_module_position(self_pos, 0)
 
     def last(self):
         """
         Set the current object in the foreground
         """
-        if self.type == 'group':
-            pid = self.parentid
-        else:
-            pid = self.group_id
+    
+        #  Get the position of this module in the list
+        self_pos = self.parent.modules_order.index(self)
 
-        curgroup = document._slides[self.slide_id].contents[pid]
-        self_pos = curgroup.exports_id.index(self.id)
-
-        #remove the id of the current module
-        curgroup.exports_id.pop(self_pos)
-        #add the current module at the end
-        curgroup.exports_id.insert(len(curgroup.exports_id), self.id)
+        # move the position of this module in the parent list
+        self.parent.change_module_position(self_pos, len(self.parent.modules_order))

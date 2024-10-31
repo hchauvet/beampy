@@ -67,10 +67,12 @@ class box(group):
         The color of the background of the box (the default values is
         'white').
 
+    background_opacity : int between 0 and 1, optional
+        The opacity of the background color
+        
     border_color : svg color name as string, optional
         The color of the border of the box (the default values is
         'red').
-
     title_color : svg color name as string, optional
         The color of the title (the default value is 'white').
 
@@ -102,9 +104,10 @@ class box(group):
 
     def __init__(self, title=None, x=None, y=None, width=None, height=None, margin=None,
                  modules=None, rounded=None, linewidth=None, color=None, head_height=None, 
-                 shadow=None, background_color=None, border_color=None, title_color=None, 
-                 title_align=None, title_xoffset=None, title_size=None, title_opacity=None,
-                 title_background_color=None, title_margin=None, content_margin=None, **kargs):
+                 shadow=None, background_color=None, background_opacity=None, border_color=None, 
+                 title_color=None, title_align=None, title_xoffset=None, title_size=None, 
+                 title_opacity=None, title_background_color=None, title_margin=None, content_margin=None, 
+                 **kargs):
 
         self.set(title=title, modules=modules)
         self.theme_exclude_args = ['title', 'modules', 'color']
@@ -145,7 +148,7 @@ class box(group):
             if self.title_align == 'center':
                 xt = 'center'
             if self.title_align == 'right':
-                xt = right(self.width.value+self.content_margin.left)
+                xt = right(self.width.value + self.content_margin.left)
 
             box_title = text(self.title, x=xt, y=yt, width=self.width.value, margin=list(self.title_margin), 
                              size=self.title_size, color=self.title_color, align=self.title_align, 
@@ -162,8 +165,6 @@ class box(group):
         # Run the group render
         super().render()
         group_height = self.group_height()
-
-            
 
         if self.head_height is None:
             self.head_height = 0
@@ -217,13 +218,13 @@ class box(group):
             # The content background of the box
             box_svg += (f'<path d="M {lw/2} {hh+lw/2} v {(h-hh-r-lw)} q 0 {r} {r} {r} '
                         f'h {w-2*r-lw} q {r} 0 {r} {-r} v {-(h-hh-r-lw)} Z" '
-                        f'fill="{self.background_color}" stroke="none" stroke-width="0"/>')
+                        f'fill="{self.background_color}" stroke="none" stroke-width="0" opacity="{self.background_opacity}"/>')
         else:
             # The content background of the box without header
             box_svg += (f'<path d="M {r+lw/2} {hh+lw/2} q {-r} 0 {-r} {r} '
                         f'v {(h-hh-2*r-lw)} q 0 {r} {r} {r} h {w-2*r-lw} q {r} 0 {r} {-r} '
                         f'v {-(h-hh-2*r-lw)} q 0 {-r} {-r} {-r} Z" '
-                        f'fill="{self.background_color}" stroke="none" stroke-width="0"/>')
+                        f'fill="{self.background_color}" stroke="none" stroke-width="0" opacity="{self.background_opacity}"/>')
         # The contour of the box
         if lw > 0:
             box_svg += (f'<path d="M {r+lw/2} {lw/2} h {w-2*r-lw} q {r} 0 {r} {r} v {h-2*r-lw} q 0 {r} {-r} {r} '
@@ -240,7 +241,7 @@ class box(group):
         # Fix the width and height
         self.width = self.width.value
         self.height = self.height.value
-
+        
         # For group we define the signature after the renderering
         # to include the list of modules
         self.update_signature(modules=self.modules)

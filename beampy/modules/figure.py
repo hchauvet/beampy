@@ -88,13 +88,12 @@ class figure(beampy_module):
 
         elif ext == 'matplotlib':
             # Get the size to the matplotlib figure
-            width_px, height_px = content.get_size_inches()*content.dpi 
+            width_px, height_px = content.get_size_inches() * content.dpi
             if width is None:
                 width = width_px
             if height is None:
                 height = height_px
 
-            print(width, height)
         else:
             # Check that the file exist !
             assert Path(content).is_file(), f'File does not exist {content}'
@@ -109,23 +108,15 @@ class figure(beampy_module):
         super().__init__(x, y, width, height, margin, modtype, **kwargs)
         
         # Add set some arguments as attributes
-        # (this will prevent apply_theme to load them)
         self.set(content=content, ext=ext, optimize=optimize,
                  resize_raster=resize_raster)
 
         # Update the signature
-        #if width_height_none:
         self.update_signature(width=width, height=height)
-        #else:
-        #    self.update_signature()
 
-
-        print(self._sig_arguments.arguments)
         # Apply theme default for None value and set arguments as attrs
-        self._theme_exclude_args = ['ext', 'optimize', 'resize_raster']
+        self.theme_exclude_args = ['ext', 'optimize', 'resize_raster']
         self.apply_theme()
-
-        print(self.width, self.height)
 
         if optimize is None:
             self.optimize = Store.get_layout()._optimize_svg
@@ -153,7 +144,7 @@ class figure(beampy_module):
             with BytesIO() as tmpb:
                 content.canvas.print_jpg(tmpb)
                 tmpb.seek(0)
-                md5t = hashlib.md5( tmpb.read() ).hexdigest()
+                md5t = hashlib.md5(tmpb.read()).hexdigest()
 
             self.args_for_cache_id += [md5t]
 
@@ -164,7 +155,6 @@ class figure(beampy_module):
             fdate = str(os.path.getmtime(content))
             self.args_for_cache_id += [fdate]
 
-        print(self)
         # Add the content this will run the render method if needed
         self.add_content(content, modtype)
 
@@ -280,7 +270,7 @@ class figure(beampy_module):
             self.content_width = figure_width
             self.content_height = figure_height
 
-        #Bokeh images
+        # Bokeh images
         if self.ext == 'bokeh':
 
             # Change the sizing mode (need scale_both) to adapt size of the figure
@@ -291,9 +281,10 @@ class figure(beampy_module):
 
             # Transform figscript to givea function name load_bokehjs
             tmp = figscript.splitlines()
-            goodscript = '\n'.join( ['["load_bokeh"] = function() {'] + tmp[1:-1] + ['};\n'] )
+            goodscript = '\n'.join(tmp[1:-1])
+            self.add_js('load_bokeh', goodscript)
 
-            #Add the htmldiv to htmlout
+            # Add the htmldiv to htmlout
             requested_width = self.width.value
             requested_height = self.height.value
 
@@ -312,15 +303,14 @@ class figure(beampy_module):
             self.content_width = requested_width
             self.content_height = requested_height
 
-            #Add the script to scriptout
-            print(goodscript)
+            # Add the script to scriptout
             self.jsout = goodscript
 
-        #For the other format
+        # For the other format
         if self.ext in ('png', 'jpeg', 'gif'):
-            #Open image with PIL to compute size
+            # Open image with PIL to compute size
             tmp_img = Image.open(self.content)
-            _,_,tmpwidth,tmpheight = tmp_img.getbbox()
+            _, _, tmpwidth, tmpheight = tmp_img.getbbox()
 
             # Scale the figure according to the given width
             requested_width = self.width.value
@@ -328,13 +318,13 @@ class figure(beampy_module):
 
             if requested_width not in [None, 'scale'] and requested_height in [None, 'scale']:
                 # SCALE OK need to keep the original viewBox !!!
-                scale = requested_width/float(tmpwidth)
+                scale = requested_width / float(tmpwidth)
                 figure_height = float(tmpheight) * scale
                 figure_width = requested_width
 
             # Scale the figure according to the given height
             if requested_height not in [None, 'scale'] and requested_width in [None, 'scale']:
-                scale = requested_height/float(tmpheight)
+                scale = requested_height / float(tmpheight)
                 figure_height = requested_height
                 figure_width = float(tmpwidth) * scale
 
@@ -344,7 +334,7 @@ class figure(beampy_module):
                 figure_width = requested_width
 
             if self.resize_raster:
-                #Rescale figure to the good size (to improve size and display speed)
+                # Rescale figure to the good size (to improve size and display speed)
                 if self.ext == 'gif':
                     print('Gif are not resized, the original size is taken!')
                     with open(self.content, "rb") as f:

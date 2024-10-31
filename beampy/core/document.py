@@ -263,63 +263,6 @@ class document():
         return output % (private+'\n\n'+other)
 
     
-def section(title):
-    """
-    Function to add a section in the TOC.
-
-    Parameters
-    ----------
-
-    title : str,
-        The title of the section.
-    """
-
-    islide = 0
-    if 'slide' in document._global_counter:
-        islide = document._global_counter['slide'] + 1
-        
-    document._TOC.append({'title': title, 'level': 0,
-                          'slide': islide, 'id':hash(time())})
-
-
-def subsection(title):
-    """
-    Function to add a subsection in the TOC.
-
-    Parameters
-    ----------
-
-    title : str,
-        The title of the subsection.
-    """
-    
-    islide = 0
-    if 'slide' in document._global_counter:
-        islide = document._global_counter['slide'] + 1
-        
-    document._TOC.append({'title': title, 'level': 1,
-                          'slide': islide, 'id':hash(time())})
-    
-def subsubsection(title):
-    """
-    Function to add a subsubsection in the TOC.
-
-    Parameters
-    ----------
-
-    title : str,
-        The title of the subsubsection.
-    """
-
-    islide = 0
-    if 'slide' in document._global_counter:
-        islide = document._global_counter['slide'] + 1
-        
-    document._TOC.append({'title': title, 'level': 2,
-                          'slide': islide, 'id':hash(time())})
-
-    
-
 def load_ipython_extension(ip):
     """
     Add and event callback to ipython 

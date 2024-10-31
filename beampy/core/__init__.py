@@ -9,6 +9,7 @@ from .module import beampy_module
 from .geometry import (Length, Position, center, 
                        right, bottom, top, DEFAULT_X, 
                        DEFAULT_Y)
+from .toc import section, subsection, subsubsection
 
 __all__ = [
     'Cache',
@@ -26,5 +27,8 @@ __all__ = [
     'top',
     'bottom',
     'DEFAULT_X',
-    'DEFAULT_Y'
+    'DEFAULT_Y',
+    'section',
+    'subsection',
+    'subsubsection'
 ]

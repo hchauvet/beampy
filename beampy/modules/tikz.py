@@ -6,11 +6,11 @@ Created on Sun Oct 25 19:05:18 2015
 
 Class to manage tikz image for beampy
 """
-from beampy.core.document import document
+from beampy.core.store import Store
 from beampy.core.functions import (gcs,  latex2svg)
 from beampy.core.module import beampy_module
-from bs4 import BeautifulSoup
-
+from bs4 import BeautifulSoup, SoupStrainer
+from beampy.core._svgfunctions import get_viewbox, make_unique_glyphs
 
 class tikz(beampy_module):
     r"""
@@ -59,108 +59,144 @@ class tikz(beampy_module):
 
     """
 
-    def __init__(self, tikzcmd, **kwargs):
-        self.type = 'svg'
-        self.content = tikzcmd
-        self.check_args_from_theme(kwargs)
+    def __init__(self, tikzcmd, x=None, y=None, width=None, height=None, margin=None, 
+                 tikz_header=None, tex_packages=None, latex_pre_tikzpicture=None, figure_options=None,
+                 figure_anchor=None, opacity=None, rotate=None, *args, **kwargs):
+
+
+        # Register the module 
+        super().__init__(x, y, width, height, margin, 'svg', **kwargs)
+
+        # Set the argument as attributes of the module
+        self.set(opacity=opacity, rotate=rotate, tikz_header=tikz_header, 
+                tex_packages=tex_packages, latex_pre_tikzpicture=latex_pre_tikzpicture,
+                figure_options=figure_options, figure_anchor=figure_anchor, 
+                tikzcmd=tikzcmd)
+
+        # Set the list of argument to exclude from theme default values
+        self.theme_exclude_args = ['tikzcmd']
+        
+        # Update the signature of the __init__ call
+        self.update_signature()
+
+        # Load default from theme
+        self.apply_theme()
 
         # Special args for cache id (when do we need to re-run latex render)
-        self.args_for_cache_id = ['figure_options', 'tex_packages', 'tikz_header', 'latex_pre_tikzpicture']
+        self.args_for_cache_id = [self.figure_options, self.tex_packages, 
+                                  self.tikz_header, self.latex_pre_tikzpicture]
 
-        self.register()
+        self.add_content(tikzcmd, 'svg')
 
     def render(self):
         """
             Latex -> dvi -> svg for tikz image
         """
 
-        tikzcommands = self.content
-        #args = ct['args']
 
+        #latex2svg 
+        svgout = latex2svg(self.latex)
+
+        print(self.latex)
+
+        if svgout == '':
+            print('Beampy input:')
+            print(self.latex)
+            raise Exception('Latex Compilation Error, check the input')
+
+        #Parse the svg
+        only_svg = SoupStrainer('svg')
+        soup = BeautifulSoup(svgout, 'lxml-xml', parse_only=only_svg)
+
+        #Find the width and height
+        xinit, yinit, tikz_width, tikz_height = get_viewbox(soup)
+
+
+        # update the translation and scale
         tex_pt_to_px = 96/72.27
+        self.scale = tex_pt_to_px
+        # Default is args['figure_anchor'] == top_left
+        dx = -xinit
+        dy = -yinit
+        self.translate = [dx, dy]
 
-        #replace '\slidewidth'
+        # Update the width and the height of the latex element
+        self.width = tikz_width * tex_pt_to_px
+        self.height = tikz_height * tex_pt_to_px
 
-        tiktikzcommands = tikzcommands.replace( r'\slidewidth','%ipt'%(0.75*document._slides[gcs()].curwidth))
+        # TODO: translate that to the new system of Beampy 1.0
+        """
+        if 'bottom' in self.figure_anchor:
+            self.positionner.y['anchor'] = 'bottom'
 
-        #Include extrac packages for tex
-        if getattr(self, 'tex_packages', False):
-            extra_tex_packages = '\n'.join(['\\usepackage{%s}'%pkg for pkg in self.tex_packages])
+        if 'right' in self.figure_anchor:
+            self.positionner.x['anchor'] = 'right'
+        """
+
+        soup = make_unique_glyphs(soup)
+
+        # Add the svg to the module content
+        self.svgdef = soup.find('g', id='page1').renderContents().decode('utf8', errors='replace')
+        self.content_width = tikz_width * tex_pt_to_px
+        self.content_height = tikz_height * tex_pt_to_px
+
+
+    @property
+    def latex(self):
+        """
+        Format the latex string from the input tickzcmd
+        """
+
+        # Add the latex preamble (see method below)
+        latex = [self.preamble]
+
+        if self.latex_pre_tikzpicture is None:
+            pre = ''
+        else:
+            pre = self.latex_pre_tikzpicture
+
+        latex += [r'\begin{document}',
+                 pre]
+
+        # Enclose Tikzfigure options in []
+        if self.figure_options is not None:
+            tikzoptions = f'[{self.figure_options}]'
+
+        latex += [r'\begin{tikzpicture}'+tikzoptions]
+        # replace '\slidewidth'
+        tikzcmd = self.tikzcmd.replace(r'\slidewidth',
+                                               '%ipt' % (0.75*Store.current_width()))
+
+        latex += [tikzcmd,
+                  r'\end{tikzpicture}'
+                  r'\end{document}']
+
+        return '\n'.join(latex)
+
+
+    # TODO: should be improved for the loading of packages like in the text module
+    @property
+    def preamble(self):
+        """
+        Create the latex preamble with packages loading
+        """
+
+        # Include extra packages for tex
+        if self.tex_packages is not None:
+            extra_tex_packages = '\n'.join([rf'\usepackage{pkg}' for pkg in self.tex_packages])
         else:
             extra_tex_packages = ''
 
         #Include extra tikz headers
-        if getattr(self, 'tikz_header', False):
-            extra_tex_packages += '\n%s'%(self.tikz_header)
+        if self.tikz_header is not None :
+            extra_tex_packages += f'\n{self.tikz_header}'
 
-        #Tikzfigure options in []
-        if getattr(self,'figure_options', False):
-            tikz_fig_opts = '['+self.figure_options+']'
-        else:
-            tikz_fig_opts = ''
+        pre = [r'\documentclass[tikz,svgnames]{standalone}',
+               r"\usepackage[utf8x]{inputenc}",
+               extra_tex_packages,
+               ]
 
-        #Do we have some latex command to include between begin{document} and \begin{tikzpicture}
-        if getattr(self, 'latex_pre_tikzpicture', False):
-            pre_latex = self.latex_pre_tikzpicture
-        else:
-            pre_latex = ''
-            
-        # Render to a dvi file
-        pretex = """
-        \\documentclass[tikz,svgnames]{standalone}
-        \\usepackage[utf8x]{inputenc}
+        pre = '\n'.join(pre)
 
-        %s
+        return pre
 
-        \\begin{document}
-        %s
-            \\begin{tikzpicture}%s
-            %s
-            \\end{tikzpicture}
-        \\end{document}
-        """%(extra_tex_packages, pre_latex,
-             tikz_fig_opts, tikzcommands)
-
-        #latex2svg 
-        svgout = latex2svg(pretex, write_tmpsvg=False)
-
-        if svgout != '':
-
-            #Parse the svg
-            soup = BeautifulSoup(svgout, 'xml')
-
-            #Find the width and height
-            svgsoup = soup.find('svg')
-            g = soup.find('g')
-
-            xinit, yinit, tikz_width, tikz_height = svgsoup.get('viewBox').split()
-            tikz_width = float(tikz_width) * tex_pt_to_px
-            tikz_height = float(tikz_height) * tex_pt_to_px
-
-            # print(tikz_width, tikz_height)
-
-            # Default is args['figure_anchor'] == top_left
-            dx = -float(xinit)
-            dy = -float(yinit)
-
-            # print(self.positionner.x, self.positionner.y)
-
-            if 'bottom' in self.figure_anchor:
-                self.positionner.y['anchor'] = 'bottom'
-
-            if 'right' in self.figure_anchor:
-                self.positionner.x['anchor'] = 'right'
-
-            newmatrix = 'scale(%0.3f) translate(%0.1f,%0.1f)'%(tex_pt_to_px, dx, dy)
-            g['transform'] = newmatrix
-
-            output = str(svgsoup.renderContents())
-
-        else:
-            output = ''
-            tikz_height = 0
-            tikz_width = 0
-
-        self.update_size(tikz_width, tikz_height)
-        self.svgout = output
-        self.rendered = True

@@ -34,7 +34,6 @@ class group(beampy_module):
         self.init_width = width
         self.init_height = height
 
-
         # Init this as a module
         super().__init__(x, y, width, height, margin, 'group', **kwargs)
         # Update the default arguments
@@ -62,12 +61,14 @@ class group(beampy_module):
         Store.set_group(self)
 
         self.modules = modules
-
+        self.modules_order = modules
         # Store modules that need to be "automatically placed" inside the group
         self.id_modules_auto_x = []
         self.id_modules_auto_y = []
+        
         if self.modules is None:
             self.modules = []
+            self.modules_order = []
 
         if len(self.modules) > 0:
             self.__exit__()
@@ -81,6 +82,7 @@ class group(beampy_module):
         """Add the module to the group
         """
         self.modules += [bp_module]
+        self.modules_order += [bp_module]
 
     def render(self):
         """
@@ -252,8 +254,8 @@ class group(beampy_module):
                         layer_divs += [gphtml]
 
         divout = []
-        if len(layer_divs)>0:
-            divout = [f'<div id="group"',
+        if len(layer_divs) > 0:
+            divout = ['<div id="group"',
                       'style="position:absolute;',
                       f'top:{self._final_y}px;',
                       f'left:{self._final_x}px;',
@@ -348,6 +350,19 @@ class group(beampy_module):
         return max((m._final_y for m in modules))
 
     def __enter__(self):
+
+        # Set the curwidth to the width of the group if it set to a numerial value
+        curslide = Store.get_current_slide()
+        if curslide is not None:
+            self._old_curslide_width = curslide.curwidth
+            self._old_curslide_height = curslide.curheight
+            
+            if self.width.is_defined:
+                curslide.curwidth = self.width.value
+
+            if self.height.is_defined:
+                curslide.curheight = self.height.value
+
         return self
 
     def __exit__(self, otype, ovalue, otraceback):
@@ -366,6 +381,12 @@ class group(beampy_module):
             Store.set_group(self.parent)
         else:
             Store.set_group(None)
+
+        # Restore curwidth and curheight
+        curslide = Store.get_current_slide()
+        if curslide is not None:
+            curslide.curwidth = self._old_curslide_width
+            curslide.curheight = self._old_curslide_height
 
     def check_modules_layers(self):
         """
@@ -427,6 +448,27 @@ class group(beampy_module):
         # Update the group layer to list of uniq and sorted module layers
         new_group_layers = sorted(set(all_layers))
         self.add_layers(new_group_layers)
+
+    def change_module_position(self, current_pos: int, destination_pos: int):
+        '''
+        Move the module in the list of modules of the slide. This also update
+        the id_modules_auto_x, and id_modules_auto_y lists
+
+        Parameters:
+
+        - current_pos: int,
+            The position of the module to be moved
+
+        - destination_pos: int,
+            The position to move the module to
+        '''
+
+        # remove the module
+        cur_module = self.modules_order.pop(current_pos)
+        # add it to it's new position
+        self.modules_order.insert(destination_pos, cur_module)
+
+
 
 
 class group_old(beampy_module):

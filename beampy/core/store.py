@@ -7,12 +7,14 @@ variable conservation in python
 import logging
 import os
 import sys
+from time import time
 from pathlib import Path
 from distutils.spawn import find_executable
 from beampy.statics.external_app_links import __APPS__
 
 from .._version import __version__
 _log = logging.getLogger(__name__)
+
 
 class StoreMetaclass(type):
     """
@@ -131,7 +133,6 @@ class Store(metaclass=StoreMetaclass):
 
         return execcmd
 
-
     @classmethod
     def __repr__(cls):
         return '%s' % str(cls._slides)
@@ -150,7 +151,7 @@ class Store(metaclass=StoreMetaclass):
 
         cls._slides[newslide.id] = newslide
 
-        #update the current slide
+        # update the current slide
         cls._current_slide = newslide.id
 
     @classmethod
@@ -184,6 +185,14 @@ class Store(metaclass=StoreMetaclass):
         """
         cls._current_slide = None
 
+    @classmethod
+    def set_current_slide_id(cls, new_id: str): 
+        """
+        Set the current_slide value to new_id
+        """
+        if new_id in cls._slides:
+            cls._current_slide = new_id
+            
     @classmethod
     def get_current_slide_pos(cls):
         """
@@ -421,6 +430,30 @@ class Store(metaclass=StoreMetaclass):
         return Store.get_current_slide().curwidth
 
     @classmethod
+    def add_toc(cls, title: str, level: int, slide: int = None):
+        """
+        Add an entry to table of content for a given slide
+        
+        Parameters:
+        -----------
+        - title, str:
+            The name of the section, subsection, subsubsection 
+        - level, int:
+            The level of this toc entry (0: section, 1: subsection, 2: subsubsection)
+        - slide, int (or None):
+            The slide number on which to register this toc entry (if None, the default, 
+            the current slide is used).
+        """
+        
+        if slide is None: 
+            slide = len(Store) 
+            
+        Store._TOC.append({'title': title, 
+                           'level': level,
+                           'slide': slide, 
+                           'id': hash(time())})
+                           
+    @classmethod
     def clear_all(cls):
         """
         Clear all data of the Store
@@ -497,6 +530,6 @@ def get_previous_module_id(content_id, slide_id=None):
     module_position = get_module_position(content_id, slide_id)
 
     try:
-        return Store._slides[slide_id].content_keys[module_position-1]
+        return Store._slides[slide_id].content_keys[module_position - 1]
     except IndexError:
         print('No previous module ! Module %s is the first one in slide %s' % (str(content_id), str(slide_id)))

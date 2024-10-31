@@ -9,7 +9,10 @@ from .title import title
 from .maketitle import maketitle
 from .box import box
 from .circle import circle
-from .line import line, hline, vline
+from .line import line, hline, vline, grid
+from .code import code
+from .toc import tableofcontents
+from .tikz import tikz
 
 __all__ = [
     'text',
@@ -24,5 +27,9 @@ __all__ = [
     'circle',
     'line',
     'hline',
-    'vline'
+    'vline',
+    'grid',
+    'code',
+    'tableofcontents',
+    'tikz'
 ]

@@ -54,18 +54,18 @@ def save(output_file=None, format=None):
 
     document = Store.get_layout()
     _log.debug('Document at the begining of save method')
-    #_log.debug(document.print_variables())
+    # _log.debug(document.print_variables())
 
     if document._quiet:
         sys.stdout = open(os.devnull, 'w')
 
     texp = time.time()
     bname = os.path.basename(output_file)
-    bdir = output_file.replace(bname,'')
+    bdir = output_file.replace(bname, '')
 
-    #if document._rendered:
-    #    document._rendered = False
-    #    reset_module_rendered_flag()
+    # if document._rendered:
+    #     document._rendered = False
+    #     reset_module_rendered_flag()
 
     file_ext = os.path.splitext(output_file)[-1]
 
@@ -77,7 +77,7 @@ def save(output_file=None, format=None):
     elif 'svg' in file_ext or format == "svg":
         document._output_format = 'svg'
         # TODO: save_layout()
-        output = svg_export(bdir+'/tmp')
+        output = svg_export(bdir + '/tmp')
         output_file = None
 
     elif 'pdf' in file_ext or format == 'pdf':
@@ -89,15 +89,7 @@ def save(output_file=None, format=None):
 
     if output_file is not None:
         with open(output_file, 'w') as f:
-            # old py2 .encode('utf8')
-           if py3:
-               # Python 3 way to write output
-               f.write(output)
-           else:
-               print('Encode output as utf-8, for python2 compatibility')
-               f.write(output.encode('utf8', 'replace'))
-
-               
+            f.write(output)
                
     # write cache file
     if Store.cache() is not None:
@@ -211,11 +203,11 @@ def html5_export():
         css = Template(f.read())
 
     # Read jquery
-    with open(Store._beampy_dir.joinpath('statics', 'jquery.js'),'r') as f:
+    with open(Store._beampy_dir.joinpath('statics', 'jquery.js'), 'r') as f:
         jquery = f.read()
 
     # read html header
-    with open(Store._beampy_dir.joinpath('statics','header_V2.html'),'r') as f:
+    with open(Store._beampy_dir.joinpath('statics', 'header_V2.html'), 'r') as f:
         html_header = Template(f.read())
 
     # read html footer
@@ -229,15 +221,21 @@ def html5_export():
     # Fill the template
     document = Store.get_layout()
     htmltheme = document._theme['document']['html']
-    css = css.substitute(width = document._width,
-                        height = document._height,
-                        background_color = htmltheme['background_color'])
+    css = css.substitute(width=document._width,
+                         height=document._height,
+                         background_color=htmltheme['background_color'])
 
     # Add jquery and css to html header
-    output = html_header.substitute(jquery = jquery,
-                                    css = css)
+    output = html_header.substitute(jquery=jquery,
+                                    css=css)
 
-    # Loop over slides in the document
+    # Loop over slides in the document to render them
+    for islide in range(len(Store)):
+        tnow = time.time()
+        slide = Store.get_slide("slide_%i" % (islide + 1))
+        slide.render()
+        print("Rendered in %0.3f seconds"%(time.time()-tnow))
+        
     # If we directly want to charge the content in pure html
     tmpout = {}
     tmpscript = {}
@@ -249,7 +247,7 @@ def html5_export():
                     '</defs></svg>')
     glyphs_store = glyphs_store.format(glyphs=''.join([Store.get_glyph(g)['svg'] for g in Store._glyphs]))
 
-    #global_store = glyphs_store + f'<svg width="{document._width}px" height="{document._height}px" style="display: none;"><defs>'
+    # global_store = glyphs_store + f'<svg width="{document._width}px" height="{document._height}px" style="display: none;"><defs>'
     # Global store is defined per slide (for webkit rendering as it resize all svg <defs>)
     # The display should be turn to block to correctly render clipping of svg etc...
     global_store = glyphs_store + f'<svg id="svgdef_store" style="display: none;"><defs>'
@@ -260,9 +258,6 @@ def html5_export():
         slide_id = "slide_%i" % (islide)
         tmpout[slide_id] = {}
         slide = Store.get_slide("slide_%i" % (islide+1))
-
-        # Render the slide
-        slide.render()
 
         # Add a small peace of svg that will be used to get the data from the global store
         tmpout[slide_id]['svg'] = [] # Init the store for the differents layers
@@ -318,9 +313,9 @@ def html5_export():
                 # OLD .decode('utf-8', errors='replace') after join for py2
                 tmp = ''.join(headers)
                 global_store += "<svg>%s</svg>"%(tmp)
-
-        if slide.scriptout is not None:
-            tmpscript['slide_%i'%islide] = ''.join(slide.scriptout)
+        
+        if slide.layers_content['all']['js'] != '':
+            tmpscript['slide_%i'%islide] = slide.layers_content['all']['js']
 
         print("Done in %0.3f seconds"%(time.time()-tnow))
 
@@ -338,15 +333,15 @@ def html5_export():
     # Add html_modules to output
     output += html_modules
     # Create store divs for each slides
-    output += '<script> slides = eval( ( %s ) );</script>'%jsonfile.read()
+    output += '<script> slides = eval( ( %s ) );</script>\n'%jsonfile.read()
 
     # Javascript output
     # format: scripts_slide[slide_i]['function_name'] = function() { ... }
     if tmpscript != {}:
         bokeh_required = False
-        output += '\n <script> scripts_slide = {}; //dict with scrip function for slides \n'
+        output += '<script> scripts_slide = {}; //dict with scrip function for slides\n'
         for slide in tmpscript:
-            output += '\nscripts_slide["%s"] = {};\n scripts_slide["%s"]%s; \n'%(slide, slide, tmpscript[slide])
+            output += 'scripts_slide["%s"] = {};\n scripts_slide["%s"]%s; \n'%(slide, slide, tmpscript[slide])
             if 'bokeh' in tmpscript[slide].lower():
                 bokeh_required = True
                 
@@ -361,7 +356,7 @@ def html5_export():
 
     return output
 
-
+     
 def format_beampy_js(beampyjs: dict) -> str:
     """ 
     Format the javascripts defined in beampy slide to
@@ -386,7 +381,11 @@ def format_beampy_js(beampyjs: dict) -> str:
         beampyjs = {"slide_0": "alert(1)", "slide_1": "alert('cool from js')"}
     """
 
-    print('TODO!!!')
+    # Create the js dictionnary
+    slide_scripts = 'slide_scripts = {};\n'
+    
+    for slide in beampyjs:
+        slide_scripts += f'slide_scripts[{slide}]='
 
 
 def check_content_type_change(slide, nothtml=True):
@@ -488,7 +487,6 @@ def display_matplotlib(slide_id, show=False):
         pyplot.show()
 
 
-
 def get_bokeh_includes():
     """
     Function to get bokeh dependencies (style and javascript) from their CDN
@@ -505,16 +503,16 @@ def get_bokeh_includes():
     for cssurl in CDN.css_files:
         cssname = cssurl[cssurl.rfind("/") + 1:]
         # Test if the css is stored in cache
-        if document._cache is not None and document._cache.is_file_cached(cssname):
-            csst = document._cache.get_cached_file(cssname)
+        if Store._cache is not None and Store._cache.is_file_cached(cssname):
+            csst = Store._cache.get_cached_file(cssname)
             css_out += csst.decode('utf8', errors='replace') + '\n'
         else:
             try:
                 print('Download %s' % cssurl)
                 response = urlopen(cssurl, timeout=5)
                 csst = response.read()
-                if document._cache is not None:
-                    document._cache.add_file(cssname, csst)
+                if Store._cache is not None:
+                    Store._cache.add_file(cssname, csst)
                 # Don't forget to add a newline !
                 css_out += csst.decode('utf8', errors='replace') + '\n'
 
@@ -526,16 +524,16 @@ def get_bokeh_includes():
     js_out = '<script>'
     for jsurl in CDN.js_files:
         jsname = jsurl[jsurl.rfind("/") + 1:]
-        if document._cache is not None and document._cache.is_file_cached(jsname):
-            jst = document._cache.get_cached_file(jsname)
+        if Store._cache is not None and Store._cache.is_file_cached(jsname):
+            jst = Store._cache.get_cached_file(jsname)
             js_out += jst.decode('utf8', errors='replace') + '\n'
         else:
             try:
                 print('Download %s' % jsurl)
                 response = urlopen(jsurl, timeout=5)
                 jst = response.read()
-                if document._cache is not None:
-                    document._cache.add_file(jsname, jst)
+                if Store._cache is not None:
+                    Store._cache.add_file(jsname, jst)
                 js_out += jst.decode('utf8', errors='replace') + '\n'
             except URLError as e:
                 print('Error in download: %s' % e)
@@ -545,18 +543,16 @@ def get_bokeh_includes():
     return css_out, js_out
 
 
-
 def svgtopdf(filename: str, dpi=300):
     """
     Convert a file from svg to pdf using inkscape
     """
 
     # External tools cmd
-    document = Store.get_layout()
     inkscapecmd = Store.get_exec('inkscape')
 
-    svgcmd = inkscapecmd+(f" --export-filename='{filename}.pdf'"
-                          f" --export-dpi={dpi} {filename}.svg")
+    svgcmd = inkscapecmd + (f" --export-filename='{filename}.pdf'"
+                            f" --export-dpi={dpi} {filename}.svg")
     
     # TODO: use subprocess.Popen for finer stdout and manage error codes
     res = os.popen(svgcmd)

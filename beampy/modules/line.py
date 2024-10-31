@@ -3,6 +3,8 @@
 import math
 from beampy.core.geometry import Length
 from beampy.core.module import beampy_module
+from beampy.core.group import group
+from beampy.core.store import Store
 
 class line(beampy_module):
     """
@@ -98,7 +100,7 @@ class line(beampy_module):
         if (x2 == 0):
             angle = 0
         else:
-            angle = math.atan(y2/x2)
+            angle = math.atan(y2 / x2)
 
         # Compute the full width and height taking into account angle and linewidth
         a = math.sqrt(x2**2 + y2**2)
@@ -107,8 +109,8 @@ class line(beampy_module):
         self.height = round(abs(b * math.cos(angle)) + abs(a * math.sin(angle)))
 
         # Need to do some offset du to the linewidth
-        dx1 = round((b*math.sin(angle))/2)
-        dy1 = round((b*math.cos(angle))/2)
+        dx1 = round((b * math.sin(angle)) / 2)
+        dy1 = round((b * math.cos(angle)) / 2)
 
         # Du to the signe of x2 and y2:
         if x2 < 0:
@@ -179,3 +181,39 @@ def vline(x, **kwargs):
     """
 
     return line(x=x, y=0, y2='100%', x2=0, **kwargs)
+
+
+def grid(dx, dy, **kwargs):
+    """
+    Create a grid with a given spacing.
+
+    Parameters
+    ----------
+
+    Accept all arguments of :py:mod:`beampy.line`
+
+    See Also
+    --------
+
+    :py:mod:`beampy.line`
+
+    """
+
+    assert dx > 0
+    assert dy > 0
+
+    cur_slide = Store.get_current_slide()
+    with group(x=0, y=0, width=cur_slide.curwidth, height=cur_slide.curheight) as g:
+        # create horizontal line
+        cur_x = 0
+        while (cur_x <= cur_slide.curheight):
+            hline('%spx' % cur_x, **kwargs)
+            cur_x += dx
+
+        cur_y = 0
+        while (cur_y <= cur_slide.curwidth):
+            vline('%spx' % cur_y, **kwargs)
+            cur_y += dy
+
+    return g
+

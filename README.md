@@ -19,6 +19,9 @@
 - [ ] Re implement exports
 - [ ] Add cache for external tools location
 
+### Incompatibility with older beampy:
+- Now module.center return a tuple with (x_center, y_center). They should be changed to module.x_center or module.y_center
+
 ### Install new instructions
 **need xxhash from pip and cm-super from apt**
 

@@ -4,7 +4,7 @@ Created on Sun Oct 25 19:05:18 2015
 
 @author: hugo
 """
-
+from beampy.core.store import Store
 from beampy.core.document import document
 from beampy.core.module import beampy_module
 from beampy.modules.figure import figure
@@ -17,7 +17,7 @@ try:
     from pygments.lexers import get_lexer_by_name, guess_lexer
     from pygments.formatters import SvgFormatter
     is_pigment = True
-except:
+except Exception:
     is_pigment = False
 
 
@@ -57,50 +57,49 @@ class code(beampy_module):
 
     """
 
-    def __init__(self, codetext, x='center', y='auto', width=None, language=None, size="14px"):
-        #Transform the code to svg using pigment and then use the classic render for figure
-
-        self.type = 'svg'
-        self.content = dedent(codetext)
-
-        self.x = x
-        self.y = y
+    def __init__(self, codetext, x=None, y=None, width=None, height=None, margin=None,
+                 language=None, font_size=None, code_style=None, *args, **knwargs):
+        
+        # dedent code
+        codetext = dedent(codetext)
 
         if width is None:
-            self.width = document._width
-        else:
-            self.width = width
-
-        self.args = {"language": language, 'font_size': size }
-        self.language = language
-        self.font_size = size
-
-        #TODO: Move this function to pre-render to be managed by cache
-        #and not run at each beampy run
-        # self.code2svg()
-
+            width = Store.current_width()
+        
+        super().__init__(x, y, width, height, margin, 'svg', **knwargs)
+        
+        # Update the signature
+        self.update_signature()
+        
+        self.set(content=codetext, language=language, 
+                 font_size=font_size, code_style=code_style)
+        
+        self.apply_theme(exclude=['language'])
+        
         if is_pigment:
-            self.register()
+            # This command trigger the render
+            self.add_content(codetext, 'svg')
         else:
             print("Python pygment is not installed, I can't translate code into svg...")
-
+            
     def code2svg(self):
         """
             function to render code to svg
         """
 
-        inkscapecmd = document._external_cmd['inkscape']
+        inkscapecmd = Store.get_exec('inkscape')
         codein = self.content
 
-
-        #Try to infer the lexer
+        # Try to infer the lexer
         if self.language is None:
             lexer = guess_lexer(codein)
         else:
             lexer = get_lexer_by_name(self.language, stripall=True)
 
-        #Convert code to svgfile
-        svgcode = highlight(codein, lexer, SvgFormatter(fontsize=self.font_size, style='tango'))
+        # Convert code to svgfile
+        svgcode = highlight(codein, lexer, 
+                            SvgFormatter(fontsize=self.font_size, 
+                                         style=self.code_style))
 
         # Use tempfile.NamedTemporaryFile, that automaticly delete the file on close by default
         with tempfile.NamedTemporaryFile(mode='w', suffix='.svg', prefix='beampytmp_CODE') as f:
@@ -110,26 +109,27 @@ class code(beampy_module):
             # Need to flush the file to write it to disk
             f.file.flush()
             
-            #Convert svgfile with inkscape to transform text to path
-            cmd = inkscapecmd + ' -z -T -l=%s %s'%(tmpname+'_good.svg', f.name)
+            # Convert svgfile with inkscape to transform text to path
+            cmd = inkscapecmd + f' --export-text-to-path --export-filename={tmpname + "_good.svg"} {f.name}'
             
             req = os.popen(cmd)
             req.close()
 
-        f = figure(tmpname+'_good.svg', width=self.width.value, height=self.height.value)
-        f.positionner = self.positionner
-        f.render()
-        self.svgout = f.svgout
-        self.positionner = f.positionner
-        self.width = f.width
-        self.height = f.height
+        f = figure(tmpname + '_good.svg', 
+                   x=0, y=0,
+                   width=None, 
+                   height=None,
+                   add_to_slide=False,
+                   add_to_group=False)
 
-        self.update_size(self.width, self.height)
-        f.delete()
-
-        #remove files
-        os.remove(tmpname+'_good.svg')
+        self.svgdef = f.svgdef
+        self.content_width = f.content_width
+        self.content_height = f.content_height
+        self.width = f.content_width
+        self.height = f.content_height
         
+        # remove files
+        os.remove(tmpname + '_good.svg')
         
     def render(self):
         self.code2svg()

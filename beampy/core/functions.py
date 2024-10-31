@@ -386,20 +386,22 @@ def gcs():
 
     return Store.get_current_slide_id()
 
+
 def set_curentslide(slide_id):
     """
     Set the curent slide to the given slide_id
     """
-    raise NotImplemented
-    # Store.set_curentslide(slide_id)
+    
+    Store.set_current_slide_id(slide_id)
+
 
 def set_lastslide():
     '''
     Set the curent slide as the last slide added in the presentation
     '''
-    raise NotImplemented
-    # last_slide_id = 'slide_%i' % (document._global_counter['slide'])
-    # document._curentslide = last_slide_id
+    
+    last_slide_id = 'slide_%i' % (len(Store) - 1)
+    Store.set_current_slide_id(last_slide_id)
 
 
 def gce():

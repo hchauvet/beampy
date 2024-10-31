@@ -111,8 +111,8 @@ class Cache():
         ct["type"] = content.type
         ct["name"] = content.name
         ct["content"] = content.content
-        ct["width"] = content.width
-        ct["height"] = content.height
+        ct["width"] = str(content.width)
+        ct["height"] = str(content.height)
         ct["data_id"] = content._data_id
 
         # The data

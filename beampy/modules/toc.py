@@ -1,13 +1,15 @@
 # coding: utf-8
-from beampy.core.document import document
+from beampy.core.store import Store
+from beampy.core.module import beampy_module
 from beampy.core.group import group
 from beampy.core.geometry import center
 from beampy.core.functions import set_curentslide, set_lastslide
 from beampy.modules.text import text
-from beampy.modules.svg import circle, rectangle
+from beampy.modules.circle import circle
+from beampy.modules.rectangle import rectangle
 
 
-class tableofcontents(group):
+class tableofcontents(beampy_module):
     """Create the table of content for your presentation.
     This function print the TOC tree as defined in your presentation by
     the functions: section(), subsection(), subsubsection()
@@ -126,42 +128,53 @@ class tableofcontents(group):
 
     """
     
-    def __init__(self, sections=[], subsection=True,
-                 subsubsection=True, currentsection=False,
-                 currentsubsection=False, hideothersubsection=False,
-                 **kwargs):
+    def __init__(self, sections=[], x=None, y=None, width=None, height=None, margin=None, subsection=None,
+                 subsubsection=None, currentsection=None, currentsubsection=None, 
+                 hideothersubsection=None, section_yoffset=None, subsection_xoffset=None,
+                 subsection_yoffset=None, section_style=None, subsection_style=None,
+                 section_decoration_color=None, section_decoration_size=None, 
+                 section_number_color=None, section_text_color=None, subsection_text_color=None,
+                 subsection_decoration_color=None, subsection_decoration_size=None, 
+                 hidden_opacity=None, *args, **kwargs):
 
-
-        self.check_args_from_theme(kwargs)
-        super(tableofcontents, self).__init__(x=self.x, y=self.y,
-                                              width=self.width,
-                                              height=self.height,
-                                              opengroup=False)
+        # register the module
+        super().__init__(x, y, width, height, margin, 'svg', **kwargs)
         
-        self.show_subsection = subsection
-        self.currentsection = currentsection
-        self.currentsubsection = currentsubsection
-        self.hideothersubsection = hideothersubsection
-        self.sections = sections
+        # set the parameter as attirbutes
+        self.set(sections=sections, subsection=subsection, subsubsection=subsubsection,
+                 currentsection=currentsection, currentsubsection=currentsubsection, hideothersubsection=hideothersubsection,
+                 section_yoffset=section_yoffset, subsection_xoffset=subsection_xoffset, subsection_yoffset=subsection_yoffset,
+                 section_style=section_style, subsection_style=subsection_style, section_decoration_color=section_decoration_color,
+                 section_decoration_size=section_decoration_size, section_number_color=section_number_color, section_text_color=section_text_color,
+                 subsection_text_color=subsection_text_color, subsection_decoration_color=subsection_decoration_color,
+                 subsection_decoration_size=subsection_decoration_size, hidden_opacity=hidden_opacity)
+                 
+        # set attributes to exclude from theme completion
+        self.theme_exclude_args = ['sections']
+        
+        # Update the signature 
+        self.update_signature()
+        
+        # Apply the theme to populate defaults
+        self.apply_theme()
         
         if not isinstance(self.sections, list):
             self.sections = [self.sections]
             
-        if not subsection:
-            self.show_subsubsection = False
+        if not self.subsection:
+            self.subsubsection = False
         else:
-            self.show_subsubsection = subsubsection
-
-        # Store default show options to restaure them in the build_toc_tree
-        self.default_show_subsubsection = self.show_subsubsection
-        self.default_show_subsection = self.show_subsection
-        self.show_section = True
-
+            self.subsubsection = self.subsubsection
+        
+        # This module need to be rendered at after all slides have 
+        # been created to get the complete TOC structure
+        self.delayed_render = True
+        
     def build_toc_tree(self):
 
         set_curentslide(self.slide_id)
-        oldtheme = document._theme['link']
-        document._theme['link']['fill'] = 'black'
+        oldtheme = Store.theme('link')
+        Store._theme['link']['fill'] = 'black'
         
         secyoffset = self.section_yoffset
         xoffset = self.subsection_xoffset
@@ -176,20 +189,19 @@ class tableofcontents(group):
             
         # print('Position in toc %s' % str(vispos))
         opacity = 1
-        text_elements = []
+        cpt_section = 1
+        prev = None
+        section = None
+        self.show_section = True
+        self.show_subsection = self.subsection 
+        self.show_subsubsection = self.subsubsection
         
-        with self:
-            
-            cpt_section = 1
-            prev = None
-            section = None
-                
-            for i, node in enumerate(document._TOC):
-                
-                if node['slide'] <= document._global_counter['slide']:
+        with group(x=self.x, y=self.y, width=self.width, height=self.height) as gt:
+            for i, node in enumerate(Store._TOC):
+                if node['slide'] <= len(Store):
                     slidelink = '#%i-0' % (node['slide'])
                 else:
-                    slidelink = '#%i-0' % (document._global_counter['slide'])
+                    slidelink = '#%i-0' % len(Store)
 
                 if i in vispos:
                     opacity = 1
@@ -214,8 +226,8 @@ class tableofcontents(group):
         
                         if self.hideothersubsection:
                             if i in vispos:
-                                self.show_subsection = self.default_show_subsection
-                                self.show_subsubsection = self.default_show_subsubsection
+                                self.show_subsection = self.subsection
+                                self.show_subsubsection = self.subsubsection
                             else:
                                 self.show_subsection = False
                                 self.show_subsubsection = False
@@ -225,43 +237,38 @@ class tableofcontents(group):
                         if self.section_style in ('round', 'square'):
                             if self.section_style == 'round':
                                 c = circle(r=self.section_decoration_size,
-                                           x=0, y=y, opacity=opacity,
-                                           color=self.section_decoration_color,
-                                           edgecolor=self.section_decoration_color)
+                                        x=0, y=y, opacity=opacity,
+                                        color=self.section_decoration_color,
+                                        edgecolor=self.section_decoration_color)
                             else:
-                                c = rectangle(width=self.section_decoration_size*2,
-                                              height=self.section_decoration_size*2,
-                                              x=0, y=y, opacity=opacity,
-                                              color=self.section_decoration_color,
-                                              edgecolor=self.section_decoration_color)
+                                c = rectangle(width=self.section_decoration_size * 2,
+                                            height=self.section_decoration_size * 2,
+                                            x=0, y=y, opacity=opacity,
+                                            color=self.section_decoration_color,
+                                            edgecolor=self.section_decoration_color)
                         
                             tt = text(r'\textbf{%i}' % cpt_section,
-                                      x=c.center+center(0),
-                                      y=c.center+center(0),
-                                      color=self.section_number_color,
-                                      size=self.section_decoration_size)
-
-                            text_elements += [tt]
+                                    x=center(c.x_center),
+                                    y=center(c.y_center),
+                                    color=self.section_number_color,
+                                    size=self.section_decoration_size)
 
                             deco_x = c.right + 5
-                            deco_y = c.center + center(0)
+                            deco_y = center(c.y_center)
 
                         if self.section_style == 'number':
                             c = text(r'\textbf{%i}' % cpt_section,
-                                     x=0, y=y,
-                                     color=self.section_number_color,
-                                     size=self.section_decoration_size)
-
-                            text_elements += [c]
+                                    x=0, y=y,
+                                    color=self.section_number_color,
+                                    size=self.section_decoration_size)
                             
                             deco_x = c.right + 5
-                            deco_y = c.center + center(0)
+                            deco_y = center(c.y_center)
                             
                         prev = text(r'\href{%s}{%s}' % (slidelink, node['title']),
                                     x=deco_x, y=deco_y,
                                     color=self.section_text_color, opacity=opacity,
-                                    width=document._slides[self.slide_id].curwidth - (self.section_decoration_size*2+5))
-                        text_elements += [prev]
+                                    width=Store.get_slide(self.slide_id).curwidth - (self.section_decoration_size * 2 + 5))
                         
                         section = prev
                         cpt_section += 1
@@ -276,43 +283,39 @@ class tableofcontents(group):
                             x = section.left + x
                             
                         if prev is not None:
-                            y = prev.bottom+yoffset
+                            y = prev.bottom + yoffset
                         else:
                             y = 0
 
                         deco_x = x
                         deco_y = y
                         if self.subsection_style == 'number':
-                            c = text('%i-%i' % (cpt_section-1, cpt_subsection),
-                                     x=x, y=y,
-                                     color=self.subsection_text_color)
-
-                            text_elements += [c]
+                            c = text('%i-%i' % (cpt_section - 1, cpt_subsection),
+                                    x=x, y=y,
+                                    color=self.subsection_text_color)
                             
                             deco_x = c.right + 5
-                            deco_y = c.center + center(0)
+                            deco_y = center(c.y_center)
                             
                         if self.subsection_style in ('round', 'square'):
                             if self.subsection_style == 'round':
                                 c = circle(r=self.subsection_decoration_size,
-                                           x=x, y=y, opacity=opacity,
-                                           color=self.subsection_decoration_color,
-                                           edgecolor=self.subsection_decoration_color)
+                                        x=x, y=y, opacity=opacity,
+                                        color=self.subsection_decoration_color,
+                                        edgecolor=self.subsection_decoration_color)
                             else:
-                                c = rectangle(width=self.subsection_decoration_size*2,
-                                              height=self.subsection_decoration_size*2,
-                                              x=x, y=y, opacity=opacity,
-                                              color=self.subsection_decoration_color,
-                                              edgecolor=self.subsection_decoration_color)
+                                c = rectangle(width=self.subsection_decoration_size * 2,
+                                            height=self.subsection_decoration_size * 2,
+                                            x=x, y=y, opacity=opacity,
+                                            color=self.subsection_decoration_color,
+                                            edgecolor=self.subsection_decoration_color)
                         
                             deco_x = c.right + 5
-                            deco_y = c.center + center(0)
+                            deco_y = center(c.y_center)
                             
                         prev = text(r'\href{%s}{%s}' % (slidelink, node['title']),
                                     x=deco_x, y=deco_y, opacity=opacity,
                                     color=self.subsection_text_color)
-
-                        text_elements += [prev]
                         
                         cpt_subsection += 1
 
@@ -322,24 +325,22 @@ class tableofcontents(group):
                         x = node['level'] * xoffset
                         if section is not None:
                             x = section.left + x
-      
+        
                         if prev is not None:
-                            y = prev.bottom+yoffset
+                            y = prev.bottom + yoffset
                         else:
                             y = 0
 
                         deco_x = x
                         deco_y = y
                         if self.subsection_style == 'number':
-                            c = text('%i-%i-%i' % (cpt_section-1, cpt_subsection-1,
+                            c = text('%i-%i-%i' % (cpt_section - 1, cpt_subsection - 1,
                                                    cpt_subsubsection),
                                      x=x, y=y,
                                      color=self.subsection_text_color)
                             
-                            text_elements += [c]
-                            
                             deco_x = c.right + 5
-                            deco_y = c.center + center(0)
+                            deco_y = center(c.y_center)
 
                         if self.subsection_style in ('round', 'square'):
                             if self.subsection_style == 'round':
@@ -348,58 +349,59 @@ class tableofcontents(group):
                                            color=self.subsection_decoration_color,
                                            edgecolor=self.subsection_decoration_color)
                             else:
-                                c = rectangle(width=self.subsection_decoration_size*2,
-                                              height=self.subsection_decoration_size*2,
+                                c = rectangle(width=self.subsection_decoration_size * 2,
+                                              height=self.subsection_decoration_size * 2,
                                               x=x, y=y, opacity=opacity,
                                               color=self.subsection_decoration_color,
                                               edgecolor=self.subsection_decoration_color)
                         
                             deco_x = c.right + 5
-                            deco_y = c.center + center(0)
+                            deco_y = center(c.y_center)
                         
                         prev = text(r'\href{%s}{%s}' % (slidelink, node['title']),
                                     x=deco_x, y=deco_y, opacity=opacity,
                                     color=self.subsection_text_color)
-
-                        text_elements += [prev]
-                        
+        
                         cpt_subsubsection += 1
 
         set_lastslide()
-        document._theme['link'] = oldtheme
-
-        return text_elements
+        Store._theme['link'] = oldtheme
+        
+        return gt 
         
     def pre_render(self):
 
-        #print('build toc tree')
-        text_elements = self.build_toc_tree()
-        render_texts(text_elements)
+        # print('build toc tree')
+        tree_group = self.build_toc_tree()
+        wg = tree_group.group_width()
+        wh = tree_group.group_height()
+        self.width = wg
+        self.height = wh
         # Need to update visible layers
-        self.propagate_layers()
+        # self.propagate_layers()
         
 
 def get_visibles_indices(slide_id, currentsection=False):
 
-    currenttoc = document._slides[slide_id].TOCposition
-    tocposition = document._TOC.index(currenttoc)
+    currenttoc = Store.get_slide(slide_id).TOCposition
+    tocposition = Store._TOC.index(currenttoc)
     currentlevel = currenttoc['level']
 
     visiblespos = [tocposition]
 
     while currentlevel != 0 and tocposition > 0:
         tocposition -= 1
-        currentlevel = document._TOC[tocposition]['level']
+        currentlevel = Store._TOC[tocposition]['level']
         visiblespos += [tocposition]
 
     # Case where all subsection of a section need to be shown
     if currentsection:
         max_visiblepos = max(visiblespos)
-        maxlevel = document._TOC[max_visiblepos]['level']
+        maxlevel = Store._TOC[max_visiblepos]['level']
 
-        while maxlevel != 0 and max_visiblepos < len(document._TOC)-1:
+        while maxlevel != 0 and max_visiblepos < len(Store._TOC)-1:
             max_visiblepos += 1
-            maxlevel = document._TOC[max_visiblepos]['level']
+            maxlevel = Store._TOC[max_visiblepos]['level']
             if maxlevel != 0:
                 visiblespos += [max_visiblepos]
 

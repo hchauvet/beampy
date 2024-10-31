@@ -16,7 +16,7 @@ from pathlib import Path
 # If the path is given as 'auto' -> then the executable will be automatically
 # with an equivalent of the'which' command.
 
-beampy_path = Path(os.path.dirname(__file__))
+beampy_path = Path(os.path.dirname(__file__)).parent
 __APPS__ = {
     'inkscape': ['inkscape', 'auto', False],
     'latex': ['latex', 'auto', True],
