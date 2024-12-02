@@ -356,6 +356,15 @@ class document():
                         document._external_cmd[progname] = find_avconv
                     else:
                         missing = True
+
+                # pdfjoin has disappeared from texlive-extra-utils (debian) (https://askubuntu.com/questions/1244384/where-is-pdfjoin-ubuntu-18-04-and-later)
+                elif progname == 'pdfjoin' : 
+                    find_pdfjoin = find_executable('pdfjam')
+                    if find_pdfjoin is not None:
+                        document._external_cmd[progname] = find_pdfjoin + " --fitpaper true --rotateoversize true --suffix joined"
+                    else:
+                        missing = True                   
+
                 else:
                     find_app = find_executable(progname)
                     if find_app is not None:
