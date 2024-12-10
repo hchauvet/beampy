@@ -30,6 +30,7 @@ Python libraries
 * **Python Image Library (PIL)**: to minipulate images.
 * **pygments**: [Optional] allows to add code syntax coloration to display code in your presentation.
 * **bokeh**: [Optional] Include `bokeh <https://bokeh.pydata.org/en/latest/>`_ interactive plots in your presentation. **Need bokeh version >= 0.12.6**
+* **bibtexparser**: [Optional] LaTeX bibliography.
 
 Beampy also includes a version of `scour <https://github.com/codedread/scour>`_, an svg optimiser.
 
@@ -43,7 +44,7 @@ Install dependencies using apt-get
 
 .. code-block:: bash
 
-   sudo apt-get install ffmpeg inkscape texlive-extra-utils texlive-latex-extra pdf2svg python-pil python-beautifulsoup
+   sudo install ffmpeg inkscape texlive-extra-utils texlive-latex-extra pdf2svg python3-pil python3-bs4 python3-bibtexparser
 
 From Python pip
 ***************
