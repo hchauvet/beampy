@@ -179,6 +179,10 @@ class text(beampy_module):
             """
 
             for extra_package in self.extra_packages + document._latex_packages :
+
+                pretex += r'\usepackage{' + extra_package + '}\n'
+
+
                 try :
                     if extra_package[:11] == r'\usepackage' :
                         pretex += extra_package
@@ -194,6 +198,7 @@ class text(beampy_module):
                     pretex = pretex[:-1]
                     
                     pretex += r']{' + extra_package[-1] + '}\n'
+
 
             pretex += r'\begin{document}'
             pretex += self.latex_text
