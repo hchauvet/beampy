@@ -525,6 +525,8 @@ def convert_pdf_to_svg(pdf_input_file, temp_directory='local'):
     local_directory, filename_pdf = os.path.split(pdf_input_file)
     filename = os.path.splitext(filename_pdf)[0]
 
+    filename += hashlib.md5( filename.encode('utf8') ).hexdigest()[:10]
+
     if temp_directory == 'local':
         temp_directory = local_directory
     if len(temp_directory) > 0:
