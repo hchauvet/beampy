@@ -2,9 +2,10 @@ import pytest
 from beampy import *
 
 import logging
-# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 test_name = 'test_TOC'
+
 
 @pytest.fixture
 def make_presentation():
