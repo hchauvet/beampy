@@ -214,13 +214,28 @@ class cite(text):
     bibliography class to manage citation from bibtex.
     """
 
-    def __init__(self, reference, **kwargs):
+    def __init__(self, reference, x=None, y=None, width=None, height=None,
+                 margin=None, size=None, font=None, color=None, opacity=None,
+                 rotate=None, usetex=None, va=None, align=None, extra_packages=None,
+                 reference_delimiter=None, brackets=None, *args, **kwargs):
 
-        self.type = 'text'
-        self.check_args_from_theme(kwargs, lenient=True)
-        # self.check_args_from_theme(kwargs)
-        self.load_extra_args('text')
-        self.svgtext = ''  # To store the svg produced by latex
+
+        # Add arguments not defined in the Text object to the cite object
+        # This will add them as attribute of the object and check for
+        # default values if they are set to None
+        # This should be done before the init of the Text module
+        self.set(reference_delimiter=reference_delimiter,
+                    brackets=brackets)
+
+        # Init the text object, textin = None avoid to render the text in latex
+        super().__init__(textin=None, x=x, y=y, width=width, height=height,
+                         margin=margin, size=size, font=font, color=color, opacity=opacity,
+                         usetex=usetex, va=va, align=align, extra_packages=extra_packages,
+                         *args, **kwargs)
+
+        self.apply_theme(lenient=True)
+
+        self.args_for_cache_id += [reference, self.reference_delimiter, self.brackets]
 
         if isinstance(reference, str):
             references = [reference]
@@ -238,25 +253,15 @@ class cite(text):
             else:
                 cite_str += self.brackets[1]
 
-        self.content = cite_str
 
-        self.height = None
-        # Check width
-        if self.width is None:
-            self.width = document._slides[gcs()].curwidth
-
-        # Add special args for cache id
-        # Cite need to be re-rendered from latex if with, color, size,  are changed
-        self.initial_width = self.width
-        self.args_for_cache_id = ['initial_width', 'color', 'size',
-                                  'align', 'opacity']
+        # Update textin to cite_str
+        # (this is needed to render the latex content correctly)
+        self.textin = cite_str
+        # Add the content this will run the render method
+        self.add_content(cite_str, 'svg')
 
 
-        # Initialise the global store on document._content to store letter
-        if 'svg_glyphs' not in document._contents:
-            document._contents['svg_glyphs'] = {}
 
-        self.register()
 
 
 def bibtexparser_to_references(bib_database):

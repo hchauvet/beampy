@@ -234,3 +234,8 @@ THEME['box'] = {
     'title_xoffset': 0,
     'content_margin': 10
 }
+
+THEME['iframe'] = {
+    'margin': 0,
+    'opacity': 1,
+}

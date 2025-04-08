@@ -1,6 +1,6 @@
 # Manually list modules we want to use in beampy
-from .figure import figure 
-from .video import video 
+from .figure import figure
+from .video import video
 from .itemize import itemize
 from .rectangle import rectangle
 from .svg import svg
@@ -13,6 +13,8 @@ from .line import line, hline, vline, grid
 from .code import code
 from .toc import tableofcontents
 from .tikz import tikz
+from .iframe import iframe
+from .biblio import bibliography, cite
 
 __all__ = [
     'text',
@@ -31,5 +33,8 @@ __all__ = [
     'grid',
     'code',
     'tableofcontents',
-    'tikz'
+    'tikz',
+    'iframe',
+    'bibliography',
+    'cite'
 ]

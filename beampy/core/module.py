@@ -50,11 +50,11 @@ class beampy_module():
         obj = super().__new__(cls)
 
         sig = inspect.signature(cls)
-        
+
         # Add arguments passed to the beampy module
         sig_arguments = sig.bind_partial(*args, **kwargs)
         sig_arguments.apply_defaults()
-        
+
         # Add the signature to the beampy_module object
         obj._sig = sig
         obj._sig_arguments = sig_arguments
@@ -64,7 +64,7 @@ class beampy_module():
 
         return obj
 
-    def __init__(self, x, y, width, height, margin, content_type='svg', add_to_slide=True, 
+    def __init__(self, x, y, width, height, margin, content_type='svg', add_to_slide=True,
                  add_to_group=True, **kwargs):
         """Beampy module is the base class for each elements added to slide or group in
         Beampy-slideshow. Modules create a Content (with a given size)
@@ -106,13 +106,13 @@ class beampy_module():
             The type of the content
 
         add_to_slide : bool,
-            If this is set to False the module will not be added to the current slide. 
-            The default value is True. This argument is usefull when you use an other 
+            If this is set to False the module will not be added to the current slide.
+            The default value is True. This argument is usefull when you use an other
             beampy module to build a more complex one for instance.
 
         add_to_group : bool,
-            If this is set to False the module will not be added to the current group (and of course 
-            to the current_slide). The default value is True. This argument is usefull when you use an other 
+            If this is set to False the module will not be added to the current group (and of course
+            to the current_slide). The default value is True. This argument is usefull when you use an other
             beampy module to build a more complex one for instance.
 
         **kwargs, any key=value list:
@@ -124,7 +124,7 @@ class beampy_module():
         -----------
 
         svg_decoration, str (default '')
-            An svg that will be added to the group of the module before 
+            An svg that will be added to the group of the module before
             any svg rendered by the module
 
         """
@@ -182,7 +182,7 @@ class beampy_module():
         self.svgout = ''  # The svg template to produce the final valid svg string
         self.htmlout = ''  # The html template
         self.animout = ''  # Store multiple rasters for animation
-        
+
     def register(self):
         """
         Register the module the current slide or groupe or store
@@ -194,7 +194,8 @@ class beampy_module():
         self.groups_id = []
 
         # Ajout du nom du module
-        self.name = self.get_name()
+        # This is now a property of the module
+        # self.name = self.get_name()
 
         # Add the id of the current slide for the module
         if self.add_to_slide:
@@ -217,11 +218,11 @@ class beampy_module():
                 self.parent = Store.groud()
                 self.id = self.get_index()
             else:
-                # The case outside of a group and outside ouf a slide, so their is no list of modules 
-                # defined to set an id to the module which is the index of the modules list in slide 
+                # The case outside of a group and outside ouf a slide, so their is no list of modules
+                # defined to set an id to the module which is the index of the modules list in slide
                 # or group
                 self.id = None
-                
+
         _log.debug('%s(id=%s) store the slide id: %s' % (self.name, self.id, self.slide_id))
 
         # Add the source of the script that run this module
@@ -298,7 +299,7 @@ class beampy_module():
 
     def update_signature(self, **kwargs):
         """
-        Update the signature of the module, this will allow to redefine arguments name passed to __init__ method and update their values 
+        Update the signature of the module, this will allow to redefine arguments name passed to __init__ method and update their values
         """
         if ('args' in self._sig_arguments.arguments and
             'kwargs' in self._sig_arguments.arguments and
@@ -321,17 +322,17 @@ class beampy_module():
     @theme_exclude_args.setter
     def theme_exclude_args(self, new_args: list):
         """
-        add argument to exclude from default value 
+        add argument to exclude from default value
         check in the theme file.
         """
 
-        assert isinstance(new_args, list), "The given arguments should be a list of string ['my arg1', 'my arg2']"        
+        assert isinstance(new_args, list), "The given arguments should be a list of string ['my arg1', 'my arg2']"
         self._theme_exclude_args += new_args
 
     @property
     def signature(self):
         args = self._sig_arguments
-        
+
         argsout = []
         for k in args.arguments:
             # Remove args useless for caching like x and y
@@ -391,7 +392,7 @@ class beampy_module():
 
         if new_margin is None:
             new_margin = 0
-            
+
         self._margin = Margins(new_margin)
 
     @property
@@ -560,7 +561,7 @@ class beampy_module():
             svg_box = f'<rect x="{self._final_x+self.margin.left}" y="{self._final_y+self.margin.top}" width="{self.width.value}px" height="{self.height.value}px" style="stroke:red; fill:none;"/>'
             # The margin box
             svg_box += f'<rect x="{self._final_x}" y="{self._final_y}" width="{self.total_width.value}px" height="{self.total_height.value}px" style="stroke:green; fill:none;"/>'
-            
+
         return (f'<use x="{self._final_x+self.margin.left}" y="{self._final_y+self.margin.top}" '
                 f'xlink:href="#{self.content_id}" '
                 f'{self.svgopacity} '
@@ -643,13 +644,13 @@ class beampy_module():
 
     def export_svgdefs(self, svgaltdef=False):
         """
-        Export the module svgdefs, check if we export the svgaltdef (designed for inkscape svg export) 
-        of the svgdef (optimised for html display). 
+        Export the module svgdefs, check if we export the svgaltdef (designed for inkscape svg export)
+        of the svgdef (optimised for html display).
         """
 
         if svgaltdef and self.svgaltdef is not None:
             return self.svgaltdef
-    
+
         return self.svgdef
 
     @property
@@ -1120,7 +1121,7 @@ class beampy_module():
         self._final_x, self._final_y variables.
 
         The final position are done according to margin defined in the module (left and top)
-        
+
         The computation of Position and Length will fix the relative length used
         for "%" operations.
 
@@ -1144,11 +1145,11 @@ class beampy_module():
         if self.yorigine == 'bottom':
             yf = self.y - self.total_height.value
 
-        # Add offset 
+        # Add offset
         if xoffset != 0:
             xf = xoffset + xf
         if yoffset != 0:
-            yf = yoffset + yf 
+            yf = yoffset + yf
 
         xfv = xf.value
         yfv = yf.value
@@ -1226,6 +1227,10 @@ class beampy_module():
         # Process the svg definitions
         # self.render_svgdefs()
 
+    @property
+    def name(self):
+        return self.get_name()
+
     def get_name(self):
         # Return the name of the module
         # return str(self.__init__.im_class).split('.')[-1]
@@ -1245,7 +1250,7 @@ class beampy_module():
         Parameters
         ----------
         parent: string optional,
-            The name of the parent beampy_module to also load args, only usefull if you 
+            The name of the parent beampy_module to also load args, only usefull if you
             define your module as a function and not as class.
 
         lenient: boolean optional
@@ -1275,7 +1280,7 @@ class beampy_module():
             default_dict = dict_deep_update(Store.theme(parent), default_dict)
 
         if exclude is None:
-            exclude = self.theme_exclude_args 
+            exclude = self.theme_exclude_args
         else:
             assert isinstance(exclude, list), "exclude argument should be a list"
             exclude = exclude + self.theme_exclude_args
@@ -1463,7 +1468,7 @@ class beampy_module():
             print('Update module options: %s' % str(kwargs))
             # TODO: check kwargs to remove width and height
             # that should not be redefined on call
-            
+
             copy_self.set(**kwargs)
 
         return copy_self
@@ -1590,10 +1595,10 @@ class beampy_module():
         Set the current module to appears above the other_element_id.
         """
         assert isinstance(other_element, beampy_module)
-        
+
         self_pos = self.parent.modules_order.index(self)
         other_pos = self.parent.modules_order.index(other_element)
-        
+
         self.parent.change_module_position(self_pos, other_pos + 1)
 
     def below(self, other_element):
@@ -1604,9 +1609,9 @@ class beampy_module():
 
         self_pos = self.parent.modules_order.index(self)
         other_pos = self.parent.modules_order.index(other_element)
-        
+
         self.parent.change_module_position(self_pos, other_pos)
-        
+
     def first(self):
         """
         Set the current object in the background
@@ -1622,7 +1627,7 @@ class beampy_module():
         """
         Set the current object in the foreground
         """
-    
+
         #  Get the position of this module in the list
         self_pos = self.parent.modules_order.index(self)
 
