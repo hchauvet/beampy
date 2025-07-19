@@ -2,9 +2,11 @@
 #-*- coding:utf-8 -*-
 import pytest
 
-from beampy import *
 import os
+import logging
+from beampy import *
 
+logging.basicConfig(level=logging.DEBUG)
 test_name = 'test_group'
 
 @pytest.fixture
@@ -16,7 +18,7 @@ def make_presentation():
 
 
 
-        with group(width=200, x=0.1, y='center') as g2:
+        with group(width=200, x=0.1, y='center', x='auto') as g2:
             video(videofile, x='center', y='auto')
 
             with group(width = 100, height=50, x=0, background='lightblue') as g5:
@@ -28,7 +30,7 @@ def make_presentation():
 
         e0 = text('toto', x=g2.left + 0, y=g2.top - bottom(0.01))
 
-        with group(width=350, height=500, x=g2.right + 0.1, y=g2.center+center(0)) as g3:
+        with group(width=350, height=500, x=g2.right + 0.1, y=g2.y_center+center(0)) as g3:
             text('tata')
             text('ploplo')
 
@@ -40,7 +42,7 @@ def make_presentation():
         for g in [g2, g3, g4]:
             g.add_border()
 
-        text('youpi', x=g3.center + center(0), y=g3.top - bottom(0.1))
+        text('youpi', x=g3.x_center + center(0), y=g3.top - bottom(0.1))
 
 
     with slide('test group relative position'):

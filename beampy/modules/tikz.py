@@ -14,7 +14,7 @@ from beampy.core._svgfunctions import get_viewbox, make_unique_glyphs
 
 class tikz(beampy_module):
     r"""
-    Add Tikz/pgf graphic to the slide. 
+    Add Tikz/pgf graphic to the slide.
 
     Parameters
     ----------
@@ -59,23 +59,23 @@ class tikz(beampy_module):
 
     """
 
-    def __init__(self, tikzcmd, x=None, y=None, width=None, height=None, margin=None, 
+    def __init__(self, tikzcmd, x=None, y=None, width=None, height=None, margin=None,
                  tikz_header=None, tex_packages=None, latex_pre_tikzpicture=None, figure_options=None,
                  figure_anchor=None, opacity=None, rotate=None, *args, **kwargs):
 
 
-        # Register the module 
+        # Register the module
         super().__init__(x, y, width, height, margin, 'svg', **kwargs)
 
         # Set the argument as attributes of the module
-        self.set(opacity=opacity, rotate=rotate, tikz_header=tikz_header, 
+        self.set(opacity=opacity, rotate=rotate, tikz_header=tikz_header,
                 tex_packages=tex_packages, latex_pre_tikzpicture=latex_pre_tikzpicture,
-                figure_options=figure_options, figure_anchor=figure_anchor, 
+                figure_options=figure_options, figure_anchor=figure_anchor,
                 tikzcmd=tikzcmd)
 
         # Set the list of argument to exclude from theme default values
         self.theme_exclude_args = ['tikzcmd']
-        
+
         # Update the signature of the __init__ call
         self.update_signature()
 
@@ -83,7 +83,7 @@ class tikz(beampy_module):
         self.apply_theme()
 
         # Special args for cache id (when do we need to re-run latex render)
-        self.args_for_cache_id = [self.figure_options, self.tex_packages, 
+        self.args_for_cache_id = [self.figure_options, self.tex_packages,
                                   self.tikz_header, self.latex_pre_tikzpicture]
 
         self.add_content(tikzcmd, 'svg')
@@ -94,7 +94,7 @@ class tikz(beampy_module):
         """
 
 
-        #latex2svg 
+        #latex2svg
         svgout = latex2svg(self.latex)
 
         print(self.latex)
@@ -159,10 +159,11 @@ class tikz(beampy_module):
                  pre]
 
         # Enclose Tikzfigure options in []
+        tikzoptions = ''
         if self.figure_options is not None:
-            tikzoptions = f'[{self.figure_options}]'
+            tikzoptions += f'[{self.figure_options}]'
 
-        latex += [r'\begin{tikzpicture}'+tikzoptions]
+        latex += [r'\begin{tikzpicture}' + tikzoptions]
         # replace '\slidewidth'
         tikzcmd = self.tikzcmd.replace(r'\slidewidth',
                                                '%ipt' % (0.75*Store.current_width()))
@@ -199,4 +200,3 @@ class tikz(beampy_module):
         pre = '\n'.join(pre)
 
         return pre
-

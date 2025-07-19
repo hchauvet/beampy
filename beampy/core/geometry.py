@@ -129,7 +129,7 @@ class Position():
         """
 
         if isinstance(value, (Position, Length)):
-            #  For position don't trigger the computation, this is done by 
+            #  For position don't trigger the computation, this is done by
             #  the compute_position methods of beampy_module class
             value = value._value
 
@@ -524,7 +524,7 @@ class Length():
         return self._value == other
 
 
-def relative_length(length, axis='x', fallback_size=(1280, 720)):
+def relative_length(length, axis='x', fallback_size=None):
     """Compute relative length, and return it's value in pixel.
 
     Parameters:
@@ -538,12 +538,17 @@ def relative_length(length, axis='x', fallback_size=(1280, 720)):
         The direction 'x' = 'width' and 'y' = 'heigth' used to compute the
         finale size. (the default is 'x')
 
-    - fallback_size, list of int (optional):
+    - fallback_size, list of int or None (optional, default None):
         The size used when their is no current width/height available (i.e. when
-        a module are created outside of a slide). (default is (1280, 720))
+        a module are created outside of a slide). (default is (1280, 720)).
+        If None, the size defined in the Theme is used.
     """
 
     assert axis in ['x', 'y'], "Axis should be 'x' or 'y'"
+    if fallback_size is None:
+        fallback_size = (Store._theme['document']['width'], Store._theme['document']['height'])
+        print(f'Fallback size loaded from Theme: {fallback_size}')
+
     assert len(fallback_size) == 2, "Fallback size should be (xx, xx) with xx an int"
 
     # Get the availale space
@@ -557,7 +562,7 @@ def relative_length(length, axis='x', fallback_size=(1280, 720)):
                     space = Store.group().width.value
             else:
                 space = fallback_size[0]
-                print('TODO: read Theme layout width, use fallback %i' % space)
+
         else:
             if Store.isgroup() and Store.group().width.is_defined:
                 if Store.group().width.is_relative:
@@ -577,7 +582,7 @@ def relative_length(length, axis='x', fallback_size=(1280, 720)):
                     space = Store.group().height.value
             else:
                 space = fallback_size[1]
-                print('TODO: read Theme layout height, use fallback %i' % space)
+
         else:
             if Store.isgroup() and Store.group().height.is_defined:
                 if Store.group().height.is_relative:
@@ -600,7 +605,7 @@ def relative_length(length, axis='x', fallback_size=(1280, 720)):
     return out
 
 
-def center_on_available_space(position, fallback_size=(1280, 720)):
+def center_on_available_space(position, fallback_size=None):
     """Function to center the given position of beampy_module on the avalaible
     space, either curwidth, curheight (or use the fallback_size).
 
@@ -610,10 +615,15 @@ def center_on_available_space(position, fallback_size=(1280, 720)):
     - Positions, Position object:
         The position to center
 
-    - fallback_size, tuple or list of int:
+    - fallback_size, tuple or list of int (or None default):
         The size used if curwidth and curheight are not available.
+        If None use the size defined in the Theme.
 
     """
+
+    if fallback_size is None:
+        fallback_size = (Store._theme['document']['width'], Store._theme['document']['height'])
+        print(f'Fallback size loaded from Theme: {fallback_size}')
 
     if position.axis == 'x':
         if Store.get_current_slide_id() is None:
@@ -621,7 +631,7 @@ def center_on_available_space(position, fallback_size=(1280, 720)):
                 space = Store.group().width.value
             else:
                 space = fallback_size[0]
-                print('TODO: read Theme layout width, use fallback %i' % space)
+
         else:
             if Store.isgroup() and Store.group().width.is_defined:
                 space = Store.group().width.value
@@ -636,7 +646,7 @@ def center_on_available_space(position, fallback_size=(1280, 720)):
                 space = Store.group().height.value
             else:
                 space = fallback_size[1]
-                print('TODO: read Theme layout height, use fallback %i' % space)
+
         else:
             if Store.isgroup() and Store.group().height.is_defined:
                 space = Store.group().height.value
@@ -649,7 +659,7 @@ def center_on_available_space(position, fallback_size=(1280, 720)):
     return out_pos.value
 
 
-def horizontal_distribute(beampy_modules, available_space):
+def horizontal_distribute(beampy_modules, available_space, offset=0):
     """Equally distribute beampy_modules horizontally over the available space
     and update their x Position objects with a pixel position.
 
@@ -661,11 +671,17 @@ def horizontal_distribute(beampy_modules, available_space):
 
     - available_space, int:
         The size available to compute the distance between two adjacent modules.
+
+    - offset, int (default = 0):
+        gives the first offset of the slide (due to the title for instance)
     """
 
     widths = [m.total_width for m in beampy_modules]
 
     total_width = sum(widths).value
+
+    # Remove the offset from the available space
+    available_space = available_space - offset
 
     if total_width > available_space:
         print('Horizontal overflow of elements (%i px to distribute in %i)' % (total_width, available_space))
@@ -678,7 +694,7 @@ def horizontal_distribute(beampy_modules, available_space):
         bpm.x.update_auto((beampy_modules[i].right + dx).value)
 
 
-def vertical_distribute(beampy_modules, available_space):
+def vertical_distribute(beampy_modules, available_space, offset=0):
     """Equally distribute beampy_modules vertically over the available space
     and update their y Position objects with a pixel position.
 
@@ -690,11 +706,17 @@ def vertical_distribute(beampy_modules, available_space):
 
     - available_space, int:
         The size available to compute the distance between two adjacent modules.
+
+    - offset, int (default = 0):
+        gives the first offset of the slide (due to the title for instance)
     """
 
     heights = [m.total_height for m in beampy_modules]
 
     total_height = sum(heights).value
+
+    # Remove the offset from the available space
+    available_space = available_space - offset
 
     if total_height > available_space:
         print('Vertical overflow of elements (%i px to distribute in %i)' % (total_height, available_space))
@@ -711,7 +733,7 @@ def vertical_distribute(beampy_modules, available_space):
 class Margins():
 
     def __init__(self, margins):
-        """ 
+        """
         Convert a given margin into a list of 4 Length objects [top, right, bottom, left]
 
         Parameters:
@@ -720,7 +742,7 @@ class Margins():
         - margin: int, float, str of a list of int, float, or str,
             When given as a simple number (int, float or str), the [top,
             right, bottom, left] margins will be equales.
-            
+
             When given as a list of size 2, the left, right will be equal to the first
             number and the top, bottom to the second one.
 
@@ -768,21 +790,21 @@ class Margins():
     def top(self):
         if self._margins is None:
             return None
-            
+
         return self._margins[0].value
 
     @property
     def right(self):
         if self._margins is None:
             return None
-            
+
         return self._margins[3].value
 
     @property
     def bottom(self):
         if self._margins is None:
             return None
-            
+
         return self._margins[2].value
 
     @property

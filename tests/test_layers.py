@@ -25,7 +25,7 @@ def make_presentation():
 
         with group()[1:] as g1:
             v0 = video('../examples/test.webm', width=300)[2]
-            text('toto')
+            text('toto')[:]
             ss = text('tutu')[2]
             with group(width=300) as g2:
                 t0=text('New sub group text', width=150, x=0, y=0)[3]
@@ -38,7 +38,7 @@ def make_presentation():
         text('The first text, printed over all layers')[:]
         text('The second text')[1]
         text('The text from 3 to the end')[2:]
-        text('Only at the end')[3]
+        text('Only at the end')[4]
 
         it = itemize([r'test item <+->','with an',r'ugly hacking item\_layers=["2:","3:",4]'],
                      x='center', y='auto', item_layers=['2:','3:',4])

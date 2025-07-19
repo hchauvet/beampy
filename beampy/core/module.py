@@ -154,7 +154,9 @@ class beampy_module():
         self.out_svgdefs = None
         self.svgdefsargs = []
 
+        # Store the Position object (could be modified when editing the slides)
         self.x = x
+        # The final position of the module (the one that will be used in the SVG or HTML object)
         self._final_x = None
         self.y = y
         self._final_y = None
@@ -181,7 +183,7 @@ class beampy_module():
         # Variables that will store output of render functions
         self.svgout = ''  # The svg template to produce the final valid svg string
         self.htmlout = ''  # The html template
-        self.animout = ''  # Store multiple rasters for animation
+        self.animout = []  # Store multiple rasters for animation
 
     def register(self):
         """
@@ -215,7 +217,7 @@ class beampy_module():
         else:
             if Store.isgroup() and self.add_to_group:
                 Store.group().add_module(self)
-                self.parent = Store.groud()
+                self.parent = Store.group()
                 self.id = self.get_index()
             else:
                 # The case outside of a group and outside ouf a slide, so their is no list of modules
@@ -704,11 +706,9 @@ class beampy_module():
             out += ['rotate(%s)' % ','.join(self.rotate)]
 
         if len(out) > 0:
-            out = f'transform="{" ".join(out)}"'
-        else:
-            out = ''
+            return f'transform="{" ".join(out)}"'
 
-        return out
+        return ''
 
     @property
     def csstransform(self) -> str:
@@ -1162,20 +1162,22 @@ class beampy_module():
         self._final_x = xfv
         self._final_y = yfv
 
-    def delete(self):
+    def delete(self, remove_from_store=True):
         # Remove from document
 
-        if self.slide_id is not None:
-            for sid in self.slide_id:
-                Store.get_slide(sid).remove_module(self.id)
+        if self.id is not None:
+            if self.slide_id is not None:
+                for sid in self.slide_id:
+                    Store.get_slide(sid).remove_module(self.id)
 
-        Store.remove_module(self.id)
+            if remove_from_store:
+                Store.remove_content(self.id)
         del self
 
     def reset_outputs(self):
         self.svgout = ''  # The output of the render
         self.htmlout = ''  # We can store also html peace of code
-        self.animout = ''  # Store multiple rasters for animation
+        self.animout = []  # Store multiple rasters for animation
         self.data = None
 
     def pre_render(self):
@@ -1313,7 +1315,7 @@ class beampy_module():
         out_svgdefs = ''
         if len(self.svgdefs) > 0:
 
-            logging.debug('Export svg defs added to module %s' % str(self.name))
+            _log.debug('Export svg defs added to module %s' % str(self.name))
             # print('Svgdefs type for ', str(self.name))
             for i, svgdef in enumerate(self.svgdefs):
                 # print(type(svgdef))
@@ -1326,7 +1328,7 @@ class beampy_module():
 
                 out_svgdefs += svgdef
 
-            logging.debug(out_svgdefs)
+            _log.debug(out_svgdefs)
 
         if out_svgdefs != '':
             document._slides[self.slide_id].svgdefout += [out_svgdefs]
@@ -1356,27 +1358,29 @@ class beampy_module():
 
     def export_animation(self):
         # Export animation of list of svg
-        if isinstance(self.animout, list):
-            # print(self.slide_id, slide.cpt_anim)
-            # Pre cache raster images
-            frames_svg_cleaned, all_images = pre_cache_svg_image( self.animout )
+        #if len(self.animout) > 0:
+        # Pre cache raster images
+        frames_svg_cleaned, all_images = pre_cache_svg_image( self.animout )
 
-            # Add an animation to animout dict
-            animout = {}
-            animout['header'] = "%s"%(''.join(all_images))
-            animout['config'] = { 'autoplay':self.autoplay, 'fps': self.fps }
-            animout['anim_num'] = self.anim_num
-            animout['frames'] = frames_svg_cleaned
+        # Add an animation to animout dict
+        animout = {}
+        animout['header'] = "%s"%(''.join(all_images))
+        animout['config'] = { 'autoplay':self.autoplay, 'fps': self.fps }
+        animout['anim_num'] = self.anim_num
+        animout['frames'] = frames_svg_cleaned
 
-            return animout
+        return animout
 
     def export_animation_layer(self, layer):
         out = '<g id="svganimate_{slide}-{layer}_{id_anim}"' \
               ' transform="translate({x},{y})" onclick="Beampy.animatesvg({id_anim},{fps},{anim_size});"' \
               ' data-slide={slide} data-anim={id_anim} data-fps={fps} data-lenght={anim_size}>{frame_init}</g>'\
 
-        out = out.format(slide=self.slide_id, layer=layer, id_anim=self.anim_num, x=self.positionner.x['final'],
-                         y = self.positionner.y['final'], fps=self.fps, anim_size=len(self.animout),
+        # In javascript indices of slides starts at 0 and in python at 1
+        # TODO: This should be changed one day to be more consistent !!!
+        sid = int(self.slide_id.split('_')[1]) - 1
+        out = out.format(slide=f'slide_{sid}', layer=layer, id_anim=self.anim_num, x=self._final_x,
+                         y = self._final_y, fps=self.fps, anim_size=len(self.animout),
                          frame_init=self.animout[0])
         return out
 

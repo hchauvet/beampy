@@ -12,10 +12,10 @@ def make_presentation():
 
     with slide('test circle'):
 
-        c = circle()
+        c = circle(color='yellow', r='10px')
         c1 = circle(r=100, margin=10, linewidth=3, edgecolor='blue')
         c2 = circle(center(c1.right), center(c1.top), width=c1.width/2, color='red')
-        c3 = circle(5, 'center', width=0.5, color='none', linewidth=10)
+        c3 = circle(center(c.x_center), center(c.y_center), width=0.5, color='none', linewidth=10, edgecolor='crimson')
         for cc in [c, c1, c2]:
             cc.show_box_model = True
 

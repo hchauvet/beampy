@@ -15,6 +15,7 @@ from .toc import tableofcontents
 from .tikz import tikz
 from .iframe import iframe
 from .biblio import bibliography, cite
+from .animatesvg import animatesvg
 
 __all__ = [
     'text',
@@ -36,5 +37,6 @@ __all__ = [
     'tikz',
     'iframe',
     'bibliography',
-    'cite'
+    'cite',
+    'animatesvg'
 ]

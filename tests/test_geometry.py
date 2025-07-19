@@ -6,7 +6,7 @@ import logging
 import pytest
 from beampy import *
 
-# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 test_name = 'test_geometry'
 
 @pytest.fixture
@@ -64,7 +64,7 @@ def make_presentation():
 
         rectangle(height=g1.height, width=g1.width/2,
                   color='None', edgecolor='blue',
-                  x=g1.center+center(0), y=g1.top+0)
+                  x=g1.x_center+center(0), y=g1.top+0)
 
 
     with slide('Font size and svg size'):

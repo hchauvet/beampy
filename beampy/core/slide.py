@@ -77,7 +77,7 @@ class slide(object):
         # Change from dict to class
         self.tmpout = ''
         self.modules = []  # store modules
-        self.modules_order = []  # store the order of module inside the slide 
+        self.modules_order = []  # store the order of module inside the slide
         self.id_modules_auto_x = []  # store modules with x='auto'
         self.id_modules_auto_y = []  # store modules with y='auto'
         # self.contents = {}
@@ -155,7 +155,7 @@ class slide(object):
 
         # Add a module to the current slide
         self.modules += [module]
-        # Add it to the order 
+        # Add it to the order
         self.modules_order += [module]
 
     def reset_rendered(self):
@@ -203,8 +203,9 @@ class slide(object):
         """
 
         self.num_layers = get_maximum_layer(self.modules)
-        layers_in_slide = unique_layers(self.modules, self.num_layers)
-        _log.debug('List of layers %s ' % str(layers_in_slide))
+        if len(self.modules) > 0:
+            layers_in_slide = unique_layers(self.modules, self.num_layers)
+            _log.debug('List of layers %s ' % str(layers_in_slide))
 
     def show(self):
         from beampy.exports import display_matplotlib
@@ -308,15 +309,26 @@ class slide(object):
                     self.layers_content[layer]['html'] += [html_content]
                 else:
                     if mod.type == 'svg':
-                        content = mod.svguse
+                        # The special case of svg animation module
+                        if len(mod.animout) > 0:
+                            content = mod.export_animation_layer(layer)
+                        else:
+                            content = mod.svguse
 
                     if mod.type == 'html':
                         content = mod.html
                         # For svgaltdef add a svg use for this element id
                         if svgaltdef and mod.svgaltdef is not None:
-                            self.layers_content[layer]['svg'] += [mod.svguse]        
+                            self.layers_content[layer]['svg'] += [mod.svguse]
 
                     self.layers_content[layer][mod.type] += [content]
+
+            # Check if we need to export animation
+            if len(mod.animout) > 0:
+                if mod.type == 'group':
+                    self.animout += mod.animout
+                else:
+                    self.animout += [mod.export_animation()]
 
         # Join the modules content for each layers
         for layer in self.layers_content:
@@ -408,7 +420,7 @@ class slide(object):
             tmpout[slide_id]['svg'] += [
                 f'<use xlink:href="#slide_0-{layer}"/>']
 
-        if self.animout is not None:
+        if len(self.animout) > 0:
             tmpout[slide_id]['svganimates'] = {}
             headers = []
             for ianim, data in enumerate(self.animout):
@@ -505,7 +517,7 @@ class slide(object):
 
         # remove the module
         cur_module = self.modules_order.pop(current_pos)
-        
+
         # add it to it's new position
         self.modules_order.insert(destination_pos, cur_module)
 
@@ -521,7 +533,7 @@ class slide(object):
             self.id_modules_auto_y.pop(iloc)
             self.id_modules_auto_y.insert(destination_pos, cur_module.id)
         """
-            
+
     def _reset_curwidth(self) -> None:
         """
         Reset the curwidth attribute

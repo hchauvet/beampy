@@ -84,8 +84,9 @@ def make_presentation():
                   \]%
                 };
             """, figure_options="scale=3,cap=round", x='center', y='auto')
-        t = text(r"\href{http://www.texample.net/tikz/examples/tutorial/}{http://www.texample.net/tikz/examples/tutorial/}")
-        p.add_border()
+        t = text(r"\href{http://www.texample.net/tikz/examples/tutorial/}{http://www.texample.net/tikz/examples/tutorial/}",
+                x='center', y='auto')
+        p.show_box_model = True
 
     return doc
 

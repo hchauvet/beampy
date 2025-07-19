@@ -11,8 +11,8 @@ def make_iframes():
     doc = document()
 
     with slide():
-        iframe('https://developer.mozilla.org/fr/docs/Web/SVG/Element/foreignObject')
-
+        ifr = iframe('https://www.openstreetmap.org/export/embed.html?bbox=152.84720420837402%2C-27.152032753362846%2C152.9905414581299%2C-27.082665432390733&amp;layer=mapnik')
+        print(ifr)
     return doc
 
 
