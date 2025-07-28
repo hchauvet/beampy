@@ -186,13 +186,13 @@ class Store(metaclass=StoreMetaclass):
         cls._current_slide = None
 
     @classmethod
-    def set_current_slide_id(cls, new_id: str): 
+    def set_current_slide_id(cls, new_id: str):
         """
         Set the current_slide value to new_id
         """
         if new_id in cls._slides:
             cls._current_slide = new_id
-            
+
     @classmethod
     def get_current_slide_pos(cls):
         """
@@ -394,6 +394,17 @@ class Store(metaclass=StoreMetaclass):
         cls._glyphs = glyphs
 
     @classmethod
+    def search_glyph_from_svgid(cls, glyph_svg_id):
+        """
+        Return only one glyph corresponding to the glyph_id
+        """
+        for k in cls._glyphs:
+            if cls._glyphs[k]['id'] == glyph_svg_id:
+                return cls._glyphs[k]
+
+        return None
+
+    @classmethod
     def svg_id(cls):
         """
         Return the current id to make unique id for svg
@@ -433,26 +444,26 @@ class Store(metaclass=StoreMetaclass):
     def add_toc(cls, title: str, level: int, slide: int = None):
         """
         Add an entry to table of content for a given slide
-        
+
         Parameters:
         -----------
         - title, str:
-            The name of the section, subsection, subsubsection 
+            The name of the section, subsection, subsubsection
         - level, int:
             The level of this toc entry (0: section, 1: subsection, 2: subsubsection)
         - slide, int (or None):
-            The slide number on which to register this toc entry (if None, the default, 
+            The slide number on which to register this toc entry (if None, the default,
             the current slide is used).
         """
-        
-        if slide is None: 
-            slide = len(Store) 
-            
-        Store._TOC.append({'title': title, 
+
+        if slide is None:
+            slide = len(Store)
+
+        Store._TOC.append({'title': title,
                            'level': level,
-                           'slide': slide, 
+                           'slide': slide,
                            'id': hash(time())})
-                           
+
     @classmethod
     def clear_all(cls):
         """

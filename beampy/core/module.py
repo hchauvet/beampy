@@ -9,6 +9,7 @@ from beampy.core.content import Content
 from beampy.core.functions import (get_command_line, print_function_args,
                                    pre_cache_svg_image, convert_unit,
                                    dict_deep_update)
+from beampy.core._svgfunctions import get_xlinkhref
 from beampy.core.geometry import Position, Length, Margins
 from string import Template
 from copy import deepcopy
@@ -475,7 +476,7 @@ class beampy_module():
 
         return previous_module
 
-    def get_html_div(self):
+    def get_html_div(self, no_positionning=False):
         '''
         Return a div structure for the module that will handle the x, y offset and the transpose things.
 
@@ -485,7 +486,21 @@ class beampy_module():
         '''
 
         if self.type == 'svg':
-            div_tmpl = Template(f'<div style="position: absolute; left:{self._final_x}px; top:{self._final_y}px; opacity:{self.opacity}; width:{self.width}px; height:{self.height}px; {self.csstransform};"> $content </div>')
+            div_tmpl = f'<div style="position: absolute; '
+            if no_positionning:
+                div_tmpl += 'left:0px; top:0px;'
+            else:
+                div_tmpl += f'left:{self._final_x}px; top:{self._final_y}px;'
+
+            div_tmpl += f' opacity:{self.opacity}; width:{self.width}px; height:{self.height}px; "'
+
+            if no_positionning:
+                div_tmpl += '">'
+            else:
+                div_tmpl += f' {self.csstransform};">'
+
+            div_tmpl += ' $content </div>'
+            div_tmpl = Template(div_tmpl)
             tmpsvg = (f'<svg width="{self.width}" height="{self.height}">'
                       f'<use xlink:href="#{self.content_id}"/>'
                       '</svg>')
@@ -1354,6 +1369,21 @@ class beampy_module():
             out += 'source : fail\n'
 
         return out
+
+
+    def _repr_html_(self):
+        """
+        Create an html representation of the module to display it in notebook
+        """
+
+        ## Try to find
+        needed_ref_ids = get_xlinkhref(self.svgdef)
+        glyph_dephs = [Store.search_glyph_from_svgid(gid)['svg'] for gid in needed_ref_ids]
+        glyphs = ''
+        if len(glyph_dephs) > 0:
+            glyphs = ''.join(glyph_dephs)
+
+        return r'<svg><defs>'+self.svgdef+glyphs+'</defs></svg>'+self.get_html_div(no_positionning=True)
 
 
     def export_animation(self):

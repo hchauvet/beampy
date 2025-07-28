@@ -126,13 +126,13 @@ def make_global_svg_defs(svg_soup: object) -> object:
     # New way find all id in the svg
 
     #Create seed by hashing the entire svg file
-    try: 
+    try:
         seed = hashfunction(svg_soup.encode('utf8')).hexdigest()[:5]
-    except Exception as error: 
+    except Exception as error:
         seed = hashfunction(svg_soup.decode('utf8')).hexdigest()[:5]
-    
+
     strsvg = svg_soup.decode('utf8')
-        
+
     for tag in svg_soup.findAll(lambda x: x is not None and x.has_attr('id')):
         oldid = tag['id']
         newid = "S%s_%i"%(seed, Store.svg_id())
@@ -140,7 +140,7 @@ def make_global_svg_defs(svg_soup: object) -> object:
 
         if tag.name in ['clipPath','linearGradient']:
             strsvg = re.sub(f'(#{oldid})', f'#{newid}', strsvg)
-                
+
 
         # print(oldid, newid)
         Store.update_svg_id()
@@ -159,7 +159,7 @@ def apply_style_to_all_images(svg_soup: object, style: str) -> object:
 
     for imt in svg_soup.findAll('image'):
         # TODO: keep old style and merge it properly with the new one
-        imt['style'] = style 
+        imt['style'] = style
 
     return svg_soup
 
@@ -289,3 +289,11 @@ def make_unique_glyphs(svgsoup: object) -> object:
                 use['xlink:href'] = f'#{new_path_id}'
 
     return svgsoup
+
+
+def get_xlinkhref(svgtext):
+    """
+    Exctract all xlink:href
+    """
+
+    return re.findall(r'xlink:href="#([^"]+)"', svgtext)
