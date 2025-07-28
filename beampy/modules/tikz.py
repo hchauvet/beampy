@@ -125,13 +125,13 @@ class tikz(beampy_module):
         self.height = tikz_height * tex_pt_to_px
 
         # TODO: translate that to the new system of Beampy 1.0
-        """
+
         if 'bottom' in self.figure_anchor:
-            self.positionner.y['anchor'] = 'bottom'
+            self.yorigine = 'bottom'
 
         if 'right' in self.figure_anchor:
-            self.positionner.x['anchor'] = 'right'
-        """
+            self.xorigine = 'right'
+
 
         soup = make_unique_glyphs(soup)
 

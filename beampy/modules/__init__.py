@@ -16,6 +16,7 @@ from .tikz import tikz
 from .iframe import iframe
 from .biblio import bibliography, cite
 from .animatesvg import animatesvg
+from .arrow import arrow
 
 __all__ = [
     'text',
@@ -38,5 +39,6 @@ __all__ = [
     'iframe',
     'bibliography',
     'cite',
-    'animatesvg'
+    'animatesvg',
+    'arrow'
 ]

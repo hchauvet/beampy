@@ -9,7 +9,10 @@ def make_presentation():
     doc = document(cache=False)
 
     with slide():
-        arrow(x=10, y=0.1, dx=780, dy=0, lw=6, color='Crimson')
+        a1 = arrow(x=10, y=0.1, dx=780, dy=0, lw=6, color='Crimson')
+        arrow(x=10, y=0.1, dx=780, dy=100)
+        
+        arrow(x=a1.right + 0, y=a1.y_center+0, dx=-50, dy=10, color='green')
 
     return doc
 

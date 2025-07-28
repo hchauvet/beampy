@@ -109,8 +109,8 @@ def arrow(x, y, dx, dy, style='->', color="black", lw='2pt', in_angle=None,
         tmpanchor = 'left'
 
     if dy < 0 or (isinstance(dy, str) and '-' in dy):
-        tmpanchor += '_bottom'
+        tmpanchor += 'bottom'
     else:
-        tmpanchor += '_top'
+        tmpanchor += 'top'
 
     return tikz(tikz_cmd, x=x, y=y, figure_anchor=tmpanchor)
