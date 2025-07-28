@@ -184,7 +184,7 @@ class group(beampy_module):
 
         # TODO: remove empty svguse, and take care of svguse needed for html_svgalt
         svgout = {}
-        for mod in self.modules:
+        for mod in self.modules_order:
             for layer in mod.layers:
                 if mod.type == 'group':
                     svguse = mod.svguse(layer)
