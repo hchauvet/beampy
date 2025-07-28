@@ -1373,13 +1373,14 @@ class beampy_module():
 
     def export_animation_layer(self, layer):
         out = '<g id="svganimate_{slide}-{layer}_{id_anim}"' \
-              ' transform="translate({x},{y})" onclick="Beampy.animatesvg({id_anim},{fps},{anim_size});"' \
+              ' transform="translate({x},{y})" onclick="Beampy.animatesvg(\'{slide}\',{layer},{id_anim},{fps},{anim_size});"' \
               ' data-slide={slide} data-anim={id_anim} data-fps={fps} data-lenght={anim_size}>{frame_init}</g>'\
 
         # In javascript indices of slides starts at 0 and in python at 1
         # TODO: This should be changed one day to be more consistent !!!
-        sid = int(self.slide_id.split('_')[1]) - 1
-        out = out.format(slide=f'slide_{sid}', layer=layer, id_anim=self.anim_num, x=self._final_x,
+        # print(f'the self.slide_id is {self.slide_id}')
+        # sid = int(self.slide_id.split('_')[1]) - 1
+        out = out.format(slide=self.slide_id, layer=layer, id_anim=self.anim_num, x=self._final_x,
                          y = self._final_y, fps=self.fps, anim_size=len(self.animout),
                          frame_init=self.animout[0])
         return out

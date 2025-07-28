@@ -13,7 +13,7 @@ from beampy.core import Store
 import glob
 import re
 import sys
-from copy import copy
+
 
 class animatesvg(beampy_module):
     """
@@ -152,7 +152,7 @@ class animatesvg(beampy_module):
                     if _width is None:
                         _width = img.width.value
                     if _height is None:
-                       _height = img.height.value
+                        _height = img.height.value
 
                     img.delete()
 
@@ -165,18 +165,20 @@ class animatesvg(beampy_module):
             else:
                 # Check if pdf_animations is True
                 img = figure(self.files_in[0], **fig_args)
-                img.x = copy(self.x)
-                img.y = copy(self.y)
+                img.run_render()
+                img.compute_position()
 
-                img.render()
-                self.update_size(img.width.value, img.height.value)
+                if _width is None:
+                    _width = img.width.value
+                if _height is None:
+                    _height = img.height.value
+
                 self.svgdef = img.svgdef
                 self.svgaltdef = img.svgaltdef
                 img.delete()
 
-            # return output
-            if self.height.value is None:
-                self.height = _height
+            self.width = _width
+            self.height = _height
             self.content_width = _width
             self.content_height = _height
 

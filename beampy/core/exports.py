@@ -34,7 +34,7 @@ else:
 
 def save_layout():
     for islide in range(len(Store)):
-        slide = Store.get_slide(f'slide_{islide+1}')
+        slide = Store.get_slide(f'slide_{islide}')
         # TODO: slide.build_layout()
 
 
@@ -118,7 +118,7 @@ def pdf_export(name_out):
     # Create slide names (with layers)
     output_svg_names = []
     for islide in range(len(Store)):
-        for layer in range(Store.get_slide(f'slide_{islide+1}').num_layers + 1):
+        for layer in range(Store.get_slide(f'slide_{islide}').num_layers + 1):
             output_svg_names += ['slide_%i-%i'%(islide, layer)]
 
     # Convert svg to pdf in a Pool of worker
@@ -160,7 +160,7 @@ def svg_export(dir_name, quiet=False):
     for islide in range(len(Store)):
         print("Export slide %i"%islide)
 
-        slide = Store.get_slide(f"slide_{islide+1}")
+        slide = Store.get_slide(f"slide_{islide}")
 
         # Render the slide
         slide.render(svgaltdef=True)
@@ -232,7 +232,7 @@ def html5_export():
     # Loop over slides in the document to render them
     for islide in range(len(Store)):
         tnow = time.time()
-        slide = Store.get_slide("slide_%i" % (islide + 1))
+        slide = Store.get_slide("slide_%i" % (islide))
         slide.render()
         print("Rendered in %0.3f seconds"%(time.time()-tnow))
 
@@ -257,7 +257,7 @@ def html5_export():
 
         slide_id = "slide_%i" % (islide)
         tmpout[slide_id] = {}
-        slide = Store.get_slide("slide_%i" % (islide+1))
+        slide = Store.get_slide("slide_%i" % (islide))
 
         # Add a small peace of svg that will be used to get the data from the global store
         tmpout[slide_id]['svg'] = [] # Init the store for the differents layers
@@ -404,89 +404,7 @@ def check_content_type_change(slide, nothtml=True):
             if 'original_type' in ct:
                 ct['type'] = ct['original_type']
 
-
-def display_matplotlib(slide_id, show=False):
-    """
-        Display the given slide in a matplotlib figure
-    """
-    import matplotlib
-    matplotlib.use('agg')
-
-    from matplotlib import pyplot
-    from PIL import Image
-    from numpy import asarray
-
-    if document._quiet:
-        sys.stdout = open(os.devnull, 'w')
-
-    # Set document format to svg
-    oldformat = document._output_format
-    document._output_format = 'svg'
-
-
-    slide = document._slides[slide_id]
-    render_texts([slide.contents[eid] for eid in slide.element_keys if slide.contents[eid].type == 'text'])
-    slide.build_layout()
-
-    # Render the slide
-    slide.newrender()
-
-    svgout = slide.svgheader
-
-    # Export glyphs
-    if 'glyphs' in document._global_store:
-        glyphs_svg = '<defs>%s</defs>' % (''.join([glyph['svg'] for glyph in document._global_store['glyphs'].values()]))
-        # old .decode('utf-8', errors='replace') for py2
-        svgout += glyphs_svg
-
-    # join all svg defs (old .decode('utf-8', errors='replace') after join for py2)
-    try:
-        svgout += '<defs>%s</defs>' % (''.join(slide.svgdefout))
-    except Exception as e:
-        # For py 2
-        svgout += '<defs>%s</defs>' % (''.join(slide.svgdefout)).decode('utf-8', errors='replace')
-
-    for layer in range(slide.num_layers + 1):
-        # Join all the svg contents (old .decode('utf-8', errors='replace') for py2)
-        if layer in slide.svglayers:
-            svgout += slide.svglayers[layer]
-
-    # Add the svgfooter
-    svgout += slide.svgfooter
-
-    # Write it to a file
-    tmpname = './.%s' % slide_id
-    with io.open(tmpname+'.svg', 'w') as f:
-        f.write(svgout)
-
-    # Reset document format to oldformat
-    reset_module_rendered_flag()
-    document._output_format = oldformat
-
-    # Change it a png
-    inkscapecmd = Store.get_exec('inkscape')
-    # use inkscape to translate svg to pdf
-    svgcmd = inkscapecmd+" --without-gui  --file='%s' --export-png='%s' -b='white' -d=300"
-    res = os.popen(svgcmd % (tmpname+'.svg', tmpname+'.png'))
-    tmp = res.read()
-    res.close()
-
-    img = asarray(Image.open(tmpname+'.png'))
-
-    # Remove files
-    os.unlink(tmpname+'.svg')
-    os.unlink(tmpname+'.png')
-
-    pyplot.figure(dpi=300)
-    pyplot.imshow(img)
-    # pyplot.axis('off')
-    pyplot.xticks([])
-    pyplot.yticks([])
-    pyplot.tight_layout()
-
-    if show:
-        pyplot.show()
-
+## The old displaymatplotlib is useless (check the __repr_html__ of the slide module instead)
 
 def get_bokeh_includes():
     """

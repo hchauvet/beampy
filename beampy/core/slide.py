@@ -14,6 +14,7 @@ from string import Template
 import json
 from io import StringIO
 from pathlib import Path
+from copy import copy
 
 import logging
 
@@ -63,7 +64,7 @@ class slide(object):
 
         # The id for this slide
         if slide_num is None:
-            self.slide_num = len(Store)+1
+            self.slide_num = len(Store)
         else:
             if slide_num > len(Store)+1:
                 raise IndexError(f'slide_num should be <= {len(Store)+1}')
@@ -254,6 +255,9 @@ class slide(object):
 
         print('-' * 20 + ' slide_%i ' % self.slide_num + '-' * 20)
 
+        # Init the animout list
+        self.animout = []
+
         # Init the dictionnary to get the final data
         self.layers_content = {}
 
@@ -425,8 +429,9 @@ class slide(object):
             headers = []
             for ianim, data in enumerate(self.animout):
                 headers += [data['header']]
-                data.pop('header')
-                tmpout[slide_id]['svganimates'][data['anim_num']] = data
+                ddnoheader = copy(data)
+                ddnoheader.pop('header')
+                tmpout[slide_id]['svganimates'][data['anim_num']] = ddnoheader
 
             # Add cached images to global_store
             # old comparision headers != []
