@@ -9,7 +9,8 @@ import os
 import sys
 from time import time
 from pathlib import Path
-from distutils.spawn import find_executable
+# from distutils.spawn import find_executable
+from shutil import which as find_executable
 from beampy.statics.external_app_links import __APPS__
 
 from .._version import __version__
@@ -159,8 +160,10 @@ class Store(metaclass=StoreMetaclass):
         """
         Get the current slide
         """
+        if cls._current_slide in cls._slides:
+            return cls._slides[cls._current_slide]
 
-        return cls._slides[cls._current_slide]
+        return None
 
     @classmethod
     def get_slide(cls, slide_id):
@@ -425,6 +428,10 @@ class Store(metaclass=StoreMetaclass):
         local height (when you are inside one group)
         """
         if Store.get_current_slide_id() is None:
+            # Check if their is a current group with a defined with
+            if Store._current_group is not None:
+                return Store.current_group.height.value
+
             return Store.theme('document')['height']
 
         return Store.get_current_slide().curheight
@@ -436,6 +443,10 @@ class Store(metaclass=StoreMetaclass):
         local width (when you are inside one group)
         """
         if Store.get_current_slide_id() is None:
+            # Check if their is a current group with a defined with
+            if Store._current_group is not None:
+                return Store.current_group.width.value
+
             return Store.theme('document')['width']
 
         return Store.get_current_slide().curwidth
