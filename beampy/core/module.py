@@ -900,14 +900,21 @@ class beampy_module():
 
 
         """
+        # The origin of the axis (what was called 'align' in position dictionnary, for historical reason)
+        # The anchor is the point of the module for which we want to compute the position
+        self.xorigin = 'left'
+        self.xanchor = 'left'
 
         # Dict case
         if isinstance(position, dict):
-            assert position['anchor'] in ['left', 'center', 'right'], 'anchor (origine of the box) should "left" "center" or "right" for the x direction'
-            self.xorigine = position['anchor']
+            assert position['anchor'] in ['left', 'center', 'right'], 'anchor (origin of the box) should "left" "center" or "right" for the x direction'
+            self.xanchor = position['anchor']
+
+            if 'align' in position:
+                assert position['align'] in ['left', 'right', None], f'align (origin of the axis) should be "left" or "right" for x direction not {position["align"]}'
+                self.xorigin = position['align']
+
             position = position['shift']
-        else:
-            self.xorigine = 'left'
 
         # String case
         if isinstance(position, str):
@@ -977,13 +984,20 @@ class beampy_module():
             current width, else if will be the position in pixel
         """
 
+        # The origin of the axis (what was called 'align' in position dictionnary, for historical reason)
+        # The anchor is the point of the module for which we want to compute the position
+        self.yorigin = 'top'
+        self.yanchor = 'top'
         # Dict case
         if isinstance(position, dict):
-            assert position['anchor'] in ['top', 'center', 'bottom'], 'anchor (origine of the box) should "top" "center" or "bottom" for the x direction'
-            self.yorigine = position['anchor']
+            assert position['anchor'] in ['top', 'center', 'bottom'], 'anchor (origine of the box) should "top" "center" or "bottom" for the y direction'
+            if 'align' in position:
+                assert position['align'] in ['top', 'bottom', None], f'align value should be "top" or "bottom" for the y direction not {position["align"]}'
+                self.yorigin = position['align']
+
+            self.yanchor = position['anchor']
             position = position['shift']
-        else:
-            self.yorigine = 'top'
+
 
         # String cases
         if isinstance(position, str):
@@ -1148,17 +1162,29 @@ class beampy_module():
         yf = self.y
 
         # Apply origin transformation
-        if self.xorigine == 'center':
+        if self.xanchor == 'center':
             xf = self.x - self.total_width / 2
 
-        if self.xorigine == 'right':
+        if self.xanchor == 'right':
             xf = self.x - self.total_width.value
 
-        if self.yorigine == 'center':
+        if self.yanchor == 'center':
             yf = self.y - self.total_height.value / 2
 
-        if self.yorigine == 'bottom':
+        if self.yanchor == 'bottom':
             yf = self.y - self.total_height.value
+
+        if self.xorigin == 'right':
+            if self.parent is None:
+                xf = Store.theme('document')['width'] + xf
+            else:
+                xf = self.parent.width + xf
+
+        if self.yorigin == 'bottom':
+            if self.parent is None:
+                yf = Store.theme('document')['height'] + yf
+            else:
+                yf = self.parent.height + yf
 
         # Add offset
         if xoffset != 0:
@@ -1182,8 +1208,11 @@ class beampy_module():
 
         if self.id is not None:
             if self.slide_id is not None:
-                for sid in self.slide_id:
-                    Store.get_slide(sid).remove_module(self.id)
+                if isinstance(self.slide_id, list):
+                    for sid in self.slide_id:
+                        Store.get_slide(sid).remove_module(self.id)
+                else:
+                    Store.get_slide(self.slide_id).remove_module(self.id)
 
             if remove_from_store:
                 Store.remove_content(self.id)
@@ -1377,13 +1406,16 @@ class beampy_module():
         """
 
         ## Try to find
-        needed_ref_ids = get_xlinkhref(self.svgdef)
-        glyph_dephs = [Store.search_glyph_from_svgid(gid)['svg'] for gid in needed_ref_ids]
-        glyphs = ''
-        if len(glyph_dephs) > 0:
-            glyphs = ''.join(glyph_dephs)
+        if self.svgdef is not None:
+            needed_ref_ids = get_xlinkhref(self.svgdef)
+            glyph_dephs = [Store.search_glyph_from_svgid(gid)['svg'] for gid in needed_ref_ids]
+            glyphs = ''
+            if len(glyph_dephs) > 0:
+                glyphs = ''.join(glyph_dephs)
 
-        return r'<svg><defs>'+self.svgdef+glyphs+'</defs></svg>'+self.get_html_div(no_positionning=True)
+            return r'<svg><defs>'+self.svgdef+glyphs+'</defs></svg>'+self.get_html_div(no_positionning=True)
+
+        return self.get_html_div(no_positionning=True)
 
 
     def export_animation(self):

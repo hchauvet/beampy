@@ -14,38 +14,60 @@ from beampy.core.delayedoperations import Delayed
 #Default dict for positioning alignement
 DEFAULT_X = {'align': 'left', 'reference': 'slide', 'shift': 0,
              'unit': 'width', 'anchor': 'left'}
+## FOR Y axis:
+# - align: 'top' or 'bottom' (the origin of the axis)
+# - reference: 'slide' (not used)
+# - shift: int (in pixel), or a metric value in string
+# - unit: 'height' or 'width' (to process shift given in % as string or lower than 1 in decimal)
+# - anchor: 'top' or 'bottom' (the beampy module anchor point position)
 DEFAULT_Y = {'align': 'top', 'reference': 'slide', 'shift': 0,
              'unit': 'height', 'anchor': 'top'}
 
 
 #Define function for alignement shortcuts.
-def center(shift=0):
+def center(shift=0, origin=None):
 
     out = {'anchor': 'center', 'shift': shift}
 
-    return out
-
-
-def top(shift=0):
-
-    out = {'anchor': 'top', 'shift': shift}
+    if align is not None:
+        out['align'] = origin
 
     return out
 
 
-def bottom(shift=0):
+def top(shift=0, origin='top'):
 
-    out = {'anchor': 'bottom', 'shift': shift}
+    assert origin in ['top', 'bottom'], 'origin should be on "top" or "bottom"'
+
+    out = {'anchor': 'top', 'shift': shift, 'align': origin}
+
+    return out
+
+
+def bottom(shift=0, origin='top'):
+
+    assert origin in ['top', 'bottom'], 'origin should be on "top" or "bottom"'
+
+    out = {'anchor': 'bottom', 'shift': shift, 'align': origin}
 
     return out
 
 
-def right(shift=0):
+def right(shift=0, origin='left'):
 
-    out = {'anchor': 'right', 'shift': shift}
+    assert origin in ['left', 'right'], 'origin should be on "left" or "right"'
+
+    out = {'anchor': 'right', 'shift': shift, 'align': origin}
 
     return out
 
+def left(shift=0, origin='left'):
+
+    assert origin in ['left', 'right'], 'origin should be on "left" or "right"'
+
+    out = {'anchor': 'left', 'shift': shift, 'align': origin}
+
+    return out
 
 def align(positionner_list, alignement):
     """

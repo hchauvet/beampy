@@ -71,7 +71,12 @@ class group(beampy_module):
             self.modules_order = []
 
         if len(self.modules) > 0:
-            self.__exit__()
+            self.__enter__()
+
+            for mod in self.modules:
+                mod.parent = self
+
+            self.__exit__(None, None, None)
 
     def add_content(self, content, content_type):
         """Rewrite add_content method for groups
