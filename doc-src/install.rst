@@ -44,7 +44,7 @@ Install dependencies using apt-get
 
 .. code-block:: bash
 
-   sudo install ffmpeg inkscape texlive-extra-utils texlive-latex-extra pdf2svg python3-pil python3-bs4 python3-bibtexparser
+   sudo install ffmpeg inkscape texlive-extra-utils texlive-latex-extra pdf2svg python3-pil python3-bs4 python3-bibtexparser python3-six
 
 From Python pip
 ***************

@@ -166,7 +166,7 @@ def make_global_svg_defs(svg_soup):
         document._global_counter['svg_id'] = 0  #init the counter
 
     #str_svg to replace modified id in all the svg content
-    strsvg = svg_soup.decode('utf8')
+    strsvg = svg_soup.decode( eventual_encoding = 'utf8')
 
     #Find defs
     svgdefs = svg_soup.find('defs')
