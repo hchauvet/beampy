@@ -1,3 +1,35 @@
+
+<div align="right">
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="center">
+        <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=en">English</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=zh-CN">简体中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=zh-TW">繁體中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=ja">日本語</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=ko">한국어</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=hi">हिन्दी</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=th">ไทย</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=fr">Français</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=de">Deutsch</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=es">Español</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=it">Italiano</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=ru">Русский</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=pt">Português</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=nl">Nederlands</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=pl">Polski</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=ar">العربية</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=fa">فارسی</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=tr">Türkçe</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=vi">Tiếng Việt</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=id">Bahasa Indonesia</a>
+        | <a href="https://openaitx.github.io/view.html?user=hchauvet&project=beampy&lang=as">অসমীয়া</
+      </div>
+    </div>
+  </details>
+</div>
+
 # Beampy [![Build Status](https://travis-ci.com/hchauvet/beampy.svg)](https://travis-ci.com/hchauvet/beampy) [![codecov](https://codecov.io/gh/hchauvet/beampy/graph/badge.svg)](https://codecov.io/gh/hchauvet/beampy) ![pypi python version](https://img.shields.io/pypi/pyversions/beampy-slideshow.svg) ![pypi licence](https://img.shields.io/pypi/l/beampy-slideshow.svg) ![pypi download](https://img.shields.io/pypi/dm/beampy-slideshow.svg) ![pypi beampy version](https://img.shields.io/pypi/v/beampy-slideshow.svg)
 
 **The development of the master branch is currently frozen, (only urgent bug fix will be pushed), the new version of beampy is currently developped in the dev branch which is still not enouth stable to use...**
